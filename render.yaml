@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: rapport-rentree-kobo
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120
+    envVars:
+      - key: KOBO_API_URL
+        value: https://kf.kobotoolbox.org
+      - key: KOBO_TOKEN
+        sync: false
+      - key: KOBO_ASSET_UID
+        sync: false
+      - key: MAX_AGE_MINUTES
+        value: 30

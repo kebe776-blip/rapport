@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rapport de rentrée élémentaire {{ "2025/2026" }}</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; background:#f2f5f8; margin:0; padding:24px; color:#222; }
+  .carte { max-width: 860px; margin: 0 auto; background:#fff; border-radius:8px;
+           box-shadow:0 2px 10px rgba(0,0,0,.12); padding:26px 30px; }
+  h1 { font-size:20px; margin:0 0 6px; color:#1F4E79; }
+  h2 { font-size:15px; margin:22px 0 8px; color:#1F4E79; }
+  .sous { color:#666; font-size:13px; margin-bottom:18px; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:bold; }
+  .ok { background:#d4edda; color:#155724; }
+  .ko { background:#f8d7da; color:#721c24; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:8px; }
+  td, th { border:1px solid #ddd; padding:7px 9px; text-align:left; }
+  th { background:#1F4E79; color:#fff; }
+  code { background:#eef2f6; padding:1px 5px; border-radius:3px; font-size:12px; word-break:break-all; }
+  .btn { display:inline-block; background:#1F4E79; color:#fff; text-decoration:none;
+         padding:9px 16px; border-radius:5px; font-size:13px; font-weight:bold; margin:4px 6px 4px 0; }
+  .btn.jaune { background:#FFC107; color:#1a1a1a; }
+  ol { font-size:13px; line-height:1.7; padding-left:20px; }
+</style>
+</head>
+<body>
+<div class="carte">
+  <h1>RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE 2025/2026</h1>
+  <div class="sous">
+    Collecte KoboToolbox &amp; téléchargement automatique du PDF officiel
+    {% if configured %}
+      <span class="badge ok">KoboToolbox connecté</span>
+    {% else %}
+      <span class="badge ko">KoboToolbox non configuré — mode démonstration</span>
+    {% endif %}
+  </div>
+
+  <h2>Essayer tout de suite</h2>
+  <a class="btn jaune" href="/demo/pdf">⬇ Télécharger le PDF de démonstration</a>
+  <a class="btn" href="/demo">Aperçu HTML du rapport</a>
+
+  <h2>Configuration KoboToolbox</h2>
+  <table>
+    <tr><th style="width:34%;">Variable</th><th>Valeur actuelle</th></tr>
+    <tr><td>KOBO_API_URL</td><td><code>{{ api }}</code></td></tr>
+    <tr><td>KOBO_ASSET_UID</td><td><code>{{ asset }}</code></td></tr>
+    <tr><td>KOBO_TOKEN</td><td><code>{{ "défini" if configured else "non défini" }}</code></td></tr>
+  </table>
+
+  <h2>Mise en route</h2>
+  <ol>
+    <li>Importer <code>formulaire_rentree.xlsx</code> dans KoboToolbox
+        (<em>New project &rarr; Import an XLSForm</em>) puis déployer le formulaire.</li>
+    <li>Récupérer le jeton API : <em>Account &rarr; Settings &rarr; API token</em>.</li>
+    <li>Définir les variables d'environnement <code>KOBO_TOKEN</code> et
+        <code>KOBO_ASSET_UID</code> (identifiant du formulaire).</li>
+    <li>Dans Kobo, mode de collecte <em>Online-Only (single submission)</em>, ajouter au lien :
+        <br><code>?return_url=https://VOTRE-APPLICATION/pdf</code></li>
+    <li>Le directeur remplit le formulaire, clique sur <strong>Soumettre</strong> :
+        le PDF officiel se télécharge automatiquement.</li>
+  </ol>
+</div>
+</body>
+</html>

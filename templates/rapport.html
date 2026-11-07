@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE {{ ctx.meta.annee }}</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+    color: #000;
+    margin: 0;
+    padding: 0;
+  }
+  @page {
+    size: 297mm 210mm;   /* A4 PAYSAGE */
+    margin: 0.8cm 1.1cm;
+  }
+  .pagebreak { page-break-before: always; }
+
+  /* ---------- EN-TÊTE OFFICIEL ---------- */
+  .entete { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+  .entete td { border: none; vertical-align: middle; padding: 0; }
+  .drapeau { width: 62px; border-collapse: collapse; }
+  .drapeau td { height: 34px; border: 0.6pt solid #000; font-size: 8pt;
+                text-align: center; color: #00853F; font-weight: bold; }
+  .d1 { background-color: #00853F; }
+  .d2 { background-color: #FDEF24; }
+  .d3 { background-color: #E31B23; }
+  .titre-officiel { text-align: center; font-size: 8.5pt; line-height: 1.15; }
+  .titre-officiel .rep { font-weight: bold; font-size: 9.5pt; letter-spacing: .4pt; }
+  .titre-officiel .devis { font-size: 8pt; font-style: italic; }
+  .titre-officiel .niv { font-weight: bold; font-size: 8.5pt; }
+  .logo-box { width: 74px; height: 46px; border: 0.8pt solid #666;
+              text-align: center; font-size: 7pt; color: #444;
+              padding-top: 16px; }
+  .logo-img { width: 74px; height: 46px; }
+
+  .titre-rapport {
+    border: 1.6pt solid #000;
+    text-align: center;
+    font-size: 14pt;
+    font-weight: bold;
+    letter-spacing: .6pt;
+    padding: 4pt 0;
+    margin: 2pt 0 5pt 0;
+    background-color: #FFFFFF;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  h2.section {
+    font-size: 11pt;
+    font-weight: bold;
+    font-style: italic;
+    text-decoration: underline;
+    margin: 7pt 0 3pt 0;
+    page-break-after: avoid;
+  }
+  h2.section.plain { text-decoration: none; }
+
+  /* ---------- TABLEAUX GÉNÉRIQUES ---------- */
+  table.grid { width: 100%; border-collapse: collapse; margin-bottom: 2pt; }
+  table.grid th, table.grid td {
+    border: 0.6pt solid #000;
+    padding: 2.4pt 5pt;
+    font-size: 8.8pt;
+    vertical-align: middle;
+  }
+  table.grid th {
+    background-color: #FFFFFF;
+    font-weight: bold;
+    text-align: center;
+    font-size: 8.4pt;
+  }
+  table.grid td.c { text-align: center; }
+  table.grid td.n { text-align: center; font-weight: bold; }
+  table.grid tr.totale td { font-weight: bold; }
+  /* Version compacte : tableaux denses du modèle (H, K, L, M, N) */
+  table.grid.compact th, table.grid.compact td {
+    padding: 1.3pt 4pt; font-size: 8.1pt;
+  }
+  table.grid.compact th { font-size: 7.9pt; }
+  /* Ultra-compact : tableau du personnel (20 lignes numérotées) */
+  table.grid.ultracompact th, table.grid.ultracompact td {
+    padding: 0.5pt 3pt; font-size: 7.4pt;
+  }
+  table.grid.ultracompact th { font-size: 7.3pt; }
+  h2.section.tight { margin: 3pt 0 1pt 0; font-size: 9.5pt; }
+  .nb { font-weight: bold; }
+
+  /* ---------- SAISIE CLÉ / VALEUR ---------- */
+  table.kv { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
+  table.kv td { border: none; padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
+                vertical-align: bottom; }
+  .lbl { font-weight: bold; }
+  .val { border-bottom: 0.7pt solid #000; min-width: 60pt;
+         padding-left: 2pt; font-weight: bold; }
+  .val.lg { min-width: 130pt; }
+  .val.xl { min-width: 200pt; }
+
+  /* ---------- LIGNES DE TEXTE ---------- */
+  .ligne { font-size: 9.5pt; margin: 4pt 0; line-height: 1.45; }
+  .ligne .lbl { font-weight: bold; }
+  .souligne { border-bottom: 0.7pt solid #000; font-weight: bold;
+              padding: 0 3pt; }
+  .obs { margin: 5pt 0 9pt 0; font-size: 9.5pt; line-height: 1.55; }
+  .obs .num { font-weight: bold; }
+  .obs .reponse { font-weight: bold; }
+  .reponse-vide { display: inline-block; border-bottom: 0.7pt solid #000;
+                  min-width: 300pt; }
+
+  /* ---------- SIGNATURE ---------- */
+  .signature { text-align: right; font-style: italic; font-weight: bold;
+               text-decoration: underline; font-size: 9.5pt;
+               margin-top: 14pt; }
+  .pied { text-align: center; font-size: 7pt; color: #555; margin-top: 8pt; }
+
+  /* ---------- BARRE D'ACTION (version écran) ---------- */
+  .barre {
+    position: sticky; top: 0; background: #1F4E79; color: #fff;
+    padding: 8px 14px; font-family: Arial, sans-serif; font-size: 13px;
+    display: flex; align-items: center; gap: 12px; z-index: 10;
+  }
+  .barre a.btn {
+    background: #FFC107; color: #1a1a1a; text-decoration: none;
+    padding: 7px 16px; border-radius: 4px; font-weight: bold;
+  }
+  .barre .info { opacity: .9; }
+  .feuille {
+    max-width: 297mm; margin: 14px auto; background: #fff;
+    box-shadow: 0 0 10px rgba(0,0,0,.35); padding: 16px;
+  }
+  @media print { .barre { display: none; } .feuille { box-shadow: none; margin: 0; padding: 0; } }
+</style>
+</head>
+<body>
+
+{% if not for_pdf %}
+<div class="barre">
+  <strong>RAPPORT DE RENTRÉE {{ ctx.meta.annee }}</strong>
+  <span class="info">École : {{ ctx.meta.ecole }} — Soumission n° {{ ctx.meta.id }}</span>
+  <a class="btn" href="{{ download_url }}">⬇ Télécharger le PDF officiel</a>
+</div>
+<div class="feuille">
+{% endif %}
+
+{# ============================ EN-TÊTE ============================ #}
+<table class="entete">
+  <tr>
+    <td style="width:70px;">
+      <table class="drapeau">
+        <tr>
+          <td class="d1"></td>
+          <td class="d2">*</td>
+          <td class="d3"></td>
+        </tr>
+      </table>
+    </td>
+    <td class="titre-officiel">
+      <div class="rep">RÉPUBLIQUE DU SÉNÉGAL</div>
+      <div class="devis">Un Peuple - Un But - Une Foi</div>
+      <div class="niv">{{ ctx.insp.ministere }}</div>
+      <div class="niv">{{ ctx.insp.inspection }}</div>
+      <div class="niv">{{ ctx.insp.ief }}</div>
+    </td>
+    <td style="width:80px; text-align:right;">
+      {% if logo_exists %}
+        <img class="logo-img"
+             src="{% if for_pdf %}{{ logo_path }}{% else %}{{ url_for('static', filename='logo.png') }}{% endif %}"
+             alt="Logo">
+      {% else %}
+        <div class="logo-box">LOGO<br>MEN</div>
+      {% endif %}
+    </td>
+  </tr>
+</table>
+
+<div class="titre-rapport">RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE {{ ctx.meta.annee }}</div>
+
+{# ============================ A ============================ #}
+<h2 class="section">A. &nbsp; IDENTIFICATION DE L'ÉCOLE</h2>
+<table class="kv">
+  <tr>
+    <td class="lbl">Nom de l'école :</td><td class="val">{{ ctx.a.nom_ecole }}</td>
+    <td class="lbl">Statut :</td><td class="val">{{ ctx.a.statut }}</td>
+    <td class="lbl">Date de création :</td><td class="val">{{ ctx.a.date_creation }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Commune de :</td><td class="val">{{ ctx.a.commune }}</td>
+    <td class="lbl">District de :</td><td class="val">{{ ctx.a.district }}</td>
+    <td class="lbl">CODEC de :</td><td class="val">{{ ctx.a.codec }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Villages polarisés :</td><td class="val lg" colspan="3">{{ ctx.a.villages_polarises }}</td>
+    <td class="lbl">Langue nationale :</td><td class="val">{{ ctx.a.langue_nationale }}</td>
+  </tr>
+</table>
+
+{# ============================ B ============================ #}
+<h2 class="section">B. &nbsp; SITUATION DES CLASSES PÉDAGOGIQUES</h2>
+<table class="grid">
+  <tr>
+    <th style="width:25%;">Nombre de cours</th>
+    <th style="width:25%;">Nombre de classes simples</th>
+    <th style="width:25%;">Nombre de CMG</th>
+    <th style="width:25%;">Nombre de CDF</th>
+  </tr>
+  <tr>
+    <td class="n">{{ "%02d"|format(ctx.b.nb_cours) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.b.nb_classes_simples) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.b.nb_cmg) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.b.nb_cdf) }}</td>
+  </tr>
+</table>
+<div class="ligne"><span class="lbl">Préciser les cours jumelés :</span>
+  <span class="souligne">{{ ctx.b.cours_jumeles }}</span></div>
+
+{# ============================ C ============================ #}
+<h2 class="section">C. &nbsp; SITUATION DES CLASSES PHYSIQUES</h2>
+<table class="grid">
+  <tr>
+    <th colspan="4" style="border-bottom:0.7pt solid #000;">SALLES DE CLASSE EN DUR</th>
+    <th rowspan="2">UTILISÉES</th>
+    <th rowspan="2">NON UTILISÉES</th>
+    <th rowspan="2">ABRIS<br>PROVISOIRES</th>
+    <th rowspan="2">A réhabiliter</th>
+  </tr>
+  <tr>
+    <th>BONNES</th>
+    <th>ACCEPTABLES</th>
+    <th>MAUVAISES</th>
+    <th>TOTALE</th>
+  </tr>
+  <tr>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_bonnes) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_acceptables) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_mauvaises) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_totale) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_utilisees) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.salles_non_utilisees) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.abris_provisoires) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.c.a_rehabiliter) }}</td>
+  </tr>
+</table>
+<div class="ligne"><span class="lbl">Nombre de classes en cours de construction ou inachevées :</span>
+  <span class="souligne">{{ "%02d"|format(ctx.c.cours_construction) }}</span></div>
+<div class="ligne"><span class="lbl">Pour les classes en cours de construction ou inachevées, préciser le programme et l'année :</span>
+  <span class="souligne">{{ ctx.c.programme_construction }}</span></div>
+
+{# ============================ D ============================ #}
+<h2 class="section">D. &nbsp; RENSEIGNEMENTS SUR LE DIRECTEUR</h2>
+<table class="kv">
+  <tr>
+    <td class="lbl">Prénom et Nom :</td><td class="val">{{ ctx.d.prenom_nom }}</td>
+    <td class="lbl">Grade :</td><td class="val">{{ ctx.d.grade }}</td>
+    <td class="lbl">Matricule :</td><td class="val">{{ ctx.d.matricule }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Date et lieu de naissance :</td>
+    <td class="val">{{ ctx.d.date_naissance }} à {{ ctx.d.lieu_naissance }}</td>
+    <td class="lbl">Diplôme Acad. :</td><td class="val">{{ ctx.d.diplome_academique }}</td>
+    <td class="lbl">Diplôme Prof. :</td><td class="val">{{ ctx.d.diplome_professionnel }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Date d'entrée dans l'enseignement :</td><td class="val">{{ ctx.d.date_entree_enseignement }}</td>
+    <td class="lbl">Date d'affectation à l'école :</td><td class="val">{{ ctx.d.date_affectation }}</td>
+    <td class="lbl">Statut :</td><td class="val">{{ ctx.d.statut_directeur }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Références de l'acte d'affectation :</td><td class="val">{{ ctx.d.references_affectation }}</td>
+    <td class="lbl">Position (Charge : Titulaire de classe) :</td><td class="val">{{ ctx.d.position }}</td>
+    <td class="lbl">Déchargé :</td><td class="val">{{ ctx.d.decharge }}</td>
+  </tr>
+  <tr>
+    <td class="lbl">Numéro de contact :</td><td class="val">{{ ctx.d.telephone1 }}</td>
+    <td class="lbl">Numéro (2ème possible) :</td><td class="val">{{ ctx.d.telephone2 }}</td>
+    <td class="lbl">Numéro WhatsApp :</td><td class="val">{{ ctx.d.whatsapp }}</td>
+  </tr>
+</table>
+
+{# ============================ E ============================ #}
+<div class="pagebreak"></div>
+<h2 class="section">E. &nbsp; SITUATION DES OUVRAGES ANNEXES</h2>
+<div class="ligne">
+  <span class="lbl">Existence de toilettes :</span> <span class="souligne">{{ ctx.e.toilettes }}</span>
+  : <span class="lbl">Nombre de blocs :</span> <span class="souligne">{{ "%02d"|format(ctx.e.nb_blocs) }}</span>
+  : <span class="lbl">Nombre de cabines :</span> <span class="souligne">{{ "%02d"|format(ctx.e.nb_cabines) }}</span>
+  : <span class="lbl">Fonctionnelles :</span> <span class="souligne">{{ "%02d"|format(ctx.e.cabines_fonctionnelles) }}</span>
+  : <span class="lbl">Non fonctionnelles :</span> <span class="souligne">{{ "%02d"|format(ctx.e.cabines_non_fonctionnelles) }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_toilettes }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">Existence d'un point d'eau :</span> <span class="souligne">{{ ctx.e.point_eau }}</span>
+  : <span class="lbl">Robinet :</span> <span class="souligne">{{ "%02d"|format(ctx.e.nb_robinets) }}</span>
+  : <span class="lbl">Etat :</span> <span class="souligne">{{ ctx.e.etat_point_eau }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_point_eau }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">Senelec :</span> <span class="souligne">{{ ctx.e.senelec }}</span>
+  : <span class="lbl">Etat des installations :</span> <span class="souligne">{{ ctx.e.etat_electricite }}</span>
+  : <span class="lbl">Branchement collectif :</span> <span class="souligne">{{ ctx.e.branchement_collectif }}</span>
+  : <span class="lbl">Groupe électrogène :</span> <span class="souligne">{{ ctx.e.source_electricite }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">L'école dispose-t-elle d'une connexion internet ?</span> <span class="souligne">{{ ctx.e.internet }}</span>
+  : <span class="lbl">Préciser si l'école bénéficie d'un modem wifi du MEN :</span> <span class="souligne">{{ ctx.e.modem_wifi_men }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">Bureau :</span> <span class="souligne">{{ ctx.e.bureau }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_bureau }}</span>
+  &nbsp;&nbsp;
+  <span class="lbl">Magasin :</span> <span class="souligne">{{ ctx.e.magasin }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_magasin }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">Clôture :</span> <span class="souligne">{{ ctx.e.cloture }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_cloture }}</span>
+  &nbsp;&nbsp;
+  <span class="lbl">Cuisine :</span> <span class="souligne">{{ ctx.e.cuisine }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_cuisine }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">Logement :</span> <span class="souligne">{{ ctx.e.logement }}</span>
+  : <span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.e.bailleur_logement }}</span>
+</div>
+
+{# ============================ F ============================ #}
+<h2 class="section">F. &nbsp; ACTIVITÉS PÉRI ET PARA SCOLAIRES</h2>
+<div class="ligne">
+  <span class="lbl">1 &nbsp; L'école dispose-t-elle d'un CGE fonctionnel ?</span>
+  <span class="souligne">{{ ctx.f.cge }}</span><br>
+  <span class="lbl">&nbsp;&nbsp;&nbsp;&nbsp;Si oui préciser la date de la mise en place du bureau dont le mandat est en cours :</span>
+  <span class="souligne">{{ ctx.f.cge_date_mise_en_place }}</span>
+  <span class="souligne">{{ ctx.f.cge_mandat }}</span><br>
+  <span class="lbl">&nbsp;&nbsp;&nbsp;&nbsp;Le président :</span> <span class="souligne">{{ ctx.f.cge_president }}</span>
+  <span class="lbl">Tél :</span> <span class="souligne">{{ ctx.f.cge_tel }}</span>
+  <span class="lbl">&nbsp;&nbsp;A-t-il fait déjà deux mandats consécutifs ?</span>
+  <span class="souligne">{{ ctx.f.cge_deux_mandats }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">2 &nbsp; L'école est-elle concernée par un autre programme intervenant dans le secteur éducatif ?</span>
+  (PASED, RELIT, PAIRE L'ÉCOLE, PAAME)<br>
+  <span class="souligne">{{ ctx.f.programmes_intervenants }}</span>
+</div>
+<div class="ligne">
+  <span class="lbl">3 &nbsp; L'école dispose-t-elle :</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'une cantine scolaire ? <span class="souligne">{{ ctx.f.cantine }}</span>
+  &nbsp;&nbsp;<span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.f.bailleur_cantine }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'une coopérative scolaire ? <span class="souligne">{{ ctx.f.cooperative }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'un jardin scolaire ? <span class="souligne">{{ ctx.f.jardin }}</span>
+  &nbsp;&nbsp;<span class="lbl">Bailleur :</span> <span class="souligne">{{ ctx.f.bailleur_jardin }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'un champ communautaire ? <span class="souligne">{{ ctx.f.champ_communaute }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'une mallette pédagogique ? <span class="souligne">{{ ctx.f.mallette_pedagogique }}</span>
+  &nbsp;&nbsp;<span class="lbl">Nbre :</span> <span class="souligne">{{ "%02d"|format(ctx.f.nb_mallettes) }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'une bibliothèque ? <span class="souligne">{{ ctx.f.bibliotheque }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'un terrain de sport ? <span class="souligne">{{ ctx.f.terrain_sport }}</span><br>
+  &nbsp;&nbsp;&nbsp;&nbsp;- d'une boîte pharmacie ? <span class="souligne">{{ ctx.f.boite_pharmacie }}</span>
+</div>
+
+{# ============================ G ============================ #}
+<h2 class="section">G. &nbsp; OBSERVATIONS DU DIRECTEUR</h2>
+<div class="obs">
+  <span class="num">1 &nbsp; Sur le plan matériel :</span>
+  <span class="reponse">{{ ctx.g.obs_materiel or "R.A.S" }}</span>
+</div>
+<div class="obs">
+  <span class="num">2 &nbsp; Sur le plan du personnel :</span>
+  <span class="reponse">{{ ctx.g.obs_personnel or "R.A.S" }}</span>
+</div>
+<div class="obs">
+  <span class="num">3 &nbsp; Sur le plan pédagogique :</span>
+  <span class="reponse">{{ ctx.g.obs_pedagogique or "R.A.S" }}</span>
+</div>
+
+{# ============================ H ============================ #}
+<div class="pagebreak"></div>
+<h2 class="section">H. &nbsp; SITUATION DU PERSONNEL ENSEIGNANT
+  <span style="font-size:7.5pt; font-style:italic; text-decoration:none;">
+    (Inscrire le Directeur et mettre le titre qu'il tient ou s'il est déchargé)</span>
+</h2>
+<table class="grid ultracompact">
+  <tr>
+    <th style="width:3%;">N°</th>
+    <th style="width:11%;">PRÉNOM</th>
+    <th style="width:11%;">NOM</th>
+    <th style="width:6%;">GRADE</th>
+    <th style="width:11%;">Matricule</th>
+    <th style="width:9%;">Discipline</th>
+    <th style="width:7%;">DIPL.<br>ACAD.</th>
+    <th style="width:7%;">DIPL.<br>PROF.</th>
+    <th style="width:11%;">Date d'entrée dans<br>l'enseignement</th>
+    <th style="width:11%;">Date d'affectation<br>à l'école</th>
+    <th style="width:6%;">Cours tenu</th>
+    <th style="width:7%;">Contact</th>
+  </tr>
+  {% for p in ctx.personnel %}
+  <tr>
+    <td class="c">{{ p.num }}</td>
+    <td>{{ p.prenom }}</td>
+    <td>{{ p.nom }}</td>
+    <td class="c">{{ p.grade }}</td>
+    <td class="c">{{ p.matricule }}</td>
+    <td class="c">{{ p.discipline }}</td>
+    <td class="c">{{ p.diplome_acad }}</td>
+    <td class="c">{{ p.diplome_prof }}</td>
+    <td class="c">{{ p.date_entree }}</td>
+    <td class="c">{{ p.date_affectation }}</td>
+    <td class="c">{{ p.cours_tenu }}</td>
+    <td class="c">{{ p.contact }}</td>
+  </tr>
+  {% else %}
+  <tr><td class="c" colspan="12">—</td></tr>
+  {% endfor %}
+  {% for i in range(ctx.personnel|length, 20) %}
+  <tr>
+    <td class="c">{{ i + 1 }}</td>
+    <td colspan="11">&nbsp;</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h2 class="section plain tight">SUPPLÉANTS</h2>
+<table class="grid ultracompact">
+  <tr>
+    <th style="width:3%;">N°</th>
+    <th style="width:11%;">PRÉNOM</th>
+    <th style="width:11%;">NOM</th>
+    <th style="width:6%;">GRADE</th>
+    <th style="width:11%;">Matricule</th>
+    <th style="width:9%;">Discipline</th>
+    <th style="width:7%;">DIPL. ACAD.</th>
+    <th style="width:7%;">DIPL. PROF.</th>
+    <th style="width:11%;">Date d'entrée dans l'enseignement</th>
+    <th style="width:11%;">Date d'affectation à l'école</th>
+    <th style="width:6%;">Cours tenu</th>
+    <th style="width:7%;">Contact</th>
+  </tr>
+  {% for p in ctx.suppleants %}
+  <tr>
+    <td class="c">{{ p.num }}</td>
+    <td>{{ p.prenom }}</td><td>{{ p.nom }}</td><td class="c">{{ p.grade }}</td>
+    <td class="c">{{ p.matricule }}</td><td class="c">{{ p.discipline }}</td>
+    <td class="c">{{ p.diplome_acad }}</td><td class="c">{{ p.diplome_prof }}</td>
+    <td class="c">{{ p.date_entree }}</td><td class="c">{{ p.date_affectation }}</td>
+    <td class="c">{{ p.cours_tenu }}</td><td class="c">{{ p.contact }}</td>
+  </tr>
+  {% endfor %}
+  {% for i in range(ctx.suppleants|length, 3) %}
+  <tr><td class="c">{{ i + 1 }}</td><td colspan="11">&nbsp;</td></tr>
+  {% endfor %}
+</table>
+
+<h2 class="section plain tight">MALADES / CONGÉS DE MATERNITÉ</h2>
+<table class="grid ultracompact">
+  <tr>
+    <th style="width:3%;">N°</th>
+    <th style="width:11%;">PRÉNOM</th>
+    <th style="width:11%;">NOM</th>
+    <th style="width:6%;">GRADE</th>
+    <th style="width:11%;">Matricule</th>
+    <th style="width:9%;">Discipline</th>
+    <th style="width:7%;">DIPL. ACAD.</th>
+    <th style="width:7%;">DIPL. PROF.</th>
+    <th style="width:11%;">Date d'entrée dans l'enseignement</th>
+    <th style="width:11%;">Date d'affectation à l'école</th>
+    <th style="width:6%;">Cours tenu</th>
+    <th style="width:7%;">Contact</th>
+  </tr>
+  {% for p in ctx.malades %}
+  <tr>
+    <td class="c">{{ p.num }}</td>
+    <td>{{ p.prenom }}</td><td>{{ p.nom }}</td><td class="c">{{ p.grade }}</td>
+    <td class="c">{{ p.matricule }}</td><td class="c">{{ p.discipline }}</td>
+    <td class="c">{{ p.diplome_acad }}</td><td class="c">{{ p.diplome_prof }}</td>
+    <td class="c">{{ p.date_entree }}</td><td class="c">{{ p.date_affectation }}</td>
+    <td class="c">{{ p.cours_tenu }}</td><td class="c">{{ p.contact }}</td>
+  </tr>
+  {% endfor %}
+  {% for i in range(ctx.malades|length, 3) %}
+  <tr><td class="c">{{ i + 1 }}</td><td colspan="11">&nbsp;</td></tr>
+  {% endfor %}
+</table>
+
+<h2 class="section plain tight">RÉCAPITULATION
+  <span style="font-size:7.5pt; font-style:italic;">(Prendre en compte le Directeur)</span>
+</h2>
+<table class="grid ultracompact">
+  <tr>
+    <th colspan="9" style="border-right:1.2pt solid #000;">FRANÇAIS</th>
+    <th colspan="9">ARABE</th>
+  </tr>
+  <tr>
+    <th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>
+    <th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>
+    <th colspan="3" style="border-right:1.2pt solid #000;">MAÎTRES CONTRACTUELS</th>
+    <th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>
+    <th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>
+    <th colspan="3">MAÎTRES CONTRACTUELS</th>
+  </tr>
+  <tr>
+    <th>H</th><th>F</th><th style="border-right:0.7pt solid #000;">T</th>
+    <th>H</th><th>F</th><th style="border-right:0.7pt solid #000;">T</th>
+    <th>H</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>
+    <th>H</th><th>F</th><th style="border-right:0.7pt solid #000;">T</th>
+    <th>H</th><th>F</th><th style="border-right:0.7pt solid #000;">T</th>
+    <th>H</th><th>F</th><th>T</th>
+  </tr>
+  <tr>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.inst_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.inst_f) }}</td>
+    <td class="n" style="border-right:0.7pt solid #000;">{{ "%02d"|format(ctx.recap_fr.inst_t) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.inst_adj_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.inst_adj_f) }}</td>
+    <td class="n" style="border-right:0.7pt solid #000;">{{ "%02d"|format(ctx.recap_fr.inst_adj_t) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.mc_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_fr.mc_f) }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ "%02d"|format(ctx.recap_fr.mc_t) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_inst_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_inst_f) }}</td>
+    <td class="n" style="border-right:0.7pt solid #000;">{{ "%02d"|format(ctx.recap_ar.arabe_inst_t) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_inst_adj_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_inst_adj_f) }}</td>
+    <td class="n" style="border-right:0.7pt solid #000;">{{ "%02d"|format(ctx.recap_ar.arabe_inst_adj_t) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_mc_h) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_mc_f) }}</td>
+    <td class="n">{{ "%02d"|format(ctx.recap_ar.arabe_mc_t) }}</td>
+  </tr>
+</table>
+
+{# ============================ I ============================ #}
+<div class="pagebreak"></div>
+<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>
+<table class="grid">
+  <tr>
+    <th rowspan="2" style="width:6%;">COURS</th>
+    <th colspan="3" style="border-right:1.2pt solid #000;">EFFECTIF</th>
+    <th colspan="3" style="border-right:1.2pt solid #000;">REDOUBLANTS</th>
+    <th colspan="3" style="border-right:1.2pt solid #000;">HANDICAPÉS</th>
+    <th colspan="3" style="border-right:1.2pt solid #000;">Nbre d'élèves qui n'ont<br>pas de pièces d'état civil</th>
+    <th rowspan="2" style="width:9%;">Type : Simple<br>/CMG/CDF</th>
+    <th rowspan="2" style="width:9%;">Maître N°<br>sur la liste</th>
+  </tr>
+  <tr>
+    <th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>
+    <th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>
+    <th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>
+    <th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>
+  </tr>
+  {% for e in ctx.effectifs %}
+  <tr>
+    <td class="c">{{ e.cours }}</td>
+    <td class="n">{{ e.eff_g }}</td><td class="n">{{ e.eff_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ e.eff_t }}</td>
+    <td class="n">{{ e.red_g }}</td><td class="n">{{ e.red_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ e.red_t }}</td>
+    <td class="n">{{ e.hand_g }}</td><td class="n">{{ e.hand_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ e.hand_t }}</td>
+    <td class="n">{{ e.sans_etat_g }}</td><td class="n">{{ e.sans_etat_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ e.sans_etat_t }}</td>
+    <td class="c">{{ e.type_classe }}</td>
+    <td class="c">{{ e.maitre_liste }}</td>
+  </tr>
+  {% endfor %}
+  <tr class="totale">
+    <td class="c">TOTAL</td>
+    <td class="n">{{ ctx.effectifs_total.eff_g }}</td>
+    <td class="n">{{ ctx.effectifs_total.eff_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ ctx.effectifs_total.eff_t }}</td>
+    <td class="n">{{ ctx.effectifs_total.red_g }}</td>
+    <td class="n">{{ ctx.effectifs_total.red_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ ctx.effectifs_total.red_t }}</td>
+    <td class="n">{{ ctx.effectifs_total.hand_g }}</td>
+    <td class="n">{{ ctx.effectifs_total.hand_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ ctx.effectifs_total.hand_t }}</td>
+    <td class="n">{{ ctx.effectifs_total.sans_etat_g }}</td>
+    <td class="n">{{ ctx.effectifs_total.sans_etat_f }}</td>
+    <td class="n" style="border-right:1.2pt solid #000;">{{ ctx.effectifs_total.sans_etat_t }}</td>
+    <td colspan="2"></td>
+  </tr>
+  {% for i in range(ctx.effectifs|length, 6) %}
+  <tr>
+    <td class="c">&nbsp;</td>
+    <td colspan="14">&nbsp;</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{# ============================ J ============================ #}
+<h2 class="section">J. &nbsp; MOBILIER SCOLAIRE</h2>
+<table class="grid">
+  <tr>
+    <th style="width:40%;">Moblier</th>
+    <th style="width:15%;">Bon</th>
+    <th style="width:15%;">A réparer</th>
+    <th style="width:15%;">Total</th>
+    <th style="width:15%;">Défécit</th>
+  </tr>
+  {% for m in ctx.mobilier %}
+  <tr>
+    <td>{{ m.designation }}</td>
+    <td class="n">{{ "%02d"|format(m.bon) }}</td>
+    <td class="n">{{ "%02d"|format(m.a_reparer) }}</td>
+    <td class="n">{{ "%02d"|format(m.total) }}</td>
+    <td class="n">{{ "%02d"|format(m.defecat) }}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+{# ============================ K ============================ #}
+<div class="pagebreak"></div>
+<h2 class="section">K. &nbsp; RECENSESEMENT DES MANUELS</h2>
+<table class="grid compact">
+  <tr>
+    <th style="width:38%;">Titre</th>
+    <th style="width:11%;">Quantité</th>
+    <th style="width:14%;">Provenances</th>
+    <th style="width:11%;">Besoins</th>
+    <th style="width:26%;">Observations</th>
+  </tr>
+  {% for m in ctx.manuels %}
+  <tr>
+    <td>{{ m.titre }}</td>
+    <td class="n">{{ "%02d"|format(m.quantite) }}</td>
+    <td class="c">{{ m.provenance }}</td>
+    <td class="n">{{ m.besoins }}</td>
+    <td>{{ m.observations }}</td>
+  </tr>
+  {% else %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+  {% for i in range(ctx.manuels|length, 6) %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+</table>
+
+{# ============================ L ============================ #}
+<div class="pagebreak"></div>
+<h2 class="section">L. &nbsp; AUTRES MANUELS DISPONIBLES A L'ÉCOLE</h2>
+<table class="grid compact">
+  <tr>
+    <th style="width:38%;">Titre</th>
+    <th style="width:11%;">Quantité</th>
+    <th style="width:14%;">Provenance</th>
+    <th style="width:11%;">Besoins</th>
+    <th style="width:26%;">Observations</th>
+  </tr>
+  {% for m in ctx.autres_manuels %}
+  <tr>
+    <td>{{ m.titre }}</td>
+    <td class="n">{{ "%02d"|format(m.quantite) }}</td>
+    <td class="c">{{ m.provenance }}</td>
+    <td class="n">{{ m.besoins }}</td>
+    <td>{{ m.observations }}</td>
+  </tr>
+  {% else %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+  {% for i in range(ctx.autres_manuels|length, 6) %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+</table>
+
+{# ============================ M ============================ #}
+<h2 class="section">M. &nbsp; RECENSESEMENT DU MATÉRIEL DIDACTIQUE</h2>
+<table class="grid compact">
+  <tr>
+    <th style="width:38%;">Désignation</th>
+    <th style="width:11%;">Quantité</th>
+    <th style="width:14%;">Provenance</th>
+    <th style="width:11%;">Besoins</th>
+    <th style="width:26%;">Observations</th>
+  </tr>
+  {% for m in ctx.materiel %}
+  <tr>
+    <td>{{ m.titre }}</td>
+    <td class="n">{{ "%02d"|format(m.quantite) }}</td>
+    <td class="c">{{ m.provenance }}</td>
+    <td class="n">{{ m.besoins }}</td>
+    <td>{{ m.observations }}</td>
+  </tr>
+  {% else %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+  {% for i in range(ctx.materiel|length, 14) %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+</table>
+
+{# ============================ N ============================ #}
+<h2 class="section">N. &nbsp; AUTRES MATÉRIEL DISPONIBLE A L'ÉCOLE</h2>
+<table class="grid compact">
+  <tr>
+    <th style="width:38%;">Désignation</th>
+    <th style="width:11%;">Quantité</th>
+    <th style="width:14%;">Provenance</th>
+    <th style="width:11%;">Besoins</th>
+    <th style="width:26%;">Observations</th>
+  </tr>
+  {% for m in ctx.autres_materiels %}
+  <tr>
+    <td>{{ m.titre }}</td>
+    <td class="n">{{ "%02d"|format(m.quantite) }}</td>
+    <td class="c">{{ m.provenance }}</td>
+    <td class="n">{{ m.besoins }}</td>
+    <td>{{ m.observations }}</td>
+  </tr>
+  {% else %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+  {% for i in range(ctx.autres_materiels|length, 4) %}
+  <tr><td>&nbsp;</td><td></td><td></td><td></td><td></td></tr>
+  {% endfor %}
+</table>
+
+<div class="signature">Le Directeur</div>
+
+<div class="pied">
+  Généré le {{ ctx.meta.soumission }} — Soumission KoboToolbox n° {{ ctx.meta.id }}
+</div>
+
+{% if not for_pdf %}
+</div>
+{% endif %}
+
+</body>
+</html>

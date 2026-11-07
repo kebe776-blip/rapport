@@ -1,0 +1,253 @@
+{
+  "_id": 12345,
+  "_submission_time": "2025-10-15T10:30:00",
+  "identification": {
+    "nom_ecole": "KEUR MABA DIAKHOU",
+    "statut": "public",
+    "date_creation": "1962",
+    "commune": "KEUR MABA DIAKHOU",
+    "district": "WACK NGOUNA",
+    "codec": "KEUR MABA DIAKHOU",
+    "villages_polarises": "Fayene, Keur Maba, Fass keur serigne mbaye",
+    "langue_nationale": "wolof"
+  },
+  "classes_pedagogiques": {
+    "nb_cours": 6,
+    "nb_classes_simples": 6,
+    "nb_cmg": 0,
+    "nb_cdf": 0,
+    "cours_jumeles": "NEANT"
+  },
+  "classes_physiques": {
+    "salles_bonnes": 0,
+    "salles_acceptables": 3,
+    "salles_mauvaises": 6,
+    "salles_totale": 9,
+    "salles_utilisees": 8,
+    "salles_non_utilisees": 1,
+    "abris_provisoires": 0,
+    "a_rehabiliter": 6,
+    "cours_construction": 0,
+    "programme_construction": "Neant"
+  },
+  "directeur": {
+    "prenom_nom": "FAKEBA TOURE",
+    "grade": "IP/3",
+    "matricule": "643920/B",
+    "date_naissance": "12/11/1972",
+    "lieu_naissance": "DIARENG",
+    "diplome_academique": "BAC",
+    "diplome_professionnel": "CAP",
+    "date_entree_enseignement": "10/10/2002",
+    "date_affectation": "11/07/2016",
+    "references_affectation": "2742/MEN/SG/DRH/OGSPC/B",
+    "statut_directeur": "titulaire",
+    "position": "Charge (Titulaire de classe)",
+    "decharge": "non",
+    "telephone1": "77 615 69 44",
+    "telephone2": "76 156 944",
+    "whatsapp": "77 615 69 44"
+  },
+  "ouvrages_annexes": {
+    "toilettes": "oui",
+    "nb_blocs": 2,
+    "nb_cabines": 4,
+    "cabines_fonctionnelles": 4,
+    "cabines_non_fonctionnelles": 0,
+    "bailleur_toilettes": "Mairie",
+    "point_eau": "oui",
+    "nb_robinets": 1,
+    "etat_point_eau": "bon",
+    "bailleur_point_eau": "communaute",
+    "senelec": "oui",
+    "etat_electricite": "acceptable",
+    "branchement_collectif": "non",
+    "source_electricite": "neant",
+    "internet": "non",
+    "modem_wifi_men": "oui",
+    "bureau": "non",
+    "bailleur_bureau": "Neant",
+    "magasin": "non",
+    "bailleur_magasin": "Neant",
+    "cloture": "oui",
+    "bailleur_cloture": "Plan international",
+    "cuisine": "non",
+    "bailleur_cuisine": "Neant",
+    "logement": "oui",
+    "bailleur_logement": "FED"
+  },
+  "activites": {
+    "cge": "oui",
+    "cge_date_mise_en_place": "01/09/2025",
+    "cge_mandat": "2025",
+    "cge_president": "Omar MBOW",
+    "cge_tel": "77 929 60 87",
+    "cge_deux_mandats": "non",
+    "programmes_intervenants": "PAAME : Relance la lecture des eleves et innovations, innovation methodologique",
+    "cantine": "non",
+    "bailleur_cantine": "Neant",
+    "cooperative": "oui",
+    "jardin": "non",
+    "bailleur_jardin": "Neant",
+    "champ_communaute": "non",
+    "mallette_pedagogique": "oui",
+    "nb_mallettes": 3,
+    "bibliotheque": "oui",
+    "terrain_sport": "non",
+    "boite_pharmacie": "oui"
+  },
+  "observations": {
+    "obs_materiel": "Absence de manuel en EDD",
+    "obs_personnel": "L'etat de sante du maitre d'arabe qui est en meme temps le chef du village. Il souffre d'un probleme de vision.",
+    "obs_pedagogique": "R.A.S"
+  },
+  "enseignant": [
+    {
+      "num_ligne": 1, "prenom": "FAKEBA", "nom": "TOURE", "grade": "IP/3",
+      "matricule": "643920/B", "discipline": "francais", "diplome_acad": "BAC",
+      "diplome_prof": "CAP", "date_entree": "10/10/2002", "date_affectation": "11/07/2016",
+      "cours_tenu": "Decharge", "contact": "776156944"
+    },
+    {
+      "num_ligne": 2, "prenom": "FATOUMATA", "nom": "SENE", "grade": "12/4",
+      "matricule": "733180/N", "discipline": "francais", "diplome_acad": "BAC",
+      "diplome_prof": "CAP", "date_entree": "01/10/2015", "date_affectation": "01/10/2020",
+      "cours_tenu": "CI", "contact": "770501680"
+    },
+    {
+      "num_ligne": 3, "prenom": "MADIOP", "nom": "BARRY", "grade": "12/4",
+      "matricule": "673905/L", "discipline": "francais", "diplome_acad": "BFEM",
+      "diplome_prof": "CAP", "date_entree": "01/10/2009", "date_affectation": "29/09/2020",
+      "cours_tenu": "CE1", "contact": "778183953"
+    },
+    {
+      "num_ligne": 4, "prenom": "CODDOU", "nom": "FALL", "grade": "12/4",
+      "matricule": "696734/E", "discipline": "francais", "diplome_acad": "BFEM",
+      "diplome_prof": "CAP", "date_entree": "01/10/2007", "date_affectation": "01/10/2007",
+      "cours_tenu": "CE2", "contact": "772270396"
+    },
+    {
+      "num_ligne": 5, "prenom": "ABDOUL AZIZ", "nom": "KEBE", "grade": "12/2",
+      "matricule": "747041/M", "discipline": "francais", "diplome_acad": "BAC",
+      "diplome_prof": "CAP", "date_entree": "01/10/2019", "date_affectation": "01/10/2019",
+      "cours_tenu": "CM1", "contact": "776711693"
+    },
+    {
+      "num_ligne": 6, "prenom": "BABACAR", "nom": "FALL", "grade": "12/4",
+      "matricule": "763153/E", "discipline": "francais", "diplome_acad": "BAC",
+      "diplome_prof": "CAP", "date_entree": "01/10/2021", "date_affectation": "01/10/2021",
+      "cours_tenu": "CM2", "contact": "774113266"
+    },
+    {
+      "num_ligne": 7, "prenom": "LOUISE BINTA", "nom": "DIOUF", "grade": "12/2",
+      "matricule": "927044437/V", "discipline": "francais", "diplome_acad": "BAC",
+      "diplome_prof": "CAP", "date_entree": "01/10/2021", "date_affectation": "01/10/2021",
+      "cours_tenu": "CP", "contact": "775046115"
+    },
+    {
+      "num_ligne": 8, "prenom": "AHMET", "nom": "NDIAYE", "grade": "MC/11",
+      "matricule": "110404169/D", "discipline": "arabe", "diplome_acad": "BAC",
+      "diplome_prof": "BFEM", "date_entree": "01/10/2005", "date_affectation": "01/10/2005",
+      "cours_tenu": "ARABE", "contact": "774918649"
+    }
+  ],
+  "suppleant": [],
+  "malade": [],
+  "recap_personnel": {
+    "recap_francais": {
+      "inst_h": 4, "inst_f": 3, "inst_t": 7,
+      "inst_adj_h": 0, "inst_adj_f": 0, "inst_adj_t": 0,
+      "mc_h": 0, "mc_f": 0, "mc_t": 0
+    },
+    "recap_arabe": {
+      "arabe_inst_h": 0, "arabe_inst_f": 0, "arabe_inst_t": 0,
+      "arabe_inst_adj_h": 0, "arabe_inst_adj_f": 0, "arabe_inst_adj_t": 0,
+      "arabe_mc_h": 1, "arabe_mc_f": 0, "arabe_mc_t": 1
+    }
+  },
+  "effectifs": {
+    "eff_ci": {"eff_g": 44, "eff_f": 43, "eff_t": 87, "red_g": 0, "red_f": 0, "red_t": 0,
+               "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 3, "sans_etat_f": 5,
+               "sans_etat_t": 8, "type_classe": "simple", "maitre_liste": 2},
+    "eff_cp": {"eff_g": 37, "eff_f": 39, "eff_t": 76, "red_g": 2, "red_f": 3, "red_t": 5,
+               "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 5, "sans_etat_f": 6,
+               "sans_etat_t": 11, "type_classe": "simple", "maitre_liste": 7},
+    "eff_ce1": {"eff_g": 24, "eff_f": 27, "eff_t": 51, "red_g": 0, "red_f": 0, "red_t": 0,
+                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 4, "sans_etat_f": 2,
+                "sans_etat_t": 6, "type_classe": "simple", "maitre_liste": 3},
+    "eff_ce2": {"eff_g": 22, "eff_f": 29, "eff_t": 51, "red_g": 2, "red_f": 1, "red_t": 3,
+                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 6, "sans_etat_f": 3,
+                "sans_etat_t": 9, "type_classe": "simple", "maitre_liste": 4},
+    "eff_cm1": {"eff_g": 26, "eff_f": 23, "eff_t": 49, "red_g": 0, "red_f": 0, "red_t": 0,
+                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 3, "sans_etat_f": 2,
+                "sans_etat_t": 5, "type_classe": "simple", "maitre_liste": 8},
+    "eff_cm2": {"eff_g": 13, "eff_f": 20, "eff_t": 33, "red_g": 0, "red_f": 0, "red_t": 0,
+                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 0, "sans_etat_f": 0,
+                "sans_etat_t": 0, "type_classe": "simple", "maitre_liste": 6}
+  },
+  "mobilier": {
+    "mob_tables_bancs": {"bon": 72, "a_reparer": 48, "total": 120, "defecat": 30},
+    "mob_tables_bureaux": {"bon": 3, "a_reparer": 3, "total": 6, "defecat": 3},
+    "mob_chaises": {"bon": 6, "a_reparer": 2, "total": 8, "defecat": 8},
+    "mob_armoires": {"bon": 1, "a_reparer": 2, "total": 3, "defecat": 3},
+    "mob_placards": {"bon": 0, "a_reparer": 2, "total": 2, "defecat": 2},
+    "mob_tableaux": {"bon": 0, "a_reparer": 0, "total": 0, "defecat": 2},
+    "mob_ordinateurs": {"bon": 2, "a_reparer": 0, "total": 2, "defecat": 2},
+    "mob_imprimantes": {"bon": 1, "a_reparer": 0, "total": 1, "defecat": 2},
+    "mob_video_projecteur": {"bon": 0, "a_reparer": 0, "total": 0, "defecat": 2},
+    "mob_photocopieuses": {"bon": 1, "a_reparer": 0, "total": 1, "defecat": 1},
+    "mob_autres_mobilier": {"bon": 0, "a_reparer": 0, "total": 0, "defecat": 0}
+  },
+  "manuels": [
+    {"titre": "Langue et communication CI", "quantite": 38, "provenance": "etat", "besoins": "50", "observations": ""},
+    {"titre": "Guide L C CI", "quantite": 2, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"titre": "Mathematiques CI", "quantite": 53, "provenance": "etat", "besoins": "35", "observations": ""},
+    {"titre": "Guide Mathematiques CI", "quantite": 2, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CI", "quantite": 1, "provenance": "etat", "besoins": "87", "observations": ""},
+    {"titre": "Manuel de lecture RELIT CI Tome 1", "quantite": 54, "provenance": "etat", "besoins": "34", "observations": ""},
+    {"titre": "Manuel de lecture RELIT CI Tome 2", "quantite": 48, "provenance": "etat", "besoins": "39", "observations": ""},
+    {"titre": "Planche d'alphabetisation", "quantite": 0, "provenance": "etat", "besoins": "02", "observations": ""},
+    {"titre": "Langue et communication CP", "quantite": 51, "provenance": "etat", "besoins": "25", "observations": ""},
+    {"titre": "Guide L C CP", "quantite": 2, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"titre": "Mathematiques CP", "quantite": 51, "provenance": "etat", "besoins": "25", "observations": ""},
+    {"titre": "Guide Mathematiques CP", "quantite": 2, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CP", "quantite": 2, "provenance": "etat", "besoins": "76", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CE1", "quantite": 2, "provenance": "etat", "besoins": "76", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CE2", "quantite": 2, "provenance": "etat", "besoins": "76", "observations": ""},
+    {"titre": "Langue et communication CM", "quantite": 61, "provenance": "etat", "besoins": "23", "observations": ""},
+    {"titre": "Guide L C CM", "quantite": 0, "provenance": "etat", "besoins": "02", "observations": ""},
+    {"titre": "Mathematiques CM", "quantite": 63, "provenance": "etat", "besoins": "21", "observations": ""},
+    {"titre": "Guide Mathematiques CM", "quantite": 0, "provenance": "etat", "besoins": "02", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CM1", "quantite": 2, "provenance": "etat", "besoins": "84", "observations": ""},
+    {"titre": "Cahier d'exercices mathematiques (PAAME) CM2", "quantite": 2, "provenance": "etat", "besoins": "84", "observations": ""},
+    {"titre": "Decouvertte du monde CM", "quantite": 73, "provenance": "etat", "besoins": "11", "observations": ""},
+    {"titre": "Guide Decouverte du monde CM", "quantite": 0, "provenance": "etat", "besoins": "02", "observations": ""},
+    {"titre": "Guide revise 1ere etape", "quantite": 1, "provenance": "etat", "besoins": "01", "observations": ""},
+    {"titre": "Guide revise 2eme etape", "quantite": 1, "provenance": "etat", "besoins": "01", "observations": ""}
+  ],
+  "autre_manuel": [
+    {"titre": "Tere elew", "quantite": 65, "provenance": "relit", "besoins": "00", "observations": ""}
+  ],
+  "materiel": [
+    {"designation": "Equerre", "quantite": 6, "provenance": "etat", "besoins": "06", "observations": ""},
+    {"designation": "Rapporteur", "quantite": 6, "provenance": "etat", "besoins": "06", "observations": ""},
+    {"designation": "Compas", "quantite": 6, "provenance": "etat", "besoins": "06", "observations": ""},
+    {"designation": "Regle plate", "quantite": 6, "provenance": "etat", "besoins": "06", "observations": ""},
+    {"designation": "Decametre", "quantite": 1, "provenance": "etat", "besoins": "05", "observations": ""},
+    {"designation": "Metre pliant", "quantite": 1, "provenance": "etat", "besoins": "05", "observations": ""},
+    {"designation": "Balance", "quantite": 2, "provenance": "etat", "besoins": "04", "observations": ""},
+    {"designation": "Poids", "quantite": 12, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"designation": "Globe Terrestre", "quantite": 1, "provenance": "etat", "besoins": "03", "observations": ""},
+    {"designation": "Carte murale", "quantite": 15, "provenance": "etat", "besoins": "00", "observations": ""},
+    {"designation": "Chaine d'arpenteur", "quantite": 1, "provenance": "etat", "besoins": "05", "observations": ""},
+    {"designation": "Cachet", "quantite": 2, "provenance": "cge", "besoins": "02", "observations": ""},
+    {"designation": "Encreur", "quantite": 1, "provenance": "cge", "besoins": "03", "observations": ""},
+    {"designation": "Seau", "quantite": 12, "provenance": "cge", "besoins": "00", "observations": ""}
+  ],
+  "autre_materiel": [
+    {"designation": "Rateau", "quantite": 4, "provenance": "caritas", "besoins": "06", "observations": ""},
+    {"designation": "Brouette", "quantite": 2, "provenance": "caritas", "besoins": "02", "observations": ""},
+    {"designation": "Pelle", "quantite": 4, "provenance": "caritas", "besoins": "06", "observations": ""},
+    {"designation": "Fourches", "quantite": 4, "provenance": "caritas", "besoins": "06", "observations": ""}
+  ]
+}
