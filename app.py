@@ -26,6 +26,23 @@ import requests
 from flask import (Flask, Response, abort, jsonify, render_template,
                    request, url_for)
 
+
+def _load_dotenv(path=".env"):
+    """Charge un fichier .env local (facultatif) sans dépendance externe.
+    Les variables déjà définies dans l'environnement priment."""
+    if not os.path.exists(path):
+        return
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, value = line.split("=", 1)
+            os.environ.setdefault(key.strip(), value.strip())
+
+
+_load_dotenv()
+
 app = Flask(__name__)
 
 # ---------------------------------------------------------------------------
