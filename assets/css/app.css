@@ -152,6 +152,19 @@ a { color: #1f4e79; }
 .table-saisie thead tr:nth-child(2) th.red  { background: #fde3c8; color: #96480a; }
 .table-saisie thead tr:nth-child(2) th.hand { background: #d4efdf; color: #1c6b3e; }
 .table-saisie thead tr:nth-child(2) th.etat { background: #ecd9f2; color: #5f2d78; }
+
+/* --- Section H : récapitulation — une couleur par catégorie --- */
+.table-saisie thead th.grp.inst,
+.table-saisie thead th.inst { background: #1f6fb2; color: #ffffff; }   /* INSTITUTEURS : bleu */
+.table-saisie thead th.grp.adj,
+.table-saisie thead th.adj  { background: #00838f; color: #ffffff; }   /* INST. ADJOINTS : cyan */
+.table-saisie thead th.grp.mc,
+.table-saisie thead th.mc   { background: #ad1457; color: #ffffff; }   /* MAÎTRES CONTR. : magenta */
+
+/* Sous-ligne H / F / T : teinte claire de la même couleur */
+.table-saisie thead tr:nth-child(2) th.inst { background: #d6e8f7; color: #144f7d; }
+.table-saisie thead tr:nth-child(2) th.adj  { background: #d2eeef; color: #00565c; }
+.table-saisie thead tr:nth-child(2) th.mc   { background: #f7d9e7; color: #7b1040; }
 .table-saisie td { padding: 4px 5px; border-bottom: 1px solid #e6eaf0; vertical-align: middle; }
 .table-saisie tr:nth-child(even) td { background: #fafbfd; }
 .table-saisie input, .table-saisie select {

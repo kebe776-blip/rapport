@@ -168,6 +168,13 @@
   }
 
   /* --- Récapitulation H --- */
+  /* --- Récapitulation H (FRANÇAIS / ARABE) --- */
+  var RECAP_CATS = [
+    { cls: "inst", titre: "INSTITUTEURS" },
+    { cls: "adj", titre: "INSTITUTEURS ADJOINTS" },
+    { cls: "mc", titre: "MAÎTRES CONTRACTUELS" }
+  ];
+
   function recapHTML() {
     var html = '<details class="section-form" open>' +
       '<summary>H. RÉCAPITULATION DU PERSONNEL (FRANÇAIS / ARABE)' +
@@ -176,9 +183,18 @@
       '(H + F).</div>';
     D.RECAP.groupes.forEach(function (g) {
       html += "<h3>" + esc(g.titre) + "</h3>" +
-        '<div class="table-defilement"><table class="table-saisie"><thead><tr>';
-      g.cles.forEach(function (c) {
-        html += "<th>" + esc(c[1]) + "</th>";
+        '<div class="table-defilement"><table class="table-saisie">' +
+        '<thead><tr>';
+      /* Rangée 1 : catégories (couleur pleine) */
+      RECAP_CATS.forEach(function (c) {
+        html += '<th colspan="3" class="grp ' + c.cls + '">' + c.titre + "</th>";
+      });
+      html += "</tr><tr>";
+      /* Rangée 2 : H / F / T (teinte claire de la même couleur) */
+      RECAP_CATS.forEach(function (c) {
+        html += '<th class="' + c.cls + '">H</th>' +
+                '<th class="' + c.cls + '">F</th>' +
+                '<th class="' + c.cls + '">T</th>';
       });
       html += "</tr></thead><tbody><tr>";
       g.cles.forEach(function (c) {
