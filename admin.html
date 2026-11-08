@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace Inspection — Rapport de rentrée</title>
+<link rel="stylesheet" href="assets/css/rapport.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>ESPACE INSPECTION</h1>
+    <div class="sous">Suivi des rapports de rentrée — 2025/2026</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="lien" href="index.html">Accueil</a>
+  <a class="lien" href="saisie.html">Saisie directeur</a>
+</div>
+
+<div class="conteneur">
+
+  <!-- ================= CONNEXION ================= -->
+  <div class="connexion carte" id="zone-connexion">
+    <h2>Connexion administrateur</h2>
+    <div id="msg-connexion" class="bandeau info">
+      Compte créé dans Supabase → <b>Authentication → Users → Add user</b>
+      (email + mot de passe).
+    </div>
+    <div class="champs">
+      <div class="champ large">
+        <label for="email">Adresse email</label>
+        <input type="email" id="email" autocomplete="username">
+      </div>
+      <div class="champ large">
+        <label for="mdp">Mot de passe</label>
+        <input type="password" id="mdp" autocomplete="current-password">
+      </div>
+    </div>
+    <button class="btn large mt" id="btn-connexion">Se connecter</button>
+  </div>
+
+  <!-- ================= TABLEAU DE BORD ================= -->
+  <div id="zone-admin" style="display:none;">
+
+    <div class="stats" id="stats"></div>
+
+    <div class="carte">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0; border:none; padding:0; flex:1;">
+          Écoles ayant soumis leur rapport
+        </h2>
+        <input type="search" id="recherche" placeholder="Rechercher une école…"
+               style="padding:8px 10px; border:1px solid #c7ced7; border-radius:5px; min-width:220px;">
+        <button class="btn gris petit" id="btn-rafraichir">↻ Actualiser</button>
+        <button class="btn gris petit" id="btn-deconnexion">Déconnexion</button>
+      </div>
+      <div id="msg-admin" class="bandeau info mt"></div>
+      <div class="table-defilement">
+        <table class="tableau" id="tableau">
+          <thead>
+            <tr>
+              <th>École</th>
+              <th style="width:150px;">Code</th>
+              <th style="width:150px;">Dernière maj.</th>
+              <th style="width:230px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Aperçu du rapport sélectionné -->
+    <div class="carte" id="zone-apercu" style="display:none;">
+      <h2 id="titre-apercu">Aperçu</h2>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;" class="mb">
+        <button class="btn vert" id="btn-pdf">⬇ Télécharger le PDF (6 pages)</button>
+        <button class="btn gris" id="btn-fermer">Fermer l'aperçu</button>
+      </div>
+      <div class="apercu-wrap" id="apercu"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="progression" id="progression">
+  <div id="prog-texte">Traitement…</div>
+  <div class="barre-interne"><div id="prog-barre"></div></div>
+</div>
+
+<script src="assets/vendor/html2canvas.min.js"></script>
+<script src="assets/vendor/jspdf.umd.min.js"></script>
+<script src="assets/vendor/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/rapport.js"></script>
+<script src="assets/js/pdf.js"></script>
+<script src="assets/js/db.js"></script>
+<script>
+(function () {
+  "use strict";
+  var ctxCourant = null;
+  var lignes = [];
+  var $ = function (id) { return document.getElementById(id); };
+
+  function msg(id, classe, texte) {
+    var el = $(id);
+    el.className = "bandeau " + classe;
+    el.innerHTML = texte;
+  }
+
+  function progres(texte, pct) {
+    $("progression").classList.add("visible");
+    $("prog-texte").textContent = texte;
+    $("prog-barre").style.width = (pct || 0) + "%";
+  }
+  function finProgres() {
+    $("progression").classList.remove("visible");
+    $("prog-barre").style.width = "0%";
+  }
+
+  /* ---------------- CONNEXION ---------------- */
+  async function demarrer() {
+    if (!window.RRdb.actif()) {
+      $("zone-connexion").style.display = "none";
+      var d = document.createElement("div");
+      d.className = "bandeau warn";
+      d.innerHTML = "<b>Supabase non configuré.</b> Renseignez " +
+        "<span class='mono'>SUPABASE_URL</span> et " +
+        "<span class='mono'>SUPABASE_ANON_KEY</span> dans " +
+        "<span class='mono'>assets/js/config.js</span>, puis exécutez " +
+        "<span class='mono'>supabase/schema.sql</span>.";
+      $("zone-admin").style.display = "block";
+      $("zone-admin").insertBefore(d, $("zone-admin").firstChild);
+      $("stats").style.display = "none";
+      return;
+    }
+    var user = await window.RRdb.utilisateur();
+    if (user) { afficherAdmin(); } else { $("zone-connexion").style.display = "block"; }
+  }
+
+  $("btn-connexion").addEventListener("click", async function () {
+    var btn = this;
+    btn.disabled = true;
+    try {
+      await window.RRdb.connexion($("email").value.trim(), $("mdp").value);
+      $("zone-connexion").style.display = "none";
+      afficherAdmin();
+    } catch (e) {
+      msg("msg-connexion", "erreur", "<b>Échec :</b> " + window.RR.esc(e.message));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("btn-deconnexion").addEventListener("click", async function () {
+    await window.RRdb.deconnexion();
+    location.reload();
+  });
+
+  /* ---------------- LISTE ---------------- */
+  async function afficherAdmin() {
+    $("zone-admin").style.display = "block";
+    await chargerListe();
+    var attente = window.RRdb.attente();
+    if (attente) {
+      msg("msg-admin", "warn",
+          "<b>" + attente + " soumission(s)</b> en attente d'envoi sur cet appareil.");
+      window.RRdb.viderFile().then(function () { chargerListe(); });
+    }
+  }
+
+  async function chargerListe() {
+    msg("msg-admin", "info", "Chargement…");
+    try {
+      lignes = await window.RRdb.lister();
+      msg("msg-admin", "ok",
+          "<b>" + lignes.length + " école(s)</b> ont soumis leur rapport.");
+      afficherTableau("");
+      afficherStats();
+    } catch (e) {
+      msg("msg-admin", "erreur",
+          "<b>Impossible de lire la base :</b> " + window.RR.esc(e.message));
+    }
+  }
+
+  function afficherStats() {
+    var dernier = lignes.length ? lignes[0].maj_le : null;
+    $("stats").innerHTML =
+      '<div class="stat"><div class="valeur">' + lignes.length +
+        '</div><div class="libelle">Écoles déclarées</div></div>' +
+      '<div class="stat"><div class="valeur">' +
+        (dernier ? new Date(dernier).toLocaleDateString("fr-FR") : "—") +
+        '</div><div class="libelle">Dernière soumission</div></div>' +
+      '<div class="stat"><div class="valeur">' +
+        window.RRdb.attente() +
+        '</div><div class="libelle">En attente d\'envoi</div></div>';
+  }
+
+  function afficherTableau(filtre) {
+    var tb = $("tableau").querySelector("tbody");
+    var f = (filtre || "").trim().toLowerCase();
+    var liste = lignes.filter(function (l) {
+      return !f || (l.ecole_nom || "").toLowerCase().indexOf(f) !== -1 ||
+                  (l.ecole_code || "").toLowerCase().indexOf(f) !== -1;
+    });
+    if (!liste.length) {
+      tb.innerHTML = '<tr><td colspan="4" class="center petit">' +
+        "Aucune école ne correspond.</td></tr>";
+      return;
+    }
+    tb.innerHTML = liste.map(function (l) {
+      var d = l.maj_le ? new Date(l.maj_le).toLocaleString("fr-FR") : "—";
+      return "<tr>" +
+        "<td><b>" + window.RR.esc(l.ecole_nom || l.ecole_code) + "</b></td>" +
+        "<td class='mono'>" + window.RR.esc(l.ecole_code) + "</td>" +
+        "<td>" + window.RR.esc(d) + "</td>" +
+        "<td><button class='btn petit' data-code='" +
+          window.RR.esc(l.ecole_code) + "'>Voir / PDF</button></td>" +
+      "</tr>";
+    }).join("");
+  }
+
+  $("recherche").addEventListener("input", function () {
+    afficherTableau(this.value);
+  });
+  $("btn-rafraichir").addEventListener("click", chargerListe);
+
+  $("tableau").addEventListener("click", async function (ev) {
+    var btn = ev.target.closest("button[data-code]");
+    if (!btn) { return; }
+    btn.disabled = true;
+    try {
+      var ligne = await window.RRdb.obtenir(btn.getAttribute("data-code"));
+      if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
+      ouvrirApercu(ligne);
+    } catch (e) {
+      msg("msg-admin", "erreur", window.RR.esc(e.message));
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  function ouvrirApercu(ligne) {
+    ctxCourant = window.RR.buildContext(ligne.donnees, { id: ligne.ecole_code });
+    $("titre-apercu").textContent = "Aperçu — " +
+      (ligne.ecole_nom || ligne.ecole_code) + " (" + ligne.annee + ")";
+    $("zone-apercu").style.display = "block";
+    window.RR.renderPreview($("apercu"), ctxCourant);
+    $("zone-apercu").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  $("btn-fermer").addEventListener("click", function () {
+    $("zone-apercu").style.display = "none";
+    ctxCourant = null;
+  });
+
+  $("btn-pdf").addEventListener("click", async function () {
+    if (!ctxCourant) { return; }
+    var btn = this;
+    btn.disabled = true;
+    try {
+      var pages = $("apercu").querySelectorAll(".pdf-page");
+      await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
+        progres("Génération du PDF — page " + i + " / " + n + "…",
+                Math.round(i / n * 100));
+      });
+    } catch (e) {
+      msg("msg-admin", "erreur", window.RR.esc(e.message));
+    } finally {
+      finProgres();
+      btn.disabled = false;
+    }
+  });
+
+  window.addEventListener("resize", function () {
+    if (ctxCourant) { window.RR.fitPreview($("apercu")); }
+  });
+
+  demarrer();
+}());
+</script>
+</body>
+</html>

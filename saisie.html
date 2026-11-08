@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saisie du rapport de rentrée — École élémentaire</title>
+<link rel="stylesheet" href="assets/css/rapport.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>FORMULAIRE DE RENTRÉE ÉLÉMENTAIRE 2025/2026</h1>
+    <div class="sous">Inspection de l'Éducation et de la Formation de Nioro du Rip</div>
+  </div>
+  <div class="spacer"></div>
+  <span class="sous" id="statut-brouillon"></span>
+  <a class="lien" href="apercu.html">Aperçu du PDF</a>
+  <a class="lien" href="admin.html">Inspection</a>
+</div>
+
+<div class="conteneur">
+
+  <div id="message" class="bandeau info">
+    <b>Remplissez le formulaire officiel puis cliquez sur « Soumettre ».</b>
+    Votre rapport PDF (6 pages, format paysage) sera téléchargé automatiquement.
+    <br><span class="petit">
+      Fonctionne aussi <b>sans réseau</b> : la saisie est conservée sur cet appareil
+      puis envoyée dès que la connexion revient.
+    </span>
+  </div>
+
+  <div id="alerte" class="bandeau erreur" style="display:none;"></div>
+
+  <div id="formulaire"></div>
+
+  <div class="carte center" id="carte-soumission">
+    <button class="btn vert large" id="btn-soumettre">
+      ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL
+    </button>
+    <div class="petit mt">
+      Le PDF est construit <b>sur votre appareil</b> puis téléchargé : aucune pièce
+      jointe n'est envoyée par email, aucune connexion n'est nécessaire pour
+      télécharger le fichier.
+      <br>
+      <a href="#" id="lien-exemple">Tester avec des données d'exemple</a>
+      ·
+      <a href="#" id="lien-reset">Effacer la saisie en cours</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Aperçu du rapport : révélé uniquement après soumission -->
+<div class="conteneur" id="zone-apercu" style="display:none;">
+  <div class="carte">
+    <h2>Votre rapport officiel</h2>
+    <div id="etat-apercu" class="bandeau ok"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn vert" id="btn-retel">⬇ Retélécharger le PDF</button>
+      <a class="btn gris" href="saisie.html">Nouvelle saisie</a>
+    </div>
+  </div>
+  <div class="apercu-wrap" id="apercu"></div>
+</div>
+
+<div class="progression" id="progression">
+  <div id="prog-texte">Traitement…</div>
+  <div class="barre-interne"><div id="prog-barre"></div></div>
+</div>
+
+<script src="assets/vendor/html2canvas.min.js"></script>
+<script src="assets/vendor/jspdf.umd.min.js"></script>
+<script src="assets/vendor/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/rapport.js"></script>
+<script src="assets/js/pdf.js"></script>
+<script src="assets/js/db.js"></script>
+<script src="assets/js/champs.js"></script>
+<script src="assets/js/form.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CFG = window.RR_CONFIG;
+  var zone = document.getElementById("formulaire");
+  var message = document.getElementById("message");
+  var alerte = document.getElementById("alerte");
+  var progression = document.getElementById("progression");
+  var ctxCourant = null;
+
+  function afficherAlerte(liste) {
+    alerte.style.display = "block";
+    alerte.innerHTML = "<b>Saisie incomplète :</b><br>• " +
+      liste.map(window.RR.esc).join("<br>• ");
+    alerte.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  var page = {
+    erreur: afficherAlerte,
+    apercu: document.getElementById("apercu"),
+    progres: function (texte, pct) {
+      progression.classList.add("visible");
+      document.getElementById("prog-texte").textContent = texte;
+      document.getElementById("prog-barre").style.width = (pct || 0) + "%";
+    },
+    apercuVisible: function () {
+      document.getElementById("zone-apercu").style.display = "block";
+    },
+    succes: function (res, nom, ctx) {
+      progression.classList.remove("visible");
+      document.getElementById("prog-barre").style.width = "0%";
+      alerte.style.display = "none";
+      var etat = document.getElementById("etat-apercu");
+      var texte;
+      if (res.envoye) {
+        texte = "<b>✅ Rapport enregistré et PDF téléchargé :</b> " +
+                window.RR.esc(nom);
+      } else {
+        texte = "<b>⚠ " + window.RR.esc(res.message) + "</b><br>" +
+                "Votre PDF est téléchargé : conservez-le, l'envoi se fera " +
+                "automatiquement au prochain accès réseau.";
+      }
+      etat.innerHTML = texte;
+      message.className = "bandeau ok";
+      message.innerHTML = "<b>Soumission terminée.</b> " +
+        "Fichier officiel généré : <b>" + window.RR.esc(nom) + "</b> — " +
+        "6 pages A4 paysage.";
+      document.getElementById("zone-apercu").scrollIntoView({
+        behavior: "smooth", block: "start"
+      });
+      ctxCourant = ctx;
+    }
+  };
+
+  /* --- Construction du formulaire --- */
+  window.RRform.construire(zone);
+
+  /* --- Reprise du brouillon --- */
+  var brouillon = window.RRform.chargerBrouillon();
+  if (brouillon && brouillon.identification && brouillon.identification.nom_ecole) {
+    window.RRform.remplir(brouillon);
+    message.className = "bandeau info";
+    message.innerHTML = "<b>Brouillon repris :</b> " +
+      window.RR.esc(brouillon.identification.nom_ecole) +
+      " — vous pouvez reprendre votre saisie là où vous l'aviez laissée.";
+  }
+
+  /* --- File d'attente hors-ligne --- */
+  (async function () {
+    if (!window.RRdb.actif()) { return; }
+    var avant = window.RRdb.attente();
+    var res = await window.RRdb.viderFile();
+    if (res.envoyes > 0) {
+      message.className = "bandeau ok";
+      message.innerHTML = "<b>" + res.envoyes + " soumission(s) en attente " +
+        "ont été envoyées au serveur.</b>";
+    } else if (avant > 0) {
+      message.className = "bandeau warn";
+      message.innerHTML = "<b>" + avant + " soumission(s) en attente d'envoi</b> " +
+        "(réseau indisponible). Elles partiront automatiquement.";
+    }
+  }());
+
+  /* --- Soumission --- */
+  document.getElementById("btn-soumettre").addEventListener("click", async function () {
+    var btn = this;
+    btn.disabled = true;
+    try {
+      await window.RRform.soumettre(page);
+    } catch (e) {
+      progression.classList.remove("visible");
+      afficherAlerte(["Erreur inattendue : " + e.message]);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* --- Retéléchargement --- */
+  document.getElementById("btn-retel").addEventListener("click", async function () {
+    if (!ctxCourant) { return; }
+    var btn = this;
+    btn.disabled = true;
+    try {
+      var pages = document.getElementById("apercu").querySelectorAll(".pdf-page");
+      await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
+        page.progres("Génération du PDF — page " + i + " / " + n + "…",
+                     Math.round(i / n * 100));
+      });
+      progression.classList.remove("visible");
+    } catch (e) {
+      progression.classList.remove("visible");
+      afficherAlerte(["Erreur : " + e.message]);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* --- Outils de test / remise à zéro --- */
+  document.getElementById("lien-exemple").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    fetch("assets/demo.json", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        delete d._id;
+        window.RRform.remplir(d);
+        window.RRform.sauverBrouillon();
+        message.className = "bandeau info";
+        message.innerHTML = "<b>Données d'exemple chargées.</b> " +
+          "Vérifiez le formulaire puis cliquez sur Soumettre.";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+  });
+
+  document.getElementById("lien-reset").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    if (!confirm("Effacer toute la saisie en cours ?")) { return; }
+    try { localStorage.removeItem(CFG.LS_BROUILLON); } catch (e) {}
+    location.reload();
+  });
+
+  window.addEventListener("resize", function () {
+    if (ctxCourant) { window.RR.fitPreview(document.getElementById("apercu")); }
+  });
+}());
+</script>
+</body>
+</html>

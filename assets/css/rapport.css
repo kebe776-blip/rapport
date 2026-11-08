@@ -1,0 +1,148 @@
+/* =====================================================================
+   RAPPORT GENERAL DE RENTREE ELEMENTAIRE — MISE EN PAGE OFFICIELLE
+   Format A4 PAYSAGE (297 x 210 mm)
+   Partage entre l'apercu ecran et la generation PDF (html2canvas)
+   ===================================================================== */
+* { box-sizing: border-box; }
+
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 9.5pt;
+  color: #000;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Feuille de page : zone utile 275 x 194 mm (marges officielles) --- */
+.pdf-page {
+  width: 275mm;
+  height: 194mm;
+  overflow: hidden;
+  background: #fff;
+  position: relative;
+}
+.page-inner {
+  width: 100%;
+  height: 100%;
+  transform-origin: top left;
+  padding: 0;
+}
+
+/* ---------- EN-TÊTE OFFICIEL ---------- */
+.entete { width: 100%; border-collapse: collapse; margin-bottom: 6pt; }
+.entete td { border: none; vertical-align: middle; padding: 0; }
+.drapeau { width: 62px; border-collapse: collapse; }
+.drapeau td { height: 34px; border: 0.6pt solid #000; font-size: 8pt;
+              text-align: center; color: #00853F; font-weight: bold; }
+.d1 { background-color: #00853F; }
+.d2 { background-color: #FDEF24; }
+.d3 { background-color: #E31B23; }
+.titre-officiel { text-align: center; font-size: 8.5pt; line-height: 1.15; }
+.titre-officiel .rep { font-weight: bold; font-size: 9.5pt; letter-spacing: .4pt; }
+.titre-officiel .devis { font-size: 8pt; font-style: italic; }
+.titre-officiel .niv { font-weight: bold; font-size: 8.5pt; }
+.logo-box { width: 74px; height: 46px; border: 0.8pt solid #666;
+            text-align: center; font-size: 7pt; color: #444;
+            padding-top: 16px; }
+.logo-img { width: 74px; height: 46px; }
+
+.titre-rapport {
+  border: 1.6pt solid #000;
+  text-align: center;
+  font-size: 14pt;
+  font-weight: bold;
+  letter-spacing: .6pt;
+  padding: 4pt 0;
+  margin: 2pt 0 5pt 0;
+  background-color: #FFFFFF;
+}
+
+/* ---------- SECTIONS ---------- */
+h2.section {
+  font-size: 11pt;
+  font-weight: bold;
+  font-style: italic;
+  text-decoration: underline;
+  margin: 7pt 0 3pt 0;
+  page-break-after: avoid;
+}
+h2.section.plain { text-decoration: none; }
+h2.section.tight { margin: 3pt 0 1pt 0; font-size: 9.5pt; }
+
+/* ---------- TABLEAUX GÉNÉRIQUES ---------- */
+table.grid { width: 100%; border-collapse: collapse; margin-bottom: 2pt; }
+table.grid th, table.grid td {
+  border: 0.6pt solid #000;
+  padding: 2.4pt 5pt;
+  font-size: 8.8pt;
+  vertical-align: middle;
+}
+table.grid th {
+  background-color: #FFFFFF;
+  font-weight: bold;
+  text-align: center;
+  font-size: 8.4pt;
+}
+table.grid td.c { text-align: center; }
+table.grid td.n { text-align: center; font-weight: bold; }
+table.grid tr.totale td { font-weight: bold; }
+
+/* Version compacte (H, K, L, M, N) */
+table.grid.compact th, table.grid.compact td {
+  padding: 1.3pt 4pt; font-size: 8.1pt;
+}
+table.grid.compact th { font-size: 7.9pt; }
+
+/* Ultra-compact : personnel 20 lignes numérotées + récapitulation */
+table.grid.ultracompact th, table.grid.ultracompact td {
+  padding: 0.5pt 3pt; font-size: 7.4pt;
+}
+table.grid.ultracompact th { font-size: 7.3pt; }
+
+/* ---------- SAISIE CLÉ / VALEUR ---------- */
+table.kv { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
+table.kv td { border: none; padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
+              vertical-align: bottom; }
+.lbl { font-weight: bold; }
+.val { border-bottom: 0.7pt solid #000; min-width: 60pt;
+       padding-left: 2pt; font-weight: bold;
+       overflow-wrap: anywhere; word-break: break-word; }
+.val.lg { min-width: 130pt; }
+.val.xl { min-width: 200pt; }
+
+/* ---------- LIGNES DE TEXTE ---------- */
+.ligne { font-size: 9.5pt; margin: 4pt 0; line-height: 1.45; }
+.ligne .lbl { font-weight: bold; }
+.souligne { border-bottom: 0.7pt solid #000; font-weight: bold;
+            padding: 0 3pt; overflow-wrap: anywhere; }
+.obs { margin: 5pt 0 9pt 0; font-size: 9.5pt; line-height: 1.55; }
+.obs .num { font-weight: bold; }
+.obs .reponse { font-weight: bold; }
+
+/* ---------- SIGNATURE ---------- */
+.signature { text-align: right; font-style: italic; font-weight: bold;
+             text-decoration: underline; font-size: 9.5pt;
+             margin-top: 14pt; }
+.pied { text-align: center; font-size: 7pt; color: #555; margin-top: 8pt; }
+
+/* ---------- APERÇU ÉCRAN ---------- */
+.apercu-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px;
+}
+.apercu-page {
+  box-shadow: 0 0 10px rgba(0,0,0,.35);
+  margin-bottom: 18px;
+  /* mise à l'échelle pour l'écran */
+  transform: scale(var(--apercu-echelle, 1));
+  transform-origin: top center;
+}
+.apercu-legende {
+  text-align: center; font-size: 12px; color: #666;
+  margin: -10px 0 24px;
+}
+@media print {
+  .apercu-wrap { padding: 0; }
+  .apercu-page { box-shadow: none; transform: none; margin: 0; }
+}

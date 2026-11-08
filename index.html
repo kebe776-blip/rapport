@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rentrée élémentaire 2025/2026 — Nioro du Rip</title>
+<link rel="stylesheet" href="assets/css/rapport.css">
+<link rel="stylesheet" href="assets/css/app.css">
+<style>
+  .hero {
+    background: #1f4e79; color: #fff; border-radius: 10px;
+    padding: 26px 28px; margin-bottom: 18px;
+  }
+  .hero h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: .4px; }
+  .hero p { margin: 0; opacity: .9; font-size: 15px; }
+  .actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+  .actions .btn { font-size: 16px; padding: 13px 22px; }
+  .etapes { display: flex; gap: 14px; flex-wrap: wrap; }
+  .etape { flex: 1; min-width: 210px; background: #fff; border: 1px solid #dde3ea;
+           border-radius: 8px; padding: 14px 16px; }
+  .etape .num { width: 28px; height: 28px; border-radius: 50%; background: #1f4e79;
+                color: #fff; display: inline-flex; align-items: center;
+                justify-content: center; font-weight: 700; font-size: 14px; }
+  .etape h3 { font-size: 14.5px; margin: 9px 0 5px; }
+  .etape p { margin: 0; font-size: 13.5px; color: #555; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>RENTÉE ÉLÉMENTAIRE 2025/2026</h1>
+    <div class="sous">IA de Kaolack — IEF de Nioro du Rip</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="lien" href="admin.html">Espace Inspection</a>
+</div>
+
+<div class="conteneur">
+
+  <div class="hero">
+    <h1>RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE</h1>
+    <p>Chaque directeur remplit le formulaire officiel, puis télécharge
+       automatiquement son rapport PDF <b>6 pages au format paysage</b>,
+       strictement identique au modèle administratif.</p>
+    <div class="actions">
+      <a class="btn jaune" href="saisie.html">📝 Remplir le formulaire</a>
+      <a class="btn" href="apercu.html?demo=1">👀 Voir un rapport d'exemple</a>
+      <a class="btn gris" href="admin.html">🏛 Espace Inspection</a>
+    </div>
+  </div>
+
+  <div class="etapes">
+    <div class="etape">
+      <span class="num">1</span>
+      <h3>Saisie</h3>
+      <p>Sections A à N du formulaire officiel. Fonctionne <b>sans connexion</b> :
+         la saisie est gardée sur l'appareil.</p>
+    </div>
+    <div class="etape">
+      <span class="num">2</span>
+      <h3>Soumission</h3>
+      <p>Un clic sur <b>Soumettre</b> : les données partent vers Supabase
+         (ou en file d'attente hors-ligne).</p>
+    </div>
+    <div class="etape">
+      <span class="num">3</span>
+      <h3>PDF automatique</h3>
+      <p>Le PDF officiel est construit <b>dans le navigateur</b> et téléchargé
+         immédiatement : A4 paysage, 6 pages, signature du Directeur.</p>
+    </div>
+    <div class="etape">
+      <span class="num">4</span>
+      <h3>Suivi</h3>
+      <p>L'Inspection consulte la liste des écoles ayant soumis et régénère
+         n'importe quel rapport.</p>
+    </div>
+  </div>
+
+  <div class="carte mt">
+    <h2>Mise en page du PDF (conforme au modèle)</h2>
+    <table class="tableau">
+      <thead><tr><th style="width:70px;">Page</th><th>Contenu</th></tr></thead>
+      <tbody>
+        <tr><td><b>1</b></td><td>En-tête officiel (République du Sénégal, MEN, IA de Kaolack, IEF de Nioro du Rip) + <b>A</b> + <b>B</b> + <b>C</b> + <b>D</b></td></tr>
+        <tr><td><b>2</b></td><td><b>E</b> ouvrages annexes + <b>F</b> activités péri et para scolaires + <b>G</b> observations</td></tr>
+        <tr><td><b>3</b></td><td><b>H</b> personnel enseignant (20 lignes numérotées) + suppléants + malades + récapitulation FR/AR</td></tr>
+        <tr><td><b>4</b></td><td><b>I</b> situation des effectifs + <b>J</b> mobilier scolaire</td></tr>
+        <tr><td><b>5</b></td><td><b>K</b> recensement des manuels</td></tr>
+        <tr><td><b>6</b></td><td><b>L</b> autres manuels + <b>M</b> matériel didactique + <b>N</b> autres matériels + signature <i>Le Directeur</i></td></tr>
+      </tbody>
+    </table>
+    <div class="petit mt">Format A4 <b>paysage</b> (297 × 210 mm) — aucune section
+      n'est coupée entre deux pages.</div>
+  </div>
+
+  <div class="carte">
+    <h2>État de la configuration</h2>
+    <div id="config" class="bandeau info">Vérification…</div>
+    <div class="petit">
+      Avant la mise en ligne : renseignez <span class="mono">SUPABASE_URL</span> et
+      <span class="mono">SUPABASE_ANON_KEY</span> dans
+      <span class="mono">assets/js/config.js</span>, puis exécutez
+      <span class="mono">supabase/schema.sql</span> dans l'éditeur SQL Supabase.
+    </div>
+  </div>
+
+</div>
+
+<script src="assets/vendor/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/db.js"></script>
+<script>
+(function () {
+  var cfg = window.RR_CONFIG;
+  var el = document.getElementById("config");
+  if (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY) {
+    el.className = "bandeau ok";
+    el.innerHTML = "<b>✅ Supabase configuré.</b> Les soumissions seront " +
+      "enregistrées en base. " +
+      (window.RRdb.attente()
+        ? "<br>⚠ " + window.RRdb.attente() + " soumission(s) en attente d'envoi."
+        : "");
+    if (window.RRdb.viderFile) { window.RRdb.viderFile(); }
+  } else {
+    el.className = "bandeau warn";
+    el.innerHTML = "<b>⚙ Supabase non encore configuré.</b> Le formulaire " +
+      "fonctionne : les saisies sont conservées sur l'appareil et le PDF se " +
+      "télécharge normalement. Renseignez vos identifiants pour l'envoi serveur.";
+  }
+}());
+</script>
+</body>
+</html>

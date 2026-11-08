@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aperçu du rapport — Rentrée élémentaire 2025/2026</title>
+<link rel="stylesheet" href="assets/css/rapport.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE</h1>
+    <div class="sous" id="sous-titre">Aperçu du document officiel</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="lien" href="saisie.html">← Nouvelle saisie</a>
+  <a class="lien" href="admin.html">Espace Inspection</a>
+</div>
+
+<div class="conteneur">
+
+  <div id="etat" class="bandeau info">Chargement du rapport…</div>
+
+  <div class="carte" id="carte-actions">
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <button class="btn vert" id="btn-pdf" disabled>⬇ Télécharger le PDF officiel (6 pages)</button>
+      <span class="petit" id="info-fichier"></span>
+      <span class="spacer" style="flex:1"></span>
+      <a class="btn gris petit" href="saisie.html">Modifier la saisie</a>
+    </div>
+    <div class="petit mt">
+      Le fichier est généré <b>dans votre navigateur</b> (aucun envoi vers un serveur) :
+      format A4 <b>paysage</b>, 6 pages strictement conformes au modèle administratif.
+    </div>
+  </div>
+
+  <div class="apercu-wrap" id="apercu"></div>
+
+</div>
+
+<div class="progression" id="progression">
+  <div id="prog-texte">Génération du PDF…</div>
+  <div class="barre-interne"><div id="prog-barre"></div></div>
+</div>
+
+<script src="assets/vendor/html2canvas.min.js"></script>
+<script src="assets/vendor/jspdf.umd.min.js"></script>
+<script src="assets/vendor/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/rapport.js"></script>
+<script src="assets/js/pdf.js"></script>
+<script src="assets/js/db.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CFG = window.RR_CONFIG;
+  var etat = document.getElementById("etat");
+  var apertu = document.getElementById("apercu");
+  var btn = document.getElementById("btn-pdf");
+  var ctxCourant = null;
+
+  function msg(classe, texte) {
+    etat.className = "bandeau " + classe;
+    etat.innerHTML = texte;
+  }
+
+  function params() {
+    var p = {};
+    location.search.replace(/[?&]+([^=&]+)=([^&]*)/g, function (_, k, v) {
+      p[k] = decodeURIComponent(v);
+    });
+    return p;
+  }
+
+  /** Récupère les données : brouillon local, ?demo=1, ou ?ref= (Supabase). */
+  async function charger() {
+    var p = params();
+
+    if (p.demo === "1") {
+      var r = await fetch("assets/demo.json", { cache: "no-store" });
+      if (!r.ok) { throw new Error("Données de démonstration introuvables."); }
+      return { brut: await r.json(), source: "démo" };
+    }
+
+    /* Dernière saisie enregistrée sur cet appareil */
+    var brut = null;
+    try { brut = JSON.parse(localStorage.getItem(CFG.LS_BROUILLON) || "null"); } catch (e) {}
+    if (brut && p.ref === undefined) {
+      return { brut: brut, source: "saisie locale" };
+    }
+
+    /* Récupération depuis Supabase (admin, ou autre appareil) */
+    if (p.ref && window.RRdb && window.RRdb.configue()) {
+      var ligne = await window.RRdb.obtenir(p.ref);
+      if (ligne && ligne.donnees) {
+        return { brut: ligne.donnees, source: "Supabase", id: ligne.id };
+      }
+    }
+
+    if (brut) { return { brut: brut, source: "saisie locale" }; }
+    throw new Error("Aucun rapport à afficher. Refaites une saisie.");
+  }
+
+  async function demarrer() {
+    try {
+      var charge = await charger();
+      var p = params();
+      var id = charge.id || p.ref || (charge.brut && charge.brut._id) || "—";
+
+      ctxCourant = window.RR.buildContext(charge.brut, { id: id });
+      document.getElementById("sous-titre").textContent =
+        "École : " + (ctxCourant.meta.ecole || "—") +
+        " — " + ctxCourant.meta.annee + " — source : " + charge.source;
+
+      window.RR.renderPreview(apertu, ctxCourant);
+      btn.disabled = false;
+      document.getElementById("info-fichier").textContent =
+        "Fichier : " + window.RR.pdf.nomFichier(ctxCourant);
+
+      msg("ok",
+        "<b>Rapport prêt.</b> 6 pages A4 paysage — " +
+        "en-tête officiel + A-D / E-G / H / I-J / K / L-N et signature.");
+
+      /* Téléchargement automatique si ?auto=1 (après une soumission) */
+      if (p.auto === "1") { telecharger(); }
+    } catch (e) {
+      msg("erreur", "<b>Impossible d'afficher le rapport.</b> " + window.RR.esc(e.message));
+      btn.disabled = true;
+    }
+  }
+
+  async function telecharger() {
+    if (!ctxCourant) { return; }
+    btn.disabled = true;
+    var prog = document.getElementById("progression");
+    var barre = document.getElementById("prog-barre");
+    var texte = document.getElementById("prog-texte");
+    prog.classList.add("visible");
+    try {
+      var pages = apertu.querySelectorAll(".pdf-page");
+      var nom = await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
+        texte.textContent = "Génération du PDF — page " + i + " / " + n + "…";
+        barre.style.width = Math.round(i / n * 100) + "%";
+      });
+      msg("ok", "<b>PDF téléchargé :</b> " + window.RR.esc(nom) +
+          " — 6 pages A4 paysage.");
+    } catch (e) {
+      msg("erreur", "<b>Échec de la génération du PDF.</b> " +
+          window.RR.esc(e.message) + " Réessayez.");
+    } finally {
+      prog.classList.remove("visible");
+      barre.style.width = "0%";
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener("click", telecharger);
+  window.addEventListener("resize", function () {
+    if (ctxCourant) { window.RR.fitPreview(apertu); }
+  });
+
+  demarrer();
+}());
+</script>
+</body>
+</html>
