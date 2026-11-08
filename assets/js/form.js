@@ -208,17 +208,17 @@
       '<tr>' +
         '<th rowspan="2" style="width:70px;">COURS</th>' +
         '<th rowspan="2">Nbr<br>classe</th>' +
-        '<th colspan="3" class="grp">EFFECTIF</th>' +
-        '<th colspan="3" class="grp">REDOUBLANTS</th>' +
-        '<th colspan="3" class="grp">HANDICAPÉS</th>' +
-        '<th colspan="3" class="grp">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
+        '<th colspan="3" class="grp eff">EFFECTIF</th>' +
+        '<th colspan="3" class="grp red">REDOUBLANTS</th>' +
+        '<th colspan="3" class="grp hand">HANDICAPÉS</th>' +
+        '<th colspan="3" class="grp etat">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
         '<th rowspan="2">Type<br>: Simple/CMG/CDF</th>' +
       '</tr>' +
       '<tr>' +
-        '<th>G</th><th>F</th><th>T</th>' +
-        '<th>G</th><th>F</th><th>T</th>' +
-        '<th>G</th><th>F</th><th>T</th>' +
-        '<th>G</th><th>F</th><th>T</th>' +
+        '<th class="eff">G</th><th class="eff">F</th><th class="eff">T</th>' +
+        '<th class="red">G</th><th class="red">F</th><th class="red">T</th>' +
+        '<th class="hand">G</th><th class="hand">F</th><th class="hand">T</th>' +
+        '<th class="etat">G</th><th class="etat">F</th><th class="etat">T</th>' +
       '</tr>' +
       '</thead><tbody>';
     D.EFFECTIFS.groupes.forEach(function (g) {

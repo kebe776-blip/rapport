@@ -132,10 +132,26 @@ a { color: #1f4e79; }
 /* En-tête à deux niveaux (ex. section I : EFFECTIF au-dessus de G / F / T) */
 .table-saisie thead th { text-align: center; }
 .table-saisie thead th.grp {
-  background: #dde8f4; font-weight: 800; font-size: 12.5px;
-  letter-spacing: 0.3px; border-bottom: 2px solid #9fb8d4;
+  font-weight: 800; font-size: 12.5px;
+  letter-spacing: 0.3px; border-bottom: 2px solid rgba(0,0,0,0.25);
 }
 .table-saisie thead th[rowspan] { vertical-align: middle; }
+
+/* --- Section I : une couleur par catégorie (catégorie = foncé, G/F/T = clair) --- */
+.table-saisie thead th.grp.eff,
+.table-saisie thead th.eff   { background: #1f6fb2; color: #ffffff; }   /* EFFECTIF : bleu */
+.table-saisie thead th.grp.red,
+.table-saisie thead th.red   { background: #e8710a; color: #ffffff; }   /* REDOUBLANTS : orange */
+.table-saisie thead th.grp.hand,
+.table-saisie thead th.hand  { background: #2e9e5b; color: #ffffff; }   /* HANDICAPÉS : vert */
+.table-saisie thead th.grp.etat,
+.table-saisie thead th.etat  { background: #8e44ad; color: #ffffff; }   /* ÉTAT CIVIL : violet */
+
+/* Sous-ligne G / F / T : teinte claire de la même couleur */
+.table-saisie thead tr:nth-child(2) th.eff  { background: #d6e8f7; color: #144f7d; }
+.table-saisie thead tr:nth-child(2) th.red  { background: #fde3c8; color: #96480a; }
+.table-saisie thead tr:nth-child(2) th.hand { background: #d4efdf; color: #1c6b3e; }
+.table-saisie thead tr:nth-child(2) th.etat { background: #ecd9f2; color: #5f2d78; }
 .table-saisie td { padding: 4px 5px; border-bottom: 1px solid #e6eaf0; vertical-align: middle; }
 .table-saisie tr:nth-child(even) td { background: #fafbfd; }
 .table-saisie input, .table-saisie select {
