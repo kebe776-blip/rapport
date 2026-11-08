@@ -129,6 +129,13 @@ a { color: #1f4e79; }
   padding: 7px 6px; border-bottom: 2px solid #cfdcee; font-size: 12.5px;
   position: sticky; top: 0;
 }
+/* En-tête à deux niveaux (ex. section I : EFFECTIF au-dessus de G / F / T) */
+.table-saisie thead th { text-align: center; }
+.table-saisie thead th.grp {
+  background: #dde8f4; font-weight: 800; font-size: 12.5px;
+  letter-spacing: 0.3px; border-bottom: 2px solid #9fb8d4;
+}
+.table-saisie thead th[rowspan] { vertical-align: middle; }
 .table-saisie td { padding: 4px 5px; border-bottom: 1px solid #e6eaf0; vertical-align: middle; }
 .table-saisie tr:nth-child(even) td { background: #fafbfd; }
 .table-saisie input, .table-saisie select {

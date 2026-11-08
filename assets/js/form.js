@@ -204,9 +204,23 @@
       '<span class="badge" data-badge="I">0</span></summary><div class="corps">' +
       '<div class="petit mb">Les totaux (T) se calculent automatiquement : G + F.</div>' +
       '<div class="table-defilement"><table class="table-saisie">' +
-      '<thead><tr><th style="width:70px;">COURS</th>';
-    cols.forEach(function (c) { html += "<th>" + esc(c.l) + "</th>"; });
-    html += "</tr></thead><tbody>";
+      '<thead>' +
+      '<tr>' +
+        '<th rowspan="2" style="width:70px;">COURS</th>' +
+        '<th rowspan="2">Nbr<br>classe</th>' +
+        '<th colspan="3" class="grp">EFFECTIF</th>' +
+        '<th colspan="3" class="grp">REDOUBLANTS</th>' +
+        '<th colspan="3" class="grp">HANDICAPÉS</th>' +
+        '<th colspan="3" class="grp">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
+        '<th rowspan="2">Type<br>: Simple/CMG/CDF</th>' +
+      '</tr>' +
+      '<tr>' +
+        '<th>G</th><th>F</th><th>T</th>' +
+        '<th>G</th><th>F</th><th>T</th>' +
+        '<th>G</th><th>F</th><th>T</th>' +
+        '<th>G</th><th>F</th><th>T</th>' +
+      '</tr>' +
+      '</thead><tbody>';
     D.EFFECTIFS.groupes.forEach(function (g) {
       html += '<tr data-groupe="' + g[0] + '"><td class="num">' + esc(g[1]) + "</td>";
       cols.forEach(function (c) {
