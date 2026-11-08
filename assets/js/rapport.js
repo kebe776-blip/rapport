@@ -363,16 +363,16 @@ persTable(ctx.malades, 3) +
 '</h2>' +
 '<table class="grid ultracompact">' +
   '<tr>' +
-    '<th colspan="9" style="border-right:1.2pt solid #000;">FRANÇAIS</th>' +
-    '<th colspan="9">ARABE</th>' +
+    '<th colspan="9" class="cat" style="border-right:1.2pt solid #000;">FRANÇAIS</th>' +
+    '<th colspan="9" class="cat">ARABE</th>' +
   '</tr>' +
   '<tr>' +
-    '<th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>' +
-    '<th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>' +
-    '<th colspan="3" style="border-right:1.2pt solid #000;">MAÎTRES CONTRACTUELS</th>' +
-    '<th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>' +
-    '<th colspan="3" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>' +
-    '<th colspan="3">MAÎTRES CONTRACTUELS</th>' +
+    '<th colspan="3" class="cat plain" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>' +
+    '<th colspan="3" class="cat plain" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>' +
+    '<th colspan="3" class="cat plain" style="border-right:1.2pt solid #000;">MAÎTRES CONTRACTUELS</th>' +
+    '<th colspan="3" class="cat plain" style="border-right:0.7pt solid #000;">INSTITUTEURS</th>' +
+    '<th colspan="3" class="cat plain" style="border-right:0.7pt solid #000;">INSTITUTEURS ADJOINTS</th>' +
+    '<th colspan="3" class="cat plain">MAÎTRES CONTRACTUELS</th>' +
   '</tr>' +
   '<tr>' +
     '<th>H</th><th>F</th><th style="border-right:0.7pt solid #000;">T</th>' +
@@ -417,13 +417,13 @@ persTable(ctx.malades, 3) +
 '<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>' +
 '<table class="grid">' +
   '<tr>' +
-    '<th rowspan="2" style="width:6%;">COURS</th>' +
-    '<th rowspan="2" style="width:5%;">Nbr<br>classe</th>' +
-    '<th colspan="3" style="border-right:1.2pt solid #000;">EFFECTIF</th>' +
-    '<th colspan="3" style="border-right:1.2pt solid #000;">REDOUBLANTS</th>' +
-    '<th colspan="3" style="border-right:1.2pt solid #000;">HANDICAPÉS</th>' +
-    '<th colspan="3" style="border-right:1.2pt solid #000;">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
-    '<th rowspan="2" style="width:9%;">Type : Simple<br>/CMG/CDF</th>' +
+    '<th rowspan="2" class="cat plain" style="width:6%;">COURS</th>' +
+    '<th rowspan="2" class="cat plain" style="width:5%;">Nbr<br>classe</th>' +
+    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">EFFECTIF</th>' +
+    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">REDOUBLANTS</th>' +
+    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">HANDICAPÉS</th>' +
+    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
+    '<th rowspan="2" class="cat plain" style="width:9%;">Type : Simple<br>/CMG/CDF</th>' +
   '</tr>' +
   '<tr>' +
     '<th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>' +

@@ -83,6 +83,13 @@ table.grid th {
   text-align: center;
   font-size: 8.4pt;
 }
+/* Ligne des catégories (EFFECTIF, REDOUBLANTS… ) au-dessus de G / F / T */
+table.grid th.cat {
+  background-color: #EDEDED;
+  font-size: 8.9pt;
+  letter-spacing: 0.2pt;
+}
+table.grid th.cat.plain { background-color: #FFFFFF; }
 table.grid td.c { text-align: center; }
 table.grid td.n { text-align: center; font-weight: bold; }
 table.grid tr.totale td { font-weight: bold; }
