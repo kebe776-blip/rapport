@@ -95,7 +95,9 @@
   }
 
   /* --- Tableau répétable (personnel, manuels…) --- */
-  function ligneRepeat(cle, colonnes, i, cleTitre) {
+  function ligneRepeat(cle, colonnes, i, cleTitre, def) {
+    def = def || {};
+    var valeurFixe = def.valeurs ? def.valeurs[i] : undefined;
     var html = '<tr><td class="num">' + (i + 1) + "</td>";
     for (var j = 0; j < colonnes.length; j++) {
       var c = colonnes[j];
@@ -109,29 +111,41 @@
       if (c.t === "date") { attrs += ' placeholder="JJ/MM/AAAA"'; }
       if (c.t === "num") { attrs += ' min="0"'; }
 
+      /* Titre imprimé par le modèle officiel (K, M) : non modifiable */
+      var estValeurFixe = valeurFixe !== undefined && n === (cleTitre || "titre");
+      if (estValeurFixe) { attrs += ' readonly class="fixe"'; }
+
       html += "<td" + style + ">";
       if (c.t === "select") {
         html += "<select" + attrs + ">" + optionsHTML(c.opts, "") + "</select>";
       } else {
-        html += "<input" + attrs + ' value="">';
+        html += "<input" + attrs + ' value="' + esc(estValeurFixe ? valeurFixe : "") + '">';
       }
       html += "</td>";
     }
-    html += '<td class="col-actions">' +
-            '<button type="button" class="suppr js-suppr" title="Supprimer la ligne">×</button>' +
-            "</td></tr>";
+    if (!def.fixe) {
+      html += '<td class="col-actions">' +
+              '<button type="button" class="suppr js-suppr" title="Supprimer la ligne">×</button>' +
+              "</td>";
+    }
+    html += "</tr>";
     return html;
   }
 
   function tableauRepeatHTML(def) {
     var cleTitre = def.cle_titre;
+    var nb = def.valeurs ? def.valeurs.length
+           : (def.fixe ? (def.min || 1)
+                       : Math.max(def.min || 1, (donnees[def.cle] || []).length, 1));
+    var aide = def.fixe
+      ? "Nombre de lignes fixé selon le modèle officiel."
+      : "complétez autant de lignes que nécessaire.";
     var html =
       '<details class="section-form" open>' +
         "<summary>" + def.lettre + ". " + esc(def.titre) +
-        '<span class="badge" data-badge="' + def.lettre + '">0</span></summary>' +
+        '<span class="badge" data-badge="' + esc(def.lettre) + '">0</span></summary>' +
         '<div class="corps">' +
-          '<div class="petit mb">' + esc(def.soustitre || "") +
-            " — complétez autant de lignes que nécessaire.</div>" +
+          '<div class="petit mb">' + esc(def.soustitre || "") + " — " + aide + "</div>" +
           '<div class="table-defilement">' +
           '<table class="table-saisie" data-repeat="' + def.cle + '">' +
             "<thead><tr><th style=\"width:44px;\">N°</th>";
@@ -139,13 +153,17 @@
       html += "<th" + (def.colonnes[j].w ? ' style="width:' + def.colonnes[j].w + '"' : "") +
               ">" + esc(def.colonnes[j].l) + "</th>";
     }
-    html += '<th style="width:40px;"></th></tr></thead><tbody>';
-    var nb = Math.max(def.min || 1, (donnees[def.cle] || []).length, 1);
-    for (var i = 0; i < nb; i++) { html += ligneRepeat(def.cle, def.colonnes, i, cleTitre); }
-    html += "</tbody></table></div>" +
-            '<div class="mt"><button type="button" class="btn gris petit js-ajout" ' +
-            'data-repeat="' + def.cle + '">＋ Ajouter une ligne</button></div>' +
-        "</div></details>";
+    if (!def.fixe) { html += '<th style="width:40px;"></th>'; }
+    html += "</tr></thead><tbody>";
+    for (var i = 0; i < nb; i++) {
+      html += ligneRepeat(def.cle, def.colonnes, i, cleTitre, def);
+    }
+    html += "</tbody></table></div>";
+    if (!def.fixe) {
+      html += '<div class="mt"><button type="button" class="btn gris petit js-ajout" ' +
+              'data-repeat="' + def.cle + '">＋ Ajouter une ligne</button></div>';
+    }
+    html += "</div></details>";
     return html;
   }
 
@@ -262,14 +280,15 @@
 
     html += '<div id="sec_H">' + tableauRepeatHTML({
       lettre: "H", cle: "enseignant", titre: "H. SITUATION DU PERSONNEL ENSEIGNANT",
-      colonnes: D.PERSONNEL[0].colonnes, min: 1,
-      soustitre: "Inscrire le Directeur en première ligne"
+      colonnes: D.PERSONNEL[0].colonnes, min: D.PERSONNEL[0].min, fixe: true,
+      soustitre: "20 lignes — inscrire le Directeur en première ligne"
     }) + "</div>";
 
     D.PERSONNEL.slice(1).forEach(function (p) {
       html += '<div id="sec_' + p.cle + '">' + tableauRepeatHTML({
-        lettre: "", cle: p.cle, titre: p.titre, colonnes: p.colonnes, min: 1,
-        soustitre: "Laisser vide s'il n'y en a pas"
+        lettre: "", cle: p.cle, titre: p.titre, colonnes: p.colonnes,
+        min: p.min, fixe: true,
+        soustitre: p.min + " lignes — laisser vide s'il n'y en a pas"
       }) + "</div>";
     });
 
@@ -281,7 +300,8 @@
       html += '<div id="sec_' + L.lettre + '">' + tableauRepeatHTML({
         lettre: L.lettre, cle: L.cle, titre: L.lettre + ". " + L.titre,
         colonnes: D.COLONNES_LISTE, min: L.min,
-        cle_titre: L.cle_titre, soustitre: L.soustitre
+        cle_titre: L.cle_titre, soustitre: L.soustitre,
+        fixe: !!L.fixe, valeurs: L.valeurs
       }) + "</div>";
     });
 
@@ -383,7 +403,7 @@
       var table = conteneur.querySelector('table[data-repeat="' + cle + '"]');
       var i = table.tBodies[0].rows.length;
       table.tBodies[0].insertAdjacentHTML("beforeend",
-        ligneRepeat(cle, def.colonnes, i, def.cle_titre));
+        ligneRepeat(cle, def.colonnes, i, def.cle_titre, def));
       renumerote(table);
       var dernier = table.tBodies[0].rows[i].querySelector("input, select");
       if (dernier) { dernier.focus(); }
@@ -495,15 +515,18 @@
       var lignes = donnees[cle];
       var tbody = table.tBodies[0];
       tbody.innerHTML = "";
-      var nb = Math.max(lignes && lignes.length ? lignes.length : 0, 1);
+      var nb = def.valeurs ? def.valeurs.length
+             : (def.fixe ? (def.min || 1)
+                         : Math.max(lignes && lignes.length ? lignes.length : 0, 1));
       for (var i = 0; i < nb; i++) {
         tbody.insertAdjacentHTML("beforeend",
-          ligneRepeat(cle, def.colonnes, i, def.cle_titre));
+          ligneRepeat(cle, def.colonnes, i, def.cle_titre, def));
       }
       renumerote(table);
       if (lignes) {
         Array.prototype.forEach.call(tbody.rows, function (tr, i) {
           Array.prototype.forEach.call(tr.querySelectorAll("[data-n]"), function (el) {
+            if (el.readOnly) { return; }   /* titre officiel non modifiable */
             var v = lignes[i] && lignes[i][el.getAttribute("data-n")];
             if (v !== undefined && v !== null) { el.value = v; }
           });
@@ -543,7 +566,18 @@
       }
       setPath(out, el.getAttribute("data-path"), v);
     });
-    /* les lignes vides des tableaux sont conservées telles quelles */
+    /* Les lignes entièrement vides des tableaux fixes sont écartées :
+       le PDF renumérote lui-même les lignes de saisie restantes. */
+    ["enseignant", "suppleant", "malade", "manuels", "autre_manuel",
+     "materiel", "autre_materiel"].forEach(function (cle) {
+      if (!Array.isArray(out[cle])) { return; }
+      out[cle] = out[cle].filter(function (row) {
+        return Object.keys(row).some(function (k) {
+          var v = row[k];
+          return v !== "" && v !== 0 && v !== null && v !== undefined;
+        });
+      });
+    });
     return out;
   }
 

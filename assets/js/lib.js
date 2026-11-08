@@ -21,7 +21,7 @@
     },
     type_classe: { simple: "SIMPLE", cmg: "CMG", cdf: "CDF" },
     statut_directeur: { titulaire: "TITULAIRE", interimaire: "INTÉRIMAIRE" },
-    discipline: { francais: "FRANÇAIS", arabe: "ARABE" },
+    discipline: { francais: "FRANÇAIS", arabe: "ARABE", anglais: "ANGLAIS" },
     provenance: {
       etat: "ÉTAT", cge: "CGE", caritas: "CARITAS",
       plan_international: "PLAN INTERNATIONAL", relit: "RELIT",
@@ -177,12 +177,19 @@
     };
 
     /* --- B. Classes pédagogiques --- */
+    var cjParts = [
+      txt(val(f, "cours_jumeles")),
+      txt(val(f, "cours_jumeles_cmg")) ? "CMG : " + txt(val(f, "cours_jumeles_cmg")) : "",
+      txt(val(f, "cours_jumeles_cdf")) ? "CDF : " + txt(val(f, "cours_jumeles_cdf")) : ""
+    ].filter(function (s) { return s.trim() !== ""; });
     var b = {
       nb_cours: num(val(f, "nb_cours")),
       nb_classes_simples: num(val(f, "nb_classes_simples")),
       nb_cmg: num(val(f, "nb_cmg")),
       nb_cdf: num(val(f, "nb_cdf")),
-      cours_jumeles: txt(val(f, "cours_jumeles"), "NÉANT").toUpperCase()
+      cours_jumeles: cjParts.length
+        ? cjParts.join(" — ").toUpperCase()
+        : "NÉANT"
     };
 
     /* --- C. Classes physiques --- */
@@ -207,7 +214,7 @@
       date_affectation: txt(val(f, "date_affectation"), "—"),
       references_affectation: txt(val(f, "references_affectation"), "—"),
       statut_directeur: txt(val(f, "statut_directeur"), "—").toUpperCase(),
-      position: txt(val(f, "position"), "—").toUpperCase(),
+      position: lab("oui_non", val(f, "position"), "—"),
       decharge: lab("oui_non", val(f, "decharge"), "—"),
       telephone1: txt(val(f, "telephone1"), "—"),
       telephone2: txt(val(f, "telephone2"), "—"),
@@ -226,10 +233,15 @@
       nb_robinets: num(val(f, "nb_robinets")),
       etat_point_eau: lab("etat", val(f, "etat_point_eau"), "—"),
       bailleur_point_eau: txt(val(f, "bailleur_point_eau"), "NÉANT"),
+      puits: lab("oui_non", val(f, "puits"), "—"),
+      etat_puits: lab("etat", val(f, "etat_puits"), "—"),
+      bailleur_puits: txt(val(f, "bailleur_puits"), "NÉANT"),
       senelec: lab("oui_non", val(f, "senelec"), "—"),
       etat_electricite: lab("etat", val(f, "etat_electricite"), "—"),
-      branchement_collectif: lab("oui_non", val(f, "branchement_collectif"), "—"),
-      source_electricite: lab("source_electricite", val(f, "source_electricite"), "NÉANT"),
+      plaques_solaires: lab("oui_non", val(f, "plaques_solaires"), "—"),
+      etat_plaques_solaires: lab("etat", val(f, "etat_plaques_solaires"), "—"),
+      groupe_electrogene: lab("oui_non", val(f, "groupe_electrogene"), "—"),
+      etat_groupe_electrogene: lab("etat", val(f, "etat_groupe_electrogene"), "—"),
       internet: lab("oui_non", val(f, "internet"), "—"),
       modem_wifi_men: lab("oui_non", val(f, "modem_wifi_men"), "—"),
       bureau: lab("oui_non", val(f, "bureau"), "—"),
@@ -247,7 +259,6 @@
     /* --- F. Activités péri et para scolaires --- */
     var fa = {
       cge: lab("oui_non", val(f, "cge"), "—"),
-      cge_mandat: txt(val(f, "cge_mandat"), "2025"),
       cge_date_mise_en_place: txt(val(f, "cge_date_mise_en_place"), "___/___/______"),
       cge_president: txt(val(f, "cge_president"), "—"),
       cge_tel: txt(val(f, "cge_tel"), "—"),
@@ -274,9 +285,9 @@
     };
 
     /* --- H. Personnel --- */
-    function pers(item) {
+    function pers(item, idx) {
       return {
-        num: num(item.num_ligne),
+        num: num(item.num_ligne) || (idx + 1),
         prenom: txt(item.prenom).toUpperCase(),
         nom: txt(item.nom).toUpperCase(),
         grade: txt(item.grade),
@@ -291,9 +302,18 @@
       };
     }
 
-    var personnel = rows(f, "enseignant").map(pers);
-    var suppleants = rows(f, "suppleant").map(pers);
-    var malades = rows(f, "malade").map(pers);
+    /* Lignes entièrement vides écartées (le PDF complète en lignes numérotées) */
+    function nonVide(item) {
+      return Object.keys(item).some(function (k) {
+        var v = item[k];
+        if (v === null || v === undefined || v === "") { return false; }
+        if (typeof v === "number" && v === 0) { return false; }
+        return true;
+      });
+    }
+    var personnel = rows(f, "enseignant").filter(nonVide).map(pers);
+    var suppleants = rows(f, "suppleant").filter(nonVide).map(pers);
+    var malades = rows(f, "malade").filter(nonVide).map(pers);
 
     var rfKeys = ["inst_h", "inst_f", "inst_t", "inst_adj_h", "inst_adj_f",
                   "inst_adj_t", "mc_h", "mc_f", "mc_t"];
@@ -319,7 +339,7 @@
         total[k] += row[k];
       });
       row.type_classe = lab("type_classe", val(f, "type_classe", grp + "/"), "—");
-      row.maitre_liste = num(val(f, "maitre_liste", grp + "/"));
+      row.nb_classes = num(val(f, "nb_classes", grp + "/"));
       return row;
     });
     var total_row = { cours: "TOTAL" };
@@ -349,10 +369,10 @@
       };
     }
 
-    var manuels = rows(f, "manuel", "manuels").map(stuff);
-    var autres_manuels = rows(f, "autre_manuel", "autres_manuels").map(stuff);
-    var materiel = rows(f, "materiel", "materiel_didactique").map(stuff);
-    var autres_materiels = rows(f, "autre_materiel", "autres_materiels").map(stuff);
+    var manuels = rows(f, "manuel", "manuels").filter(nonVide).map(stuff);
+    var autres_manuels = rows(f, "autre_manuel", "autres_manuels").filter(nonVide).map(stuff);
+    var materiel = rows(f, "materiel", "materiel_didactique").filter(nonVide).map(stuff);
+    var autres_materiels = rows(f, "autre_materiel", "autres_materiels").filter(nonVide).map(stuff);
 
     /* --- Méta --- */
     var soumission = opts.soumission || raw._submission_time || "";

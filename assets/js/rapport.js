@@ -215,12 +215,17 @@
   ' : <span class="lbl">Robinet :</span> <span class="souligne">' + p2(e.nb_robinets) + '</span>' +
   ' : <span class="lbl">Etat :</span> <span class="souligne">' + u(e.etat_point_eau) + '</span>' +
   ' : <span class="lbl">Bailleur :</span> <span class="souligne">' + u(e.bailleur_point_eau) + '</span>' +
+  ' : <span class="lbl">Puits :</span> <span class="souligne">' + u(e.puits) + '</span>' +
+  ' : <span class="lbl">Etat :</span> <span class="souligne">' + u(e.etat_puits) + '</span>' +
+  ' : <span class="lbl">Bailleur :</span> <span class="souligne">' + u(e.bailleur_puits) + '</span>' +
 '</div>' +
 '<div class="ligne">' +
   '<span class="lbl">Senelec :</span> <span class="souligne">' + u(e.senelec) + '</span>' +
   ' : <span class="lbl">Etat des installations :</span> <span class="souligne">' + u(e.etat_electricite) + '</span>' +
-  ' : <span class="lbl">Branchement collectif :</span> <span class="souligne">' + u(e.branchement_collectif) + '</span>' +
-  ' : <span class="lbl">Groupe électrogène :</span> <span class="souligne">' + u(e.source_electricite) + '</span>' +
+  ' : <span class="lbl">Plaques solaires :</span> <span class="souligne">' + u(e.plaques_solaires) + '</span>' +
+  ' : <span class="lbl">Etat :</span> <span class="souligne">' + u(e.etat_plaques_solaires) + '</span>' +
+  ' : <span class="lbl">Groupe électrogène :</span> <span class="souligne">' + u(e.groupe_electrogene) + '</span>' +
+  ' : <span class="lbl">Etat :</span> <span class="souligne">' + u(e.etat_groupe_electrogene) + '</span>' +
 '</div>' +
 '<div class="ligne">' +
   '<span class="lbl">L\'école dispose-t-elle d\'une connexion internet ?</span> ' +
@@ -255,8 +260,7 @@
   '<span class="souligne">' + u(f.cge) + '</span><br>' +
   '<span class="lbl">&nbsp;&nbsp;&nbsp;&nbsp;Si oui préciser la date de la mise en place du bureau ' +
   'dont le mandat est en cours :</span> ' +
-  '<span class="souligne">' + u(f.cge_date_mise_en_place) + '</span> ' +
-  '<span class="souligne">' + u(f.cge_mandat) + '</span><br>' +
+  '<span class="souligne">' + u(f.cge_date_mise_en_place) + '</span><br>' +
   '<span class="lbl">&nbsp;&nbsp;&nbsp;&nbsp;Le président :</span> ' +
   '<span class="souligne">' + u(f.cge_president) + '</span> ' +
   '<span class="lbl">Tél :</span> <span class="souligne">' + u(f.cge_tel) + '</span> ' +
@@ -335,10 +339,6 @@
 
   function persTable(list, min) {
     var html = '<table class="grid ultracompact">' + PERS_HEAD;
-    if (!list.length) {
-      html += '<tr><td class="c" colspan="12">—</td></tr>';
-      min = min - 1; /* la ligne « — » tient compte d'une ligne de saisie */
-    }
     list.forEach(function (p) { html += persRow(p); });
     html += blankRows(list.length, min, 12);
     html += '</table>';
@@ -418,12 +418,12 @@ persTable(ctx.malades, 3) +
 '<table class="grid">' +
   '<tr>' +
     '<th rowspan="2" style="width:6%;">COURS</th>' +
+    '<th rowspan="2" style="width:5%;">Nbr<br>classe</th>' +
     '<th colspan="3" style="border-right:1.2pt solid #000;">EFFECTIF</th>' +
     '<th colspan="3" style="border-right:1.2pt solid #000;">REDOUBLANTS</th>' +
     '<th colspan="3" style="border-right:1.2pt solid #000;">HANDICAPÉS</th>' +
     '<th colspan="3" style="border-right:1.2pt solid #000;">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
     '<th rowspan="2" style="width:9%;">Type : Simple<br>/CMG/CDF</th>' +
-    '<th rowspan="2" style="width:9%;">Maître N°<br>sur la liste</th>' +
   '</tr>' +
   '<tr>' +
     '<th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>' +
@@ -435,6 +435,7 @@ persTable(ctx.malades, 3) +
     ctx.effectifs.forEach(function (e) {
       html += '<tr>' +
         '<td class="c">' + u(e.cours) + '</td>' +
+        '<td class="n">' + (e.nb_classes || 0) + '</td>' +
         '<td class="n">' + e.eff_g + '</td><td class="n">' + e.eff_f + '</td>' +
         '<td class="n" style="border-right:1.2pt solid #000;">' + e.eff_t + '</td>' +
         '<td class="n">' + e.red_g + '</td><td class="n">' + e.red_f + '</td>' +
@@ -444,13 +445,13 @@ persTable(ctx.malades, 3) +
         '<td class="n">' + e.sans_etat_g + '</td><td class="n">' + e.sans_etat_f + '</td>' +
         '<td class="n" style="border-right:1.2pt solid #000;">' + e.sans_etat_t + '</td>' +
         '<td class="c">' + u(e.type_classe) + '</td>' +
-        '<td class="c">' + e.maitre_liste + '</td>' +
       '</tr>';
     });
 
     html +=
   '<tr class="totale">' +
     '<td class="c">TOTAL</td>' +
+    '<td></td>' +
     '<td class="n">' + t.eff_g + '</td><td class="n">' + t.eff_f + '</td>' +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.eff_t + '</td>' +
     '<td class="n">' + t.red_g + '</td><td class="n">' + t.red_f + '</td>' +
@@ -459,7 +460,7 @@ persTable(ctx.malades, 3) +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.hand_t + '</td>' +
     '<td class="n">' + t.sans_etat_g + '</td><td class="n">' + t.sans_etat_f + '</td>' +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.sans_etat_t + '</td>' +
-    '<td colspan="2"></td>' +
+    '<td></td>' +
   '</tr>' +
 '</table>';
 

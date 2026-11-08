@@ -24,7 +24,8 @@
                      ["neant", "NÉANT"]];
   var STATUT_DIR = [["", "—"], ["titulaire", "TITULAIRE"],
                     ["interimaire", "INTÉRIMAIRE"]];
-  var DISCIPLINE = [["", "—"], ["francais", "FRANÇAIS"], ["arabe", "ARABE"]];
+  var DISCIPLINE = [["", "—"], ["francais", "FRANÇAIS"], ["arabe", "ARABE"],
+                    ["anglais", "ANGLAIS"]];
   var PROVENANCE = [["", "—"], ["etat", "ÉTAT"], ["cge", "CGE"],
                     ["caritas", "CARITAS"], ["plan_international", "PLAN INTERNATIONAL"],
                     ["relit", "RELIT"], ["pame", "PAME"], ["onu", "ONU"],
@@ -62,7 +63,11 @@
         { n: "nb_cmg", l: "Nombre de CMG", t: "num" },
         { n: "nb_cdf", l: "Nombre de CDF", t: "num" },
         { n: "cours_jumeles", l: "Préciser les cours jumelés", t: "text", large: true,
-          aide: "Laisser vide = NÉANT" }
+          aide: "Laisser vide = NÉANT" },
+        { n: "cours_jumeles_cmg", l: "Cours jumelés — CMG (multi-grades)", t: "text",
+          large: true, aide: "Ex. CI/CP en CMG — laisser vide = NÉANT" },
+        { n: "cours_jumeles_cdf", l: "Cours jumelés — CDF (double flux)", t: "text",
+          large: true, aide: "Ex. CE1/CE2 en CDF — laisser vide = NÉANT" }
       ]
     },
     {
@@ -98,8 +103,7 @@
         { n: "references_affectation", l: "Références de l'acte d'affectation", t: "text",
           large: true },
         { n: "statut_directeur", l: "Statut", t: "select", opts: STATUT_DIR },
-        { n: "position", l: "Position (charge)", t: "text",
-          aide: "Ex. Charge (Titulaire de classe)" },
+        { n: "position", l: "Titulaire de classe (Chargé)", t: "select", opts: OUI_NON },
         { n: "decharge", l: "Déchargé", t: "select", opts: OUI_NON },
         { n: "telephone1", l: "Numéro de contact", t: "text", req: true, tel: true },
         { n: "telephone2", l: "Numéro (2ème possible)", t: "text", tel: true },
@@ -120,12 +124,18 @@
         { n: "nb_robinets", l: "Nombre de robinets", t: "num" },
         { n: "etat_point_eau", l: "État du point d'eau", t: "select", opts: ETAT },
         { n: "bailleur_point_eau", l: "Bailleur (point d'eau)", t: "text" },
+        { n: "puits", l: "Puits", t: "select", opts: OUI_NON },
+        { n: "etat_puits", l: "État du puits", t: "select", opts: ETAT },
+        { n: "bailleur_puits", l: "Bailleur (puits)", t: "text" },
         { n: "senelec", l: "Senelec", t: "select", opts: OUI_NON },
-        { n: "etat_electricite", l: "État des installations électriques", t: "select",
+        { n: "etat_electricite", l: "État des installations (Senelec)", t: "select",
           opts: ETAT },
-        { n: "branchement_collectif", l: "Branchement collectif", t: "select", opts: OUI_NON },
-        { n: "source_electricite", l: "Source d'électricité", t: "select",
-          opts: ELECTRICITE },
+        { n: "plaques_solaires", l: "Plaques solaires", t: "select", opts: OUI_NON },
+        { n: "etat_plaques_solaires", l: "État des installations (plaques solaires)",
+          t: "select", opts: ETAT },
+        { n: "groupe_electrogene", l: "Groupe électrogène", t: "select", opts: OUI_NON },
+        { n: "etat_groupe_electrogene", l: "État des installations (groupe électrogène)",
+          t: "select", opts: ETAT },
         { n: "internet", l: "Connexion internet", t: "select", opts: OUI_NON },
         { n: "modem_wifi_men", l: "Modem wifi du MEN", t: "select", opts: OUI_NON },
         { n: "bureau", l: "Bureau", t: "select", opts: OUI_NON },
@@ -146,7 +156,6 @@
       champs: [
         { n: "cge", l: "CGE fonctionnel", t: "select", opts: OUI_NON },
         { n: "cge_date_mise_en_place", l: "Date de mise en place du bureau", t: "date" },
-        { n: "cge_mandat", l: "Mandat en cours", t: "text", aide: "Ex. 2025" },
         { n: "cge_president", l: "Président du CGE", t: "text", maj: "upper" },
         { n: "cge_tel", l: "Tél. président", t: "text", tel: true },
         { n: "cge_deux_mandats", l: "Deux mandats consécutifs ?", t: "select", opts: OUI_NON },
@@ -197,9 +206,12 @@
   ];
 
   var PERSONNEL = [
-    { cle: "enseignant", titre: "ENSEIGNANTS", colonnes: COLONNES_PERSONNEL, min: 1 },
-    { cle: "suppleant", titre: "SUPPLÉANTS", colonnes: COLONNES_PERSONNEL, min: 1 },
-    { cle: "malade", titre: "MALADES / CONGÉS DE MATERNITÉ", colonnes: COLONNES_PERSONNEL, min: 1 }
+    { cle: "enseignant", titre: "ENSEIGNANTS", colonnes: COLONNES_PERSONNEL,
+      min: 20, fixe: true },
+    { cle: "suppleant", titre: "SUPPLÉANTS", colonnes: COLONNES_PERSONNEL,
+      min: 3, fixe: true },
+    { cle: "malade", titre: "MALADES / CONGÉS DE MATERNITÉ", colonnes: COLONNES_PERSONNEL,
+      min: 3, fixe: true }
   ];
 
   /* --- Récapitulation FR / AR (section H) --- */
@@ -230,6 +242,7 @@
       ["eff_ce2", "CE2"], ["eff_cm1", "CM1"], ["eff_cm2", "CM2"]
     ],
     colonnes: [
+      { n: "nb_classes", l: "Nbr classe", t: "num" },
       { n: "eff_g", l: "Effectif G", t: "num", calc: "eff" },
       { n: "eff_f", l: "Effectif F", t: "num", calc: "eff" },
       { n: "eff_t", l: "Effectif T", t: "num", auto: true },
@@ -242,8 +255,7 @@
       { n: "sans_etat_g", l: "Sans état civil G", t: "num", calc: "etat" },
       { n: "sans_etat_f", l: "Sans état civil F", t: "num", calc: "etat" },
       { n: "sans_etat_t", l: "Sans état civil T", t: "num", auto: true },
-      { n: "type_classe", l: "Type", t: "select", opts: TYPE_CLASSE },
-      { n: "maitre_liste", l: "Maître N° sur la liste", t: "num" }
+      { n: "type_classe", l: "Type", t: "select", opts: TYPE_CLASSE }
     ]
   };
 
@@ -274,18 +286,46 @@
 
   /* -----------------------------------------------------------------------
      K, L, M, N — LISTES DE MANUELS / MATÉRIEL
+     K et M : titres fixes du modèle officiel (pas de bouton d'ajout).
+     L : 7 lignes libres — N : 4 lignes libres.
      ----------------------------------------------------------------------- */
+  var TITRES_MANUELS = [
+    "Langue et communication CI", "Guide L C CI", "Mathematiques CI",
+    "Guide Mathematiques CI", "Cahier d'exercices mathematiques (PAAME) CI",
+    "Manuel de lecture RELIT CI Tome 1", "Manuel de lecture RELIT CI Tome 2",
+    "Planche d'alphabetisation",
+    "Langue et communication CP", "Guide L C CP", "Mathematiques CP",
+    "Guide Mathematiques CP", "Cahier d'exercices mathematiques (PAAME) CP",
+    "Cahier d'exercices mathematiques (PAAME) CE1",
+    "Cahier d'exercices mathematiques (PAAME) CE2",
+    "Langue et communication CM", "Guide L C CM", "Mathematiques CM",
+    "Guide Mathematiques CM",
+    "Cahier d'exercices mathematiques (PAAME) CM1",
+    "Cahier d'exercices mathematiques (PAAME) CM2",
+    "Decouvertte du monde CM", "Guide Decouverte du monde CM",
+    "Guide revise 1ere etape", "Guide revise 2eme etape"
+  ];
+
+  var DESIGNATIONS_MATERIEL = [
+    "Equerre", "Rapporteur", "Compas", "Regle plate", "Decametre",
+    "Metre pliant", "Balance", "Poids", "Globe Terrestre", "Carte murale",
+    "Chaine d'arpenteur", "Cachet", "Encreur", "Seau"
+  ];
+
   var LISTES = [
     { lettre: "K", cle: "manuels", titre: "RECENSESEMENT DES MANUELS",
-      colonne_titre: "Titre", min: 1, soustitre: "Manuels de l'école" },
+      colonne_titre: "Titre", min: TITRES_MANUELS.length, fixe: true,
+      valeurs: TITRES_MANUELS, soustitre: "Titres officiels du modèle" },
     { lettre: "L", cle: "autre_manuel", titre: "AUTRES MANUELS DISPONIBLES A L'ÉCOLE",
-      colonne_titre: "Titre", min: 1, soustitre: "Autres manuels (donnés, prêtés…)" },
+      colonne_titre: "Titre", min: 7, fixe: true,
+      soustitre: "7 lignes — titre libre (donnés, prêtés…)" },
     { lettre: "M", cle: "materiel", titre: "RECENSESEMENT DU MATÉRIEL DIDACTIQUE",
-      colonne_titre: "Désignation", min: 1, cle_titre: "designation",
-      soustitre: "Matériel didactique" },
+      colonne_titre: "Désignation", min: DESIGNATIONS_MATERIEL.length,
+      cle_titre: "designation", fixe: true, valeurs: DESIGNATIONS_MATERIEL,
+      soustitre: "Désignations officielles du modèle" },
     { lettre: "N", cle: "autre_materiel", titre: "AUTRES MATÉRIEL DISPONIBLE A L'ÉCOLE",
-      colonne_titre: "Désignation", min: 1, cle_titre: "designation",
-      soustitre: "Autres matériels" }
+      colonne_titre: "Désignation", min: 4, cle_titre: "designation", fixe: true,
+      soustitre: "4 lignes — désignation libre" }
   ];
 
   var COLONNES_LISTE = [
@@ -304,6 +344,8 @@
     MOBILIER: MOBILIER_FORM,
     LISTES: LISTES,
     COLONNES_LISTE: COLONNES_LISTE,
+    TITRES_MANUELS: TITRES_MANUELS,
+    DESIGNATIONS_MATERIEL: DESIGNATIONS_MATERIEL,
     OPTIONS: {
       OUI_NON: OUI_NON, STATUT: STATUT, LANGUE: LANGUE, ETAT: ETAT,
       ELECTRICITE: ELECTRICITE, STATUT_DIR: STATUT_DIR,

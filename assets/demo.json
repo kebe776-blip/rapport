@@ -168,22 +168,22 @@
   "effectifs": {
     "eff_ci": {"eff_g": 44, "eff_f": 43, "eff_t": 87, "red_g": 0, "red_f": 0, "red_t": 0,
                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 3, "sans_etat_f": 5,
-               "sans_etat_t": 8, "type_classe": "simple", "maitre_liste": 2},
+               "sans_etat_t": 8, "type_classe": "simple", "nb_classes": 1},
     "eff_cp": {"eff_g": 37, "eff_f": 39, "eff_t": 76, "red_g": 2, "red_f": 3, "red_t": 5,
                "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 5, "sans_etat_f": 6,
-               "sans_etat_t": 11, "type_classe": "simple", "maitre_liste": 7},
+               "sans_etat_t": 11, "type_classe": "simple", "nb_classes": 1},
     "eff_ce1": {"eff_g": 24, "eff_f": 27, "eff_t": 51, "red_g": 0, "red_f": 0, "red_t": 0,
                 "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 4, "sans_etat_f": 2,
-                "sans_etat_t": 6, "type_classe": "simple", "maitre_liste": 3},
+                "sans_etat_t": 6, "type_classe": "simple", "nb_classes": 1},
     "eff_ce2": {"eff_g": 22, "eff_f": 29, "eff_t": 51, "red_g": 2, "red_f": 1, "red_t": 3,
                 "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 6, "sans_etat_f": 3,
-                "sans_etat_t": 9, "type_classe": "simple", "maitre_liste": 4},
+                "sans_etat_t": 9, "type_classe": "simple", "nb_classes": 1},
     "eff_cm1": {"eff_g": 26, "eff_f": 23, "eff_t": 49, "red_g": 0, "red_f": 0, "red_t": 0,
                 "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 3, "sans_etat_f": 2,
-                "sans_etat_t": 5, "type_classe": "simple", "maitre_liste": 8},
+                "sans_etat_t": 5, "type_classe": "simple", "nb_classes": 1},
     "eff_cm2": {"eff_g": 13, "eff_f": 20, "eff_t": 33, "red_g": 0, "red_f": 0, "red_t": 0,
                 "hand_g": 0, "hand_f": 0, "hand_t": 0, "sans_etat_g": 0, "sans_etat_f": 0,
-                "sans_etat_t": 0, "type_classe": "simple", "maitre_liste": 6}
+                "sans_etat_t": 0, "type_classe": "simple", "nb_classes": 1}
   },
   "mobilier": {
     "mob_tables_bancs": {"bon": 72, "a_reparer": 48, "total": 120, "defecat": 30},
