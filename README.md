@@ -18,7 +18,7 @@ d'école.
 
 | Étape | Ce qui se passe |
 |---|---|
-| **1. Saisie** | Le directeur ouvre `saisie.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
+| **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et retélécharger n'importe quel rapport. |
@@ -59,8 +59,8 @@ Le nom de fichier généré est toujours :
 ## 2. Fichiers du projet
 
 ```
-index.html              Page d'accueil
-saisie.html             Formulaire du directeur (A → N) + soumission + PDF
+index.html              Page d'accueil = formulaire du directeur (A → N) + soumission + PDF
+saisie.html             Redirection vers index.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (démo ou brouillon)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF)
 
@@ -127,7 +127,7 @@ directeurs (à raccourcir avec un lien type `bit.ly` pour les villages).
 
 ```bash
 python -m http.server 8099
-# puis http://localhost:8099/saisie.html
+# puis http://localhost:8099/            (la saisie = page d'accueil)
 #      http://localhost:8099/apercu.html?demo=1   (rapport d'exemple)
 ```
 

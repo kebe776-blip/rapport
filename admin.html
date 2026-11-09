@@ -16,7 +16,7 @@
   </div>
   <div class="spacer"></div>
   <a class="lien" href="index.html">Accueil</a>
-  <a class="lien" href="saisie.html">Saisie directeur</a>
+  <a class="lien" href="index.html">Saisie directeur</a>
 </div>
 
 <div class="conteneur">
@@ -24,10 +24,7 @@
   <!-- ================= CONNEXION ================= -->
   <div class="connexion carte" id="zone-connexion">
     <h2>Connexion administrateur</h2>
-    <div id="msg-connexion" class="bandeau info">
-      Compte créé dans Supabase → <b>Authentication → Users → Add user</b>
-      (email + mot de passe).
-    </div>
+    <div id="msg-connexion" class="bandeau info" style="display:none;"></div>
     <div class="champs">
       <div class="champ large">
         <label for="email">Adresse email</label>
@@ -109,6 +106,7 @@
     var el = $(id);
     el.className = "bandeau " + classe;
     el.innerHTML = texte;
+    el.style.display = "block";
   }
 
   function progres(texte, pct) {
