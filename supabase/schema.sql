@@ -46,3 +46,55 @@ create policy rapports_delete_auth
   on public.rapports for delete
   to authenticated
   using (true);
+
+/* =========================================================================
+   FONCTIONS D'ÉCRITURE ( rôle anon = directeur, sans compte )
+   -------------------------------------------------------------------------
+   Le rôle anon n'a PAS de policy SELECT (les données restent illisibles
+   depuis le navigateur), ce qui bloquait deux opérations PostgREST :
+     • upsert (INSERT ... ON CONFLICT) → erreur 42501
+     • update  → 0 ligne affectée
+   Ces fonctions SECURITY DEFINER s'exécutent avec les droits du
+   propriétaire de la table (contournent le RLS) SANS ouvrir la lecture.
+   ========================================================================= */
+
+create or replace function public.sauver_rapport(
+  p_ecole_code text,
+  p_ecole_nom  text default '',
+  p_annee      text default '2025/2026',
+  p_donnees    jsonb default '{}'::jsonb
+) returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (select 1 from public.rapports
+             where ecole_code = p_ecole_code and annee = p_annee) then
+    update public.rapports
+       set ecole_nom = p_ecole_nom, donnees = p_donnees, maj_le = now()
+     where ecole_code = p_ecole_code and annee = p_annee;
+    return 'maj';
+  end if;
+  insert into public.rapports (ecole_code, ecole_nom, annee, donnees, maj_le)
+  values (p_ecole_code, p_ecole_nom, p_annee, p_donnees, now());
+  return 'insere';
+end $$;
+
+/* Vérification d'existence (anti-doublon) : renvoie true/false uniquement,
+   aucune donnée d'école n'est exposée. */
+create or replace function public.rapport_existe(
+  p_ecole_code text,
+  p_annee text default '2025/2026'
+) returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (select 1 from public.rapports
+                 where ecole_code = p_ecole_code and annee = p_annee);
+$$;
+
+grant execute on function public.sauver_rapport(text, text, text, jsonb) to anon, authenticated;
+grant execute on function public.rapport_existe(text, text) to anon, authenticated;

@@ -85,10 +85,20 @@ supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
 ### 3.1 Base de données Supabase — 5 minutes
 
 1. Créez un projet gratuit sur [supabase.com](https://supabase.com)
+   (ou réutilisez un projet existant : l'organisation gratuite est limitée
+   à **2 projets actifs**)
 2. **SQL Editor → New query** → collez le contenu de `supabase/schema.sql` → **Run**
+   (table `rapports` + règles RLS + fonctions `sauver_rapport` /
+   `rapport_existe`)
 3. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-4. **Project Settings → API** : copiez l'**Project URL** et la **anon public key**
+4. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+   URL** (`https://xxxx.supabase.co`) et la **anon public key**
+
+> ⚠️ Le rôle `anon` n'a **pas** de droit SELECT : les écritures passent par la
+> fonction SQL `sauver_rapport` (SECURITY DEFINER). N'ajoutez pas de policy
+> SELECT pour `anon`, sinon n'importe qui pourrait télécharger tous les
+> rapports avec la clé publique.
 
 ### 3.2 Configuration du site
 

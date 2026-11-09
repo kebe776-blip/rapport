@@ -60,7 +60,11 @@
     return slug(codec || nom || "ECOLE");
   }
 
-  /* ---------- Envoi d'un élément ---------- */
+  /* ---------- Envoi d'un élément ----------
+     On utilise la fonction SQL SECURITY DEFINER `sauver_rapport` plutôt
+     qu'un upsert PostgREST : le rôle anon n'a pas de policy SELECT, ce qui
+     bloquait ON CONFLICT (erreur 42501) et les mises à jour (0 ligne).
+     La RPC contourne ce limité SANS ouvrir la lecture des données. */
   async function envoyer(el) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
@@ -71,9 +75,31 @@
       donnees: el.donnees,
       maj_le: new Date().toISOString()
     };
-    var res = await c.from("rapports").upsert(ligne, { onConflict: "ecole_code,annee" });
+    var res = await c.rpc("sauver_rapport", {
+      p_ecole_code: ligne.ecole_code,
+      p_ecole_nom: ligne.ecole_nom,
+      p_annee: ligne.annee,
+      p_donnees: ligne.donnees
+    });
     if (res.error) { throw new Error(res.error.message); }
+    ligne.statut = (res.data === "maj") ? "maj" : "insere";
     return ligne;
+  }
+
+  /**
+   * Vérifie côté serveur si un rapport existe déjà pour cette école.
+   * Renvoie null si Supabase est inactif ou si la vérification échoue
+   * (on laisse alors la soumission passer normalement).
+   */
+  async function existe(decodees) {
+    var c = sb();
+    if (!c) { return null; }
+    var res = await c.rpc("rapport_existe", {
+      p_ecole_code: codeEcole(decodees),
+      p_annee: CFG.ANNEE || "2025/2026"
+    });
+    if (res.error) { return null; }
+    return !!res.data;
   }
 
   /**
@@ -171,6 +197,7 @@
     slug: slug,
     codeEcole: codeEcole,
     enregistrer: enregistrer,
+    existe: existe,
     viderFile: viderFile,
     lister: lister,
     obtenir: obtenir,
