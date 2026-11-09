@@ -91,7 +91,7 @@ table.grid th.cat {
 }
 table.grid th.cat.plain { background-color: #FFFFFF; }
 table.grid td.c { text-align: center; }
-table.grid td.n { text-align: center; font-weight: bold; }
+table.grid td.n { text-align: center; font-weight: bold; color: #1F4E79; }
 table.grid tr.totale td { font-weight: bold; }
 
 /* Version compacte (H, K, L, M, N) */
@@ -110,21 +110,22 @@ table.grid.ultracompact th { font-size: 7.3pt; }
 table.kv { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
 table.kv td { border: none; padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
               vertical-align: bottom; }
-.lbl { font-weight: bold; }
+/* Libellés non gras, valeurs en bleu foncé et gras */
+.lbl { font-weight: normal; }
 .val { border-bottom: 0.7pt solid #000; min-width: 60pt;
-       padding-left: 2pt; font-weight: bold;
+       padding-left: 2pt; font-weight: bold; color: #1F4E79;
        overflow-wrap: anywhere; word-break: break-word; }
 .val.lg { min-width: 130pt; }
 .val.xl { min-width: 200pt; }
 
 /* ---------- LIGNES DE TEXTE ---------- */
 .ligne { font-size: 9.5pt; margin: 4pt 0; line-height: 1.45; }
-.ligne .lbl { font-weight: bold; }
+.ligne .lbl { font-weight: normal; }
 .souligne { border-bottom: 0.7pt solid #000; font-weight: bold;
-            padding: 0 3pt; overflow-wrap: anywhere; }
+            color: #1F4E79; padding: 0 3pt; overflow-wrap: anywhere; }
 .obs { margin: 5pt 0 9pt 0; font-size: 9.5pt; line-height: 1.55; }
 .obs .num { font-weight: bold; }
-.obs .reponse { font-weight: bold; }
+.obs .reponse { font-weight: bold; color: #1F4E79; }
 
 /* ---------- SIGNATURE ---------- */
 .signature { text-align: right; font-style: italic; font-weight: bold;

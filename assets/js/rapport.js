@@ -122,7 +122,11 @@
   '</tr>' +
 '</table>' +
 '<div class="ligne"><span class="lbl">Préciser les cours jumelés :</span> ' +
-  '<span class="souligne">' + u(b.cours_jumeles) + '</span></div>';
+  '<span class="souligne">' + u(b.cours_jumeles) + '</span></div>' +
+'<div class="ligne"><span class="lbl">Préciser les cours jumelés — CMG :</span> ' +
+  '<span class="souligne">' + u(b.cours_jumeles_cmg) + '</span></div>' +
+'<div class="ligne"><span class="lbl">Préciser les cours jumelés — CDF :</span> ' +
+  '<span class="souligne">' + u(b.cours_jumeles_cdf) + '</span></div>';
 
     /* ---- C. Classes physiques ---- */
     html +=
@@ -269,9 +273,12 @@
 '</div>' +
 '<div class="ligne">' +
   '<span class="lbl">2 &nbsp; L\'école est-elle concernée par un autre programme intervenant ' +
-  'dans le secteur éducatif ?</span><br>' +
-  '(PASED, RELIT, PAIRE L\'ÉCOLE, PAAME)<br>' +
+  'dans le secteur éducatif ? (PASED, RELIT, PAIRE L\'ÉCOLE, PAAME)&nbsp;:</span> ' +
   '<span class="souligne">' + u(f.programmes_intervenants) + '</span>' +
+  (f.programmes_intervenants_preciser
+    ? '<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="souligne">' +
+      u(f.programmes_intervenants_preciser) + '</span>'
+    : "") +
 '</div>' +
 '<div class="ligne">' +
   '<span class="lbl">3 &nbsp; L\'école dispose-t-elle :</span><br>' +
@@ -423,7 +430,6 @@ persTable(ctx.malades, 3) +
     '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">REDOUBLANTS</th>' +
     '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">HANDICAPÉS</th>' +
     '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
-    '<th rowspan="2" class="cat plain" style="width:9%;">Type : Simple<br>/CMG/CDF</th>' +
   '</tr>' +
   '<tr>' +
     '<th>G</th><th>F</th><th style="border-right:1.2pt solid #000;">T</th>' +
@@ -444,7 +450,6 @@ persTable(ctx.malades, 3) +
         '<td class="n" style="border-right:1.2pt solid #000;">' + e.hand_t + '</td>' +
         '<td class="n">' + e.sans_etat_g + '</td><td class="n">' + e.sans_etat_f + '</td>' +
         '<td class="n" style="border-right:1.2pt solid #000;">' + e.sans_etat_t + '</td>' +
-        '<td class="c">' + u(e.type_classe) + '</td>' +
       '</tr>';
     });
 
@@ -460,7 +465,6 @@ persTable(ctx.malades, 3) +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.hand_t + '</td>' +
     '<td class="n">' + t.sans_etat_g + '</td><td class="n">' + t.sans_etat_f + '</td>' +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.sans_etat_t + '</td>' +
-    '<td></td>' +
   '</tr>' +
 '</table>';
 

@@ -159,8 +159,12 @@
         { n: "cge_president", l: "Président du CGE", t: "text", maj: "upper" },
         { n: "cge_tel", l: "Tél. président", t: "text", tel: true },
         { n: "cge_deux_mandats", l: "Deux mandats consécutifs ?", t: "select", opts: OUI_NON },
-        { n: "programmes_intervenants", l: "Autres programmes (PASED, RELIT, PAIRE L'ÉCOLE, PAAME)",
-          t: "area", large: true },
+        { n: "programmes_intervenants",
+          l: "L'école est-elle concernée par un autre programme intervenant dans le secteur éducatif ? (PASED, RELIT, PAIRE L'ÉCOLE, PAAME)",
+          t: "select", opts: OUI_NON },
+        { n: "programmes_intervenants_preciser",
+          l: "Si OUI, préciser le programme", t: "text",
+          aide: "Apparaîtra sur la ligne suivante du PDF — laisser vide = rien" },
         { n: "cantine", l: "Cantine scolaire", t: "select", opts: OUI_NON },
         { n: "bailleur_cantine", l: "Bailleur (cantine)", t: "text" },
         { n: "cooperative", l: "Coopérative scolaire", t: "select", opts: OUI_NON },
@@ -254,8 +258,7 @@
       { n: "hand_t", l: "Handicapés T", t: "num", auto: true },
       { n: "sans_etat_g", l: "Sans état civil G", t: "num", calc: "etat" },
       { n: "sans_etat_f", l: "Sans état civil F", t: "num", calc: "etat" },
-      { n: "sans_etat_t", l: "Sans état civil T", t: "num", auto: true },
-      { n: "type_classe", l: "Type", t: "select", opts: TYPE_CLASSE }
+      { n: "sans_etat_t", l: "Sans état civil T", t: "num", auto: true }
     ]
   };
 

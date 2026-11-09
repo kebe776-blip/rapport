@@ -228,7 +228,6 @@
         '<th colspan="3" class="grp red">REDOUBLANTS</th>' +
         '<th colspan="3" class="grp hand">HANDICAPÉS</th>' +
         '<th colspan="3" class="grp etat">Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
-        '<th rowspan="2">Type<br>: Simple/CMG/CDF</th>' +
       '</tr>' +
       '<tr>' +
         '<th class="eff">G</th><th class="eff">F</th><th class="eff">T</th>' +

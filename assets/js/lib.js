@@ -20,6 +20,7 @@
       balant: "BALANT", noon: "NOON", koulack: "KOULACK", autre: "AUTRE"
     },
     type_classe: { simple: "SIMPLE", cmg: "CMG", cdf: "CDF" },
+    /* legacy : colonne Type supprimée du rapport */
     statut_directeur: { titulaire: "TITULAIRE", interimaire: "INTÉRIMAIRE" },
     discipline: { francais: "FRANÇAIS", arabe: "ARABE", anglais: "ANGLAIS" },
     provenance: {
@@ -177,19 +178,14 @@
     };
 
     /* --- B. Classes pédagogiques --- */
-    var cjParts = [
-      txt(val(f, "cours_jumeles")),
-      txt(val(f, "cours_jumeles_cmg")) ? "CMG : " + txt(val(f, "cours_jumeles_cmg")) : "",
-      txt(val(f, "cours_jumeles_cdf")) ? "CDF : " + txt(val(f, "cours_jumeles_cdf")) : ""
-    ].filter(function (s) { return s.trim() !== ""; });
     var b = {
       nb_cours: num(val(f, "nb_cours")),
       nb_classes_simples: num(val(f, "nb_classes_simples")),
       nb_cmg: num(val(f, "nb_cmg")),
       nb_cdf: num(val(f, "nb_cdf")),
-      cours_jumeles: cjParts.length
-        ? cjParts.join(" — ").toUpperCase()
-        : "NÉANT"
+      cours_jumeles: txt(val(f, "cours_jumeles"), "NÉANT").toUpperCase(),
+      cours_jumeles_cmg: txt(val(f, "cours_jumeles_cmg"), "NÉANT").toUpperCase(),
+      cours_jumeles_cdf: txt(val(f, "cours_jumeles_cdf"), "NÉANT").toUpperCase()
     };
 
     /* --- C. Classes physiques --- */
@@ -263,7 +259,8 @@
       cge_president: txt(val(f, "cge_president"), "—"),
       cge_tel: txt(val(f, "cge_tel"), "—"),
       cge_deux_mandats: lab("oui_non", val(f, "cge_deux_mandats"), "—"),
-      programmes_intervenants: txt(val(f, "programmes_intervenants"), "Néant"),
+      programmes_intervenants: lab("oui_non", val(f, "programmes_intervenants"), "—"),
+      programmes_intervenants_preciser: txt(val(f, "programmes_intervenants_preciser")),
       cantine: lab("oui_non", val(f, "cantine"), "—"),
       bailleur_cantine: txt(val(f, "bailleur_cantine"), "NÉANT"),
       cooperative: lab("oui_non", val(f, "cooperative"), "—"),
@@ -338,7 +335,6 @@
         row[k] = num(val(f, k, grp + "/"));
         total[k] += row[k];
       });
-      row.type_classe = lab("type_classe", val(f, "type_classe", grp + "/"), "—");
       row.nb_classes = num(val(f, "nb_classes", grp + "/"));
       return row;
     });
