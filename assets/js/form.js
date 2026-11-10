@@ -717,6 +717,42 @@
       localStorage.setItem(CFG.LS_BROUILLON, JSON.stringify(donneesSaisies));
     } catch (e) {}
 
+    /* 1 bis. ANTI-DOUBLON : une école ne dépose qu'un seul rapport.
+       On interroge le serveur (fonction SQL rapport_existe). Si un rapport
+       existe déjà pour ce code école, on demande confirmation :
+         • OK      → on remplace le rapport déjà enregistré (mise à jour)
+         • Annuler → on abandonne totalement : rien n'est envoyé et
+                     aucun PDF n'est généré. Aucun contournement possible.
+       Hors-ligne (existe() renvoie null) : on passe directement à l'envoi,
+       la file d'attente se synchronisera plus tard. */
+    if (global.RRdb && global.RRdb.actif()) {
+      page.progres("Vérification de l'existence d'un rapport…", 5);
+      var deja = null;
+      try {
+        deja = await global.RRdb.existe(donneesSaisies);
+      } catch (e) {
+        deja = null;
+      }
+      if (deja === true) {
+        var codeEcole = global.RRdb.codeEcole(donneesSaisies);
+        var remplacer = confirm(
+          "⚠ RAPPORT DÉJÀ SOUMIS\n\n" +
+          "Un rapport de rentrée a déjà été déposé pour l'école\n" +
+          "« " + codeEcole + " ».\n\n" +
+          "OK     → remplacer le rapport déjà enregistré (mise à jour + PDF)\n" +
+          "Annuler → abandonner la soumission (aucun envoi, aucun PDF)"
+        );
+        if (!remplacer) {
+          if (page.annule) {
+            page.annule("Soumission annulée : un rapport a déjà été soumis " +
+                        "pour cette école. Rien n'a été envoyé et aucun PDF " +
+                        "n'a été généré.");
+          }
+          return false;
+        }
+      }
+    }
+
     /* 2. Enregistrement serveur (ou file d'attente hors-ligne) */
     page.progres("Enregistrement de la soumission…", 5);
     var res = await global.RRdb.enregistrer(donneesSaisies);

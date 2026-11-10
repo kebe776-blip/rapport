@@ -19,7 +19,7 @@ d'école.
 | Étape | Ce qui se passe |
 |---|---|
 | **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
-| **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. |
+| **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et retélécharger n'importe quel rapport. |
 
@@ -51,6 +51,7 @@ Le nom de fichier généré est toujours :
 
 * Supabase (PostgreSQL) : un rapport pèse 10 à 50 Ko → **≈ 25 Mo pour 500 écoles** (l'offre gratuite en stocke 500 Mo)
 * Clé primaire `(ecole_code, annee)` : une école qui soumet deux fois **met à jour** sa ligne, pas de doublon
+* Contrôle **avant** envoi (fonction SQL `rapport_existe`) : le directeur est prévenu dès la soumission si son école a déjà déposé — hors-ligne, ce contrôle est simplement ignoré et la file se synchronise plus tard
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût
 

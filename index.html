@@ -99,6 +99,16 @@
 
   var page = {
     erreur: afficherAlerte,
+    /* Soumission abandonnée par l'utilisateur (anti-doublon) :
+       on masque la progression et on affiche le motif, sans PDF. */
+    annule: function (texte) {
+      progression.classList.remove("visible");
+      document.getElementById("prog-barre").style.width = "0%";
+      alerte.style.display = "none";
+      message.className = "bandeau warn";
+      message.innerHTML = "<b>⛔ " + window.RR.esc(texte) + "</b>";
+      message.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
     apercu: document.getElementById("apercu"),
     progres: function (texte, pct) {
       progression.classList.add("visible");
