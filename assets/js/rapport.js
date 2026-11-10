@@ -109,6 +109,17 @@
   /* -----------------------------------------------------------------------
      PAGE 1 : EN-TÊTE + A + B + C + D
      ----------------------------------------------------------------------- */
+  /* Une cellule = une paire « libellé : valeur ».
+     La valeur démarre donc toujours immédiatement après les deux-points de
+     SON libellé (plus de colonne partagée ⇒ plus de blanc parasite).
+     Le trait de saisie est porté par la cellule ; un fond blanc sous le
+     libellé le masque, exactement comme sur le modèle papier. */
+  function paire(lbl, val, span) {
+    return '<td class="paire"' + (span > 1 ? ' colspan="' + span + '"' : '') +
+      '><span class="lbl">' + u(lbl) + '</span> ' +
+      '<span class="val">' + u(val) + '</span></td>';
+  }
+
   function page1(ctx) {
     var a = ctx.a, b = ctx.b, c = ctx.c, d = ctx.d;
 
@@ -119,19 +130,18 @@
 '<h2 class="section">A. &nbsp; IDENTIFICATION DE L\'ÉCOLE</h2>' +
 '<table class="kv">' +
   '<tr>' +
-    '<td class="lbl">Nom de l\'école :</td><td class="val">' + u(a.nom_ecole) + '</td>' +
-    '<td class="lbl">Statut :</td><td class="val">' + u(a.statut) + '</td>' +
-    '<td class="lbl">Date de création :</td><td class="val">' + u(a.date_creation) + '</td>' +
+    paire('Nom de l\'école :', a.nom_ecole) +
+    paire('Statut :', a.statut) +
+    paire('Date de création :', a.date_creation) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Commune de :</td><td class="val">' + u(a.commune) + '</td>' +
-    '<td class="lbl">District de :</td><td class="val">' + u(a.district) + '</td>' +
-    '<td class="lbl">CODEC de :</td><td class="val">' + u(a.codec) + '</td>' +
+    paire('Commune de :', a.commune) +
+    paire('District de :', a.district) +
+    paire('CODEC de :', a.codec) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Villages polarisés :</td>' +
-    '<td class="val lg" colspan="3">' + u(a.villages_polarises) + '</td>' +
-    '<td class="lbl">Langue nationale :</td><td class="val">' + u(a.langue_nationale) + '</td>' +
+    paire('Villages polarisés :', a.villages_polarises, 2) +
+    paire('Langue nationale :', a.langue_nationale) +
   '</tr>' +
 '</table>';
 
@@ -193,34 +203,29 @@
 '<h2 class="section">D. &nbsp; RENSEIGNEMENTS SUR LE DIRECTEUR</h2>' +
 '<table class="kv">' +
   '<tr>' +
-    '<td class="lbl">Prénom et Nom :</td><td class="val">' + u(d.prenom_nom) + '</td>' +
-    '<td class="lbl">Grade :</td><td class="val">' + u(d.grade) + '</td>' +
-    '<td class="lbl">Matricule :</td><td class="val">' + u(d.matricule) + '</td>' +
+    paire('Prénom et Nom :', d.prenom_nom) +
+    paire('Grade :', d.grade) +
+    paire('Matricule :', d.matricule) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Date et lieu de naissance :</td>' +
-    '<td class="val">' + u(d.date_naissance) + ' à ' + u(d.lieu_naissance) + '</td>' +
-    '<td class="lbl">Diplôme Acad. :</td><td class="val">' + u(d.diplome_academique) + '</td>' +
-    '<td class="lbl">Diplôme Prof. :</td><td class="val">' + u(d.diplome_professionnel) + '</td>' +
+    paire('Date et lieu de naissance :', d.date_naissance + ' à ' + d.lieu_naissance) +
+    paire('Diplôme Acad. :', d.diplome_academique) +
+    paire('Diplôme Prof. :', d.diplome_professionnel) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Date d\'entrée dans l\'enseignement :</td>' +
-    '<td class="val">' + u(d.date_entree_enseignement) + '</td>' +
-    '<td class="lbl">Date d\'affectation à l\'école :</td>' +
-    '<td class="val">' + u(d.date_affectation) + '</td>' +
-    '<td class="lbl">Statut :</td><td class="val">' + u(d.statut_directeur) + '</td>' +
+    paire('Date d\'entrée dans l\'enseignement :', d.date_entree_enseignement) +
+    paire('Date d\'affectation à l\'école :', d.date_affectation) +
+    paire('Statut :', d.statut_directeur) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Références de l\'acte d\'affectation :</td>' +
-    '<td class="val">' + u(d.references_affectation) + '</td>' +
-    '<td class="lbl">Position (Charge : Titulaire de classe) :</td>' +
-    '<td class="val">' + u(d.position) + '</td>' +
-    '<td class="lbl">Déchargé :</td><td class="val">' + u(d.decharge) + '</td>' +
+    paire('Références de l\'acte d\'affectation :', d.references_affectation) +
+    paire('Position (Charge : Titulaire de classe) :', d.position) +
+    paire('Déchargé :', d.decharge) +
   '</tr>' +
   '<tr>' +
-    '<td class="lbl">Numéro de contact :</td><td class="val">' + u(d.telephone1) + '</td>' +
-    '<td class="lbl">Numéro (2ème possible) :</td><td class="val">' + u(d.telephone2) + '</td>' +
-    '<td class="lbl">Numéro WhatsApp :</td><td class="val">' + u(d.whatsapp) + '</td>' +
+    paire('Numéro de contact :', d.telephone1) +
+    paire('Numéro (2ème possible) :', d.telephone2) +
+    paire('Numéro WhatsApp :', d.whatsapp) +
   '</tr>' +
 '</table>';
 

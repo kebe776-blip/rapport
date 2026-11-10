@@ -111,20 +111,19 @@ table.grid.ultracompact th { font-size: 7.3pt; }
 
 /* ---------- SAISIE CLÉ / VALEUR ---------- */
 table.kv { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
-/* NB : pas de « border: none » ici — il écraserait le trait des .val
-   (spécificité de la règle élément+classe+élément > celle de .val). */
 table.kv td { padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
               vertical-align: bottom; }
 /* Libellés non gras, valeurs en bleu foncé et gras */
 .lbl { font-weight: normal; }
-/* Jamais de trait sous le libellé : le trait ne court qu'entre les
-   libellés, comme sur le modèle officiel (« Nom de l'école : ___ Statut : ___ ») */
-table.kv td.lbl { border-bottom: none; }
-.val { border-bottom: 0.7pt solid #000; min-width: 60pt;
-       padding-left: 2pt; font-weight: bold; color: #1F4E79;
-       overflow-wrap: anywhere; word-break: break-word; }
-.val.lg { min-width: 130pt; }
-.val.xl { min-width: 200pt; }
+/* « Une cellule = une paire libellé:valeur » : la valeur démarre donc
+   juste après les deux-points de son propre libellé (aucune colonne
+   partagée). Le trait est porté par la cellule et masqué sous le libellé
+   par son fond blanc — comme sur le modèle papier. */
+table.kv td.paire { border-bottom: 0.7pt solid #000; padding: 2.2pt 6pt 0 0; }
+table.kv td.paire .lbl { background: #fff; padding-right: 3pt;
+                         padding-bottom: 2.5pt; }
+table.kv td.paire .val { font-weight: bold; color: #1F4E79;
+                         overflow-wrap: anywhere; word-break: break-word; }
 
 /* ---------- LIGNES DE TEXTE ---------- */
 .ligne { font-size: 9.5pt; margin: 4pt 0; line-height: 1.45; }
