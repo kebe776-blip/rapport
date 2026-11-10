@@ -111,10 +111,15 @@ table.grid.ultracompact th { font-size: 7.3pt; }
 
 /* ---------- SAISIE CLÉ / VALEUR ---------- */
 table.kv { width: 100%; border-collapse: collapse; margin-bottom: 3pt; }
-table.kv td { border: none; padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
+/* NB : pas de « border: none » ici — il écraserait le trait des .val
+   (spécificité de la règle élément+classe+élément > celle de .val). */
+table.kv td { padding: 2.2pt 6pt 2.2pt 0; font-size: 9.3pt;
               vertical-align: bottom; }
 /* Libellés non gras, valeurs en bleu foncé et gras */
 .lbl { font-weight: normal; }
+/* Jamais de trait sous le libellé : le trait ne court qu'entre les
+   libellés, comme sur le modèle officiel (« Nom de l'école : ___ Statut : ___ ») */
+table.kv td.lbl { border-bottom: none; }
 .val { border-bottom: 0.7pt solid #000; min-width: 60pt;
        padding-left: 2pt; font-weight: bold; color: #1F4E79;
        overflow-wrap: anywhere; word-break: break-word; }
