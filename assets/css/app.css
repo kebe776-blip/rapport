@@ -260,6 +260,15 @@ a { color: #1f4e79; }
 /* ---------- Divers ---------- */
 .mono { font-family: Consolas, monospace; font-size: 13px; }
 .petit { font-size: 12.5px; color: #667; }
+
+/* ---------- Lisibilité du texte des boutons ----------
+   `.petit` est déclaré APRÈS `.btn` : à spécificité égale c'est lui qui
+   gagne, et il peint le texte du bouton en gris foncé (#667) sur un fond
+   bleu ou gris → contraste 1,1 à 1,5 (illisible).
+   On garantit donc ici, en fin de feuille de style, que le texte d'un
+   bouton reste toujours blanc — sauf sur fond jaune (texte sombre). */
+.btn, .btn * { color: #fff; }
+.btn.jaune, .btn.jaune * { color: #1a1a1a; }
 .center { text-align: center; }
 .mt { margin-top: 14px; }
 .mb { margin-bottom: 14px; }

@@ -136,7 +136,14 @@
       return;
     }
     var user = await window.RRdb.utilisateur();
-    if (user) { afficherAdmin(); } else { $("zone-connexion").style.display = "block"; }
+    if (user) {
+      /* Déjà connecté : on masque le formulaire de connexion, sinon les
+         deux zones s'affichent en même temps au chargement. */
+      $("zone-connexion").style.display = "none";
+      afficherAdmin();
+    } else {
+      $("zone-connexion").style.display = "block";
+    }
   }
 
   $("btn-connexion").addEventListener("click", async function () {
