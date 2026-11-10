@@ -43,12 +43,16 @@
       lettre: "A", groupe: "identification",
       titre: "IDENTIFICATION DE L'ÉCOLE",
       champs: [
-        { n: "nom_ecole", l: "Nom de l'école", t: "text", req: true, maj: "upper" },
+        { n: "nom_ecole", l: "Nom de l'école", t: "combo", req: true, maj: "upper",
+          liste: global.RR_ECOLES,
+          aide: "Tapez pour filtrer, puis choisissez dans la liste." },
         { n: "statut", l: "Statut", t: "select", opts: STATUT },
         { n: "date_creation", l: "Date de création", t: "text", aide: "Ex. 1962" },
         { n: "commune", l: "Commune", t: "text", maj: "upper" },
         { n: "district", l: "District", t: "text", maj: "upper" },
-        { n: "codec", l: "CODEC", t: "text", maj: "upper" },
+        { n: "codec", l: "CODEC", t: "combo", maj: "upper",
+          liste: global.RR_CODECS,
+          aide: "Facultatif — s'il est saisi, il doit figer dans la liste." },
         { n: "villages_polarises", l: "Villages polarisés", t: "text", large: true,
           aide: "Séparés par une virgule" },
         { n: "langue_nationale", l: "Langue nationale", t: "select", opts: LANGUE }

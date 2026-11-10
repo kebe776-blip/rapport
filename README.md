@@ -55,6 +55,24 @@ Le nom de fichier généré est toujours :
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût
 
+### Listes fermées : écoles et CODEC
+
+Les champs **Nom de l'école** et **CODEC** (section A) sont des listes
+déroulantes **filtrables** : on tape quelques lettres, la liste réduit, on
+choisit. Le filtrage est **insensible aux accents et à la casse**
+(`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
+
+* **`assets/js/ecoles.js`** contient les deux tableaux : `RR_ECOLES`
+  (**101 écoles**) et `RR_CODECS` (**15 CODEC**).
+* **Blocage** : une valeur absente de la liste est **refusée à la
+  soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
+* **CODEC facultatif** : le champ peut rester vide (les écoles sans CODEC
+  dans la liste le laissent tel quel), mais s'il est saisi il doit figer
+  dans la liste.
+* **Ajouter une école ou un CODEC** : ajoutez simplement l'entrée au bon
+  tableau dans `ecoles.js`. Relisez l'orthographe — une faute bloquerait
+  la soumission de cette école.
+
 ---
 
 ## 2. Fichiers du projet
@@ -72,6 +90,7 @@ assets/js/lib.js        Construction du contexte du rapport (portage de build_co
 assets/js/rapport.js    Génération HTML des 6 pages officielles
 assets/js/pdf.js        Génération du PDF A4 paysage dans le navigateur
 assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
+assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC (combo du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
 assets/vendor/          supabase-js, html2canvas, jsPDF (embarqués, hors-ligne)
@@ -136,9 +155,10 @@ python -m http.server 8099
 
 ## 4. Utilisation quotidienne
 
-**Directeur** : ouvrir le lien → remplir A → N → **Soumettre et télécharger le
-PDF officiel** → remettre le fichier à l'Inspecteur (ou l'envoyer par WhatsApp
-dès que le réseau le permet).
+**Directeur** : ouvrir le lien → choisir son école dans la **liste
+déroulante** (tapez pour filtrer) → remplir A → N → **Soumettre et
+télécharger le PDF officiel** → remettre le fichier à l'Inspecteur (ou
+l'envoyer par WhatsApp dès que le réseau le permet).
 
 **Inspection** : ouvrir `admin.html` → se connecter → liste des écoles
 ayant soumis. Trois actions par école :

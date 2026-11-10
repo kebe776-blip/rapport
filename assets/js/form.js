@@ -71,6 +71,21 @@
         (c.maj === "upper" ? ' data-maj="upper"' : "") + "></textarea>" +
         aide + "</div>";
     }
+    if (c.t === "combo") {
+      /* Liste déroulante filtrable : champ de saisie + suggestions.
+         La valeur finale doit appartenir à c.liste (voir valider()). */
+      var idListe = "liste_" + id;
+      return ouverture +
+        '<div class="combo">' +
+          '<input type="text"' + attr + ' data-type="text"' +
+            (c.maj === "upper" ? ' data-maj="upper"' : "") +
+            ' autocomplete="off" spellcheck="false" role="combobox"' +
+            ' aria-expanded="false" aria-autocomplete="list"' +
+            ' aria-controls="' + idListe + '"' +
+            ' placeholder="Tapez pour filtrer…">' +
+          '<ul class="combo-liste" id="' + idListe + '" role="listbox" hidden></ul>' +
+        "</div>" + aide + "</div>";
+    }
     var type = c.t === "num" ? "number" : (c.t === "date" ? "text" : "text");
     attr += ' data-type="' + (c.t === "num" ? "num" : "text") + '"';
     if (c.t === "date") { attr += ' inputmode="numeric" placeholder="JJ/MM/AAAA"'; }
@@ -346,6 +361,162 @@
     conteneur.addEventListener("input", onInput);
     conteneur.addEventListener("change", onInput);
     conteneur.addEventListener("click", onClick);
+    /* --- Listes déroulantes filtrables (combo) --- */
+    conteneur.addEventListener("focusin", onComboFocusIn);
+    conteneur.addEventListener("focusout", onComboFocusOut);
+    conteneur.addEventListener("keydown", onComboKeyDown);
+    /* Empêche le champ de perdre le focus avant le clic sur une option. */
+    conteneur.addEventListener("mousedown", function (ev) {
+      if (ev.target.closest && ev.target.closest(".combo-option")) {
+        ev.preventDefault();
+      }
+    });
+  }
+
+  /* -----------------------------------------------------------------------
+     LISTES DÉROULANTES FILTRABLES (combo)
+     ----------------------------------------------------------------------- */
+
+  /** Forme normalisée pour comparer : ni accents, ni casse, ni doubles espaces. */
+  function normaliser(s) {
+    return String(s === null || s === undefined ? "" : s)
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, " ")
+      .trim()
+      .toUpperCase();
+  }
+
+  /** Définition du champ (champs.js) à partir de son data-path. */
+  function defDeChamp(path) {
+    var parties = String(path || "").split(".");
+    if (parties.length < 2) { return null; }
+    for (var i = 0; i < D.SECTIONS.length; i++) {
+      var s = D.SECTIONS[i];
+      if (s.groupe !== parties[0]) { continue; }
+      for (var j = 0; j < s.champs.length; j++) {
+        if (s.champs[j].n === parties[1]) { return s.champs[j]; }
+      }
+    }
+    return null;
+  }
+
+  function ulDe(input) {
+    var wrap = input && input.closest ? input.closest(".combo") : null;
+    return wrap ? wrap.querySelector(".combo-liste") : null;
+  }
+
+  /** Ouvre la liste. `tout` = afficher la liste complète (ignorer le filtre). */
+  function afficherCombo(input, tout) {
+    var ul = ulDe(input);
+    if (!ul) { return; }
+    var def = defDeChamp(input.getAttribute("data-path"));
+    var liste = (def && def.liste) || [];
+    var q = tout ? "" : normaliser(input.value);
+    var propositions = [];
+    for (var i = 0; i < liste.length; i++) {
+      if (!q || normaliser(liste[i]).indexOf(q) !== -1) {
+        propositions.push(liste[i]);
+      }
+    }
+
+    if (!propositions.length) {
+      ul.innerHTML = '<li class="combo-vide" role="option" aria-disabled="true">' +
+        "Aucune correspondance dans la liste — effacez pour tout voir.</li>";
+    } else {
+      ul.innerHTML = propositions.map(function (v) {
+        var actif = normaliser(v) === q && q !== "";
+        return '<li class="combo-option' + (actif ? " actif" : "") +
+               '" role="option" aria-selected="' + (actif ? "true" : "false") +
+               '" data-val="' + esc(v) + '">' + esc(v) + "</li>";
+      }).join("");
+    }
+    ul.setAttribute("data-i", "-1");
+    ul.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+    var wrap = input.closest(".combo");
+    if (wrap) { wrap.classList.add("ouvert"); }
+  }
+
+  function fermerCombo(input) {
+    var ul = ulDe(input);
+    if (ul) { ul.hidden = true; ul.setAttribute("data-i", "-1"); }
+    input.setAttribute("aria-expanded", "false");
+    var wrap = input.closest(".combo");
+    if (wrap) { wrap.classList.remove("ouvert"); }
+  }
+
+  function choisirCombo(input, valeur) {
+    input.value = valeur;
+    fermerCombo(input);
+    /* On rejoue la logique existante (stockage, badges, brouillon).
+       La liste est déjà fermée : onInput ne la rouvre pas. */
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.focus();
+  }
+
+  function onComboFocusIn(ev) {
+    var input = ev.target;
+    if (input.tagName === "INPUT" && input.closest(".combo")) {
+      afficherCombo(input, input.value === "");
+    }
+  }
+
+  function onComboFocusOut(ev) {
+    var input = ev.target;
+    if (!input.closest || !input.closest(".combo")) { return; }
+    var rel = ev.relatedTarget;
+    if (rel && input.closest(".combo").contains(rel)) { return; }
+    fermerCombo(input);
+  }
+
+  function onComboKeyDown(ev) {
+    var input = ev.target;
+    if (input.tagName !== "INPUT" || !input.closest(".combo")) { return; }
+    var ul = ulDe(input);
+
+    if (!ul || ul.hidden) {
+      if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+        ev.preventDefault();
+        afficherCombo(input);
+      }
+      return;
+    }
+
+    var opts = ul.querySelectorAll(".combo-option");
+    if (!opts.length) {
+      if (ev.key === "Escape") { ev.preventDefault(); fermerCombo(input); }
+      return;
+    }
+
+    var i = parseInt(ul.getAttribute("data-i") || "-1", 10);
+
+    if (ev.key === "ArrowDown") {
+      ev.preventDefault();
+      i = (i + 1) % opts.length;
+    } else if (ev.key === "ArrowUp") {
+      ev.preventDefault();
+      i = (i - 1 + opts.length) % opts.length;
+    } else if (ev.key === "Enter") {
+      if (i >= 0 && opts[i]) {
+        ev.preventDefault();
+        choisirCombo(input, opts[i].getAttribute("data-val"));
+      }
+      return;
+    } else if (ev.key === "Escape") {
+      ev.preventDefault();
+      fermerCombo(input);
+      return;
+    } else {
+      return;
+    }
+
+    ul.setAttribute("data-i", String(i));
+    for (var k = 0; k < opts.length; k++) {
+      opts[k].classList.toggle("actif", k === i);
+    }
+    if (opts[i] && opts[i].scrollIntoView) {
+      opts[i].scrollIntoView({ block: "nearest" });
+    }
   }
 
   function onInput(ev) {
@@ -380,6 +551,13 @@
     if (totalde !== null) {
       /* l'utilisateur a saisi le total lui-même : on ne le recalcule plus */
       el.removeAttribute("data-auto");
+    }
+
+    /* Liste déroulante filtrable : on filtre à chaque frappe, mais seulement
+       si la liste est déjà ouverte (après un choix, elle reste fermée). */
+    if (el.closest && el.closest(".combo")) {
+      var ulSaisie = ulDe(el);
+      if (ulSaisie && !ulSaisie.hidden) { afficherCombo(el); }
     }
 
     mettreAJourBadges();
@@ -425,6 +603,16 @@
 
   function onClick(ev) {
     var t = ev.target;
+
+    /* --- Choix d'une valeur dans une liste déroulante filtrable --- */
+    if (t.classList && t.classList.contains("combo-option")) {
+      var wrap = t.closest(".combo");
+      var champSaisie = wrap && wrap.querySelector("input");
+      if (champSaisie) {
+        choisirCombo(champSaisie, t.getAttribute("data-val"));
+      }
+      return;
+    }
 
     if (t.classList.contains("js-ajout")) {
       var cle = t.getAttribute("data-repeat");
@@ -677,6 +865,31 @@
         var champ = el && el.closest(".champ");
         if (champ) { champ.classList.add("invalid"); }
       }
+    });
+
+    /* --- Champs à liste fermée (école, CODEC) ---
+       La valeur saisie doit appartenir à la liste : sinon on bloque la
+       soumission (aucun envoi réseau, aucun PDF) et on rouvre la liste
+       complète pour guider le choix. Un champ facultatif vide est accepté. */
+    D.SECTIONS.forEach(function (s) {
+      s.champs.forEach(function (c) {
+        if (c.t !== "combo" || !c.liste || !c.liste.length) { return; }
+        var el = conteneur.querySelector(
+          '[data-path="' + s.groupe + "." + c.n + '"]');
+        if (!el) { return; }
+        var v = String(el.value || "").trim();
+        if (!v) { return; }          /* vide : géré par les obligatoires */
+        var connu = c.liste.some(function (x) {
+          return normaliser(x) === normaliser(v);
+        });
+        if (connu) { return; }
+        erreurs.push("« " + v + " » ne figure pas dans la liste des " +
+          (c.n === "codec" ? "CODEC" : "écoles") +
+          " : choisissez une valeur dans la liste déroulante.");
+        var champ = el.closest(".champ");
+        if (champ) { champ.classList.add("invalid"); }
+        afficherCombo(el, true);
+      });
     });
 
     /* au moins un enseignant nommé */
