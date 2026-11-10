@@ -64,16 +64,35 @@
   }
   global.RRlogoManquant = logoManquant;
 
+  /* Drapeau CSS par défaut (3 bandes + étoile), réutilisé par le repli. */
+  function drapeauCSS() {
+    return '<table class="drapeau"><tr>' +
+      '<td class="d1"></td><td class="d2">*</td><td class="d3"></td>' +
+      '</tr></table>';
+  }
+
+  /* Si le fichier CFG.DRAPEAU est absent, on retombe sur le drapeau
+     dessiné en CSS au lieu d'une image cassée. */
+  function drapeauManquant(img) {
+    if (!img || !img.parentNode) { return; }
+    var d = document.createElement("div");
+    d.innerHTML = drapeauCSS();
+    img.parentNode.replaceChild(d.firstChild, img);
+  }
+  global.RRdrapeauKo = drapeauManquant;
+
   function entete(ctx) {
     var logo = CFG.LOGO
       ? '<img class="logo-img" src="' + esc(CFG.LOGO) + '" alt="Logo"' +
         ' onerror="window.RRlogoManquant(this)">'
       : '<div class="logo-box">LOGO<br>MEN</div>';
+    var drapeau = CFG.DRAPEAU
+      ? '<img class="drapeau-img" src="' + esc(CFG.DRAPEAU) + '"' +
+        ' alt="Drapeau du Sénégal" onerror="window.RRdrapeauKo(this)">'
+      : drapeauCSS();
     return '' +
 '<table class="entete"><tr>' +
-  '<td style="width:70px;"><table class="drapeau"><tr>' +
-    '<td class="d1"></td><td class="d2">*</td><td class="d3"></td>' +
-  '</tr></table></td>' +
+  '<td style="width:70px;">' + drapeau + '</td>' +
   '<td class="titre-officiel">' +
     '<div class="rep">RÉPUBLIQUE DU SÉNÉGAL</div>' +
     '<div class="devis">Un Peuple - Un But - Une Foi</div>' +

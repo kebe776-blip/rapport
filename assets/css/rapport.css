@@ -37,6 +37,9 @@ body {
 .d1 { background-color: #00853F; }
 .d2 { background-color: #FDEF24; }
 .d3 { background-color: #E31B23; }
+/* Drapeau officiel en image (ratio 3:2 conservé : 51 x 34 px) */
+.drapeau-img { width: 51px; height: 34px; border: 0.6pt solid #000;
+               object-fit: contain; display: block; }
 .titre-officiel { text-align: center; font-size: 8.5pt; line-height: 1.15; }
 .titre-officiel .rep { font-weight: bold; font-size: 9.5pt; letter-spacing: .4pt; }
 .titre-officiel .devis { font-size: 8pt; font-style: italic; }
