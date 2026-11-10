@@ -53,9 +53,21 @@
   /* -----------------------------------------------------------------------
      EN-TÊTE OFFICIEL (page 1)
      ----------------------------------------------------------------------- */
+  /* Si le fichier CFG.LOGO est absent (mauvais chemin, site hors-ligne…),
+     on retombe sur le bloc « LOGO MEN » au lieu d'une image cassée. */
+  function logoManquant(img) {
+    if (!img || !img.parentNode) { return; }
+    var d = document.createElement("div");
+    d.className = "logo-box";
+    d.innerHTML = "LOGO<br>MEN";
+    img.parentNode.replaceChild(d, img);
+  }
+  global.RRlogoManquant = logoManquant;
+
   function entete(ctx) {
     var logo = CFG.LOGO
-      ? '<img class="logo-img" src="' + esc(CFG.LOGO) + '" alt="Logo">'
+      ? '<img class="logo-img" src="' + esc(CFG.LOGO) + '" alt="Logo"' +
+        ' onerror="window.RRlogoManquant(this)">'
       : '<div class="logo-box">LOGO<br>MEN</div>';
     return '' +
 '<table class="entete"><tr>' +

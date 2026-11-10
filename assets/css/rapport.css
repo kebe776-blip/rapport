@@ -44,7 +44,7 @@ body {
 .logo-box { width: 74px; height: 46px; border: 0.8pt solid #666;
             text-align: center; font-size: 7pt; color: #444;
             padding-top: 16px; }
-.logo-img { width: 74px; height: 46px; }
+.logo-img { width: 74px; height: 46px; object-fit: contain; }
 
 .titre-rapport {
   border: 1.6pt solid #000;
