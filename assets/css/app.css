@@ -74,6 +74,8 @@ a { color: #1f4e79; }
 .btn.jaune:hover { background: #e6ad00; }
 .btn.gris { background: #6b7280; }
 .btn.gris:hover { background: #4b5563; }
+.btn.rouge { background: #c62828; }
+.btn.rouge:hover { background: #a51f1f; }
 .btn.large { width: 100%; padding: 14px; font-size: 17px; }
 .btn.petit { padding: 6px 12px; font-size: 13px; }
 

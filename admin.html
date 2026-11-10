@@ -61,7 +61,7 @@
               <th>École</th>
               <th style="width:150px;">Code</th>
               <th style="width:150px;">Dernière maj.</th>
-              <th style="width:230px;">Actions</th>
+              <th style="width:345px;">Actions</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -99,6 +99,7 @@
 (function () {
   "use strict";
   var ctxCourant = null;
+  var codeApercu = null;
   var lignes = [];
   var $ = function (id) { return document.getElementById(id); };
 
@@ -218,12 +219,21 @@
     }
     tb.innerHTML = liste.map(function (l) {
       var d = l.maj_le ? new Date(l.maj_le).toLocaleString("fr-FR") : "—";
+      var code = window.RR.esc(l.ecole_code);
+      var nom = window.RR.esc(l.ecole_nom || l.ecole_code);
       return "<tr>" +
-        "<td><b>" + window.RR.esc(l.ecole_nom || l.ecole_code) + "</b></td>" +
-        "<td class='mono'>" + window.RR.esc(l.ecole_code) + "</td>" +
+        "<td><b>" + nom + "</b></td>" +
+        "<td class='mono'>" + code + "</td>" +
         "<td>" + window.RR.esc(d) + "</td>" +
-        "<td><button class='btn petit' data-code='" +
-          window.RR.esc(l.ecole_code) + "'>Voir / PDF</button></td>" +
+        "<td>" +
+          "<button class='btn petit' data-act='voir' data-code='" + code + "'>" +
+            "Voir / PDF</button> " +
+          "<button class='btn petit' data-act='modifier' data-code='" + code + "' " +
+            "title='Modifier ce rapport puis régénérer le PDF'>✏ Modifier</button> " +
+          "<button class='btn rouge petit' data-act='supprimer' data-code='" + code +
+            "' data-nom='" + nom + "' title='Supprimer définitivement ce rapport'>" +
+            "🗑 Supprimer</button>" +
+        "</td>" +
       "</tr>";
     }).join("");
   }
@@ -236,11 +246,19 @@
   $("tableau").addEventListener("click", async function (ev) {
     var btn = ev.target.closest("button[data-code]");
     if (!btn) { return; }
+    var act = btn.getAttribute("data-act") || "voir";
+    var code = btn.getAttribute("data-code");
     btn.disabled = true;
     try {
-      var ligne = await window.RRdb.obtenir(btn.getAttribute("data-code"));
-      if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
-      ouvrirApercu(ligne);
+      if (act === "supprimer") {
+        await supprimerRapport(code, btn.getAttribute("data-nom") || code);
+      } else if (act === "modifier") {
+        await modifierRapport(code);
+      } else {
+        var ligne = await window.RRdb.obtenir(code);
+        if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
+        ouvrirApercu(ligne);
+      }
     } catch (e) {
       msg("msg-admin", "erreur", window.RR.esc(e.message));
     } finally {
@@ -248,8 +266,56 @@
     }
   });
 
+  /* ---------------- SUPPRESSION ---------------- */
+  async function supprimerRapport(code, nom) {
+    var confirme = confirm(
+      "⚠ SUPPRIMER CE RAPPORT\n\n" +
+      "École : " + nom + "\n" +
+      "Code  : " + code + "\n\n" +
+      "OK     → supprimer définitivement le rapport de cette école\n" +
+      "Annuler → conserver le rapport"
+    );
+    if (!confirme) {
+      msg("msg-admin", "info",
+          "Suppression annulée : le rapport de <b>" + window.RR.esc(nom) +
+          "</b> est conservé.");
+      return;
+    }
+    await window.RRdb.supprimer(code);
+    /* si l'aperçu ouvert porte sur cette école, on le referme */
+    if (codeApercu === code) {
+      $("zone-apercu").style.display = "none";
+      ctxCourant = null;
+      codeApercu = null;
+    }
+    await chargerListe();
+    msg("msg-admin", "ok",
+        "🗑 Rapport de <b>" + window.RR.esc(nom) + "</b> supprimé — " +
+        lignes.length + " école(s) restante(s).");
+  }
+
+  /* ---------------- MODIFICATION ----------------
+     On charge les données enregistrées dans un sessionStorage puis on
+     ouvre le formulaire de saisie : l'inspection corrige, re-soumet, et
+     la RPC sauver_rapport remplace le rapport + régénère le PDF. */
+  async function modifierRapport(code) {
+    var ligne = await window.RRdb.obtenir(code);
+    if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
+    try {
+      sessionStorage.setItem("RR_MODIF", JSON.stringify({
+        code: ligne.ecole_code,
+        nom: ligne.ecole_nom || ligne.ecole_code,
+        donnees: ligne.donnees
+      }));
+    } catch (e) {
+      throw new Error("Impossible de préparer la modification : " + e.message);
+    }
+    location.href = "index.html";
+  }
+
   function ouvrirApercu(ligne) {
     ctxCourant = window.RR.buildContext(ligne.donnees, { id: ligne.ecole_code });
+    codeApercu = ligne.ecole_code;
     $("titre-apercu").textContent = "Aperçu — " +
       (ligne.ecole_nom || ligne.ecole_code) + " (" + ligne.annee + ")";
     $("zone-apercu").style.display = "block";
@@ -260,6 +326,7 @@
   $("btn-fermer").addEventListener("click", function () {
     $("zone-apercu").style.display = "none";
     ctxCourant = null;
+    codeApercu = null;
   });
 
   $("btn-pdf").addEventListener("click", async function () {

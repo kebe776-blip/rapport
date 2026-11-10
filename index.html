@@ -147,14 +147,40 @@
   /* --- Construction du formulaire --- */
   window.RRform.construire(zone);
 
-  /* --- Reprise du brouillon --- */
-  var brouillon = window.RRform.chargerBrouillon();
-  if (brouillon && brouillon.identification && brouillon.identification.nom_ecole) {
-    window.RRform.remplir(brouillon);
-    message.className = "bandeau info";
-    message.innerHTML = "<b>Brouillon repris :</b> " +
-      window.RR.esc(brouillon.identification.nom_ecole) +
-      " — vous pouvez reprendre votre saisie là où vous l'aviez laissée.";
+  /* --- Reprise d'une modification lancée depuis l'espace Inspection ---
+     Le sessionStorage contient le rapport à corriger : on le charge dans
+     le formulaire, on l'efface de la session (une seule prise en charge)
+     et on le verse dans le brouillon pour survivre à un rechargement. */
+  var aModifier = null;
+  try { aModifier = JSON.parse(sessionStorage.getItem("RR_MODIF") || "null"); }
+  catch (e) { aModifier = null; }
+
+  if (aModifier && aModifier.donnees) {
+    try { sessionStorage.removeItem("RR_MODIF"); } catch (e) {}
+    window.RRform.remplir(aModifier.donnees);
+    try {
+      localStorage.setItem(CFG.LS_BROUILLON, JSON.stringify(aModifier.donnees));
+    } catch (e) {}
+    message.className = "bandeau warn";
+    message.innerHTML = "<b>✏ MODIFICATION D'UN RAPPORT ENREGISTRÉ — " +
+      window.RR.esc(aModifier.nom || aModifier.code) + ".</b><br>" +
+      "Les données du rapport sont chargées : corrigez ce qui doit l'être, " +
+      "puis cliquez sur « SOUMETTRE ». Le rapport existant sera remplacé et " +
+      "le nouveau PDF (6 pages) téléchargé." +
+      "<br><span class='petit'>Gardez le même <b>codec</b> et le même " +
+      "<b>nom d'école</b> : les modifier créerait un rapport distinct au lieu " +
+      "de remplacer celui-ci.</span>";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    /* --- Reprise du brouillon --- */
+    var brouillon = window.RRform.chargerBrouillon();
+    if (brouillon && brouillon.identification && brouillon.identification.nom_ecole) {
+      window.RRform.remplir(brouillon);
+      message.className = "bandeau info";
+      message.innerHTML = "<b>Brouillon repris :</b> " +
+        window.RR.esc(brouillon.identification.nom_ecole) +
+        " — vous pouvez reprendre votre saisie là où vous l'aviez laissée.";
+    }
   }
 
   /* --- File d'attente hors-ligne --- */

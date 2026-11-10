@@ -21,7 +21,7 @@ d'école.
 | **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. |
-| **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et retélécharger n'importe quel rapport. |
+| **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et, pour chacune : **Voir / PDF**, **Modifier** (corrige le rapport puis régénère le PDF) ou **Supprimer**. |
 
 ### Mise en page du PDF (conforme au modèle)
 
@@ -141,7 +141,13 @@ PDF officiel** → remettre le fichier à l'Inspecteur (ou l'envoyer par WhatsAp
 dès que le réseau le permet).
 
 **Inspection** : ouvrir `admin.html` → se connecter → liste des écoles
-ayant soumis → *Voir / PDF* pour consulter ou retélécharger un rapport.
+ayant soumis. Trois actions par école :
+
+| Action | Effet |
+|---|---|
+| **Voir / PDF** | aperçu des 6 pages + téléchargement du PDF officiel |
+| **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
+| **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
 ---
 

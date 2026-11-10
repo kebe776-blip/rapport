@@ -169,6 +169,18 @@
     return (res.data && res.data[0]) || null;
   }
 
+  /* ---------- Suppression (admin authentifié) ----------
+     Le rôle `authenticated` possède la policy DELETE : contrairement à
+     l'écriture du directeur (qui passe par la RPC SECURITY DEFINER),
+     la suppression peut se faire directement en PostgREST. */
+  async function supprimer(code) {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("rapports").delete().eq("ecole_code", code);
+    if (res.error) { throw new Error(res.error.message); }
+    return true;
+  }
+
   /* ---------- Authentification administrateur ---------- */
   async function connexion(email, mdp) {
     var c = sb();
@@ -201,6 +213,7 @@
     viderFile: viderFile,
     lister: lister,
     obtenir: obtenir,
+    supprimer: supprimer,
     connexion: connexion,
     deconnexion: deconnexion,
     utilisateur: utilisateur,
