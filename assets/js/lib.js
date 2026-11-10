@@ -327,6 +327,7 @@
     var total = {};
     totalKeys.forEach(function (k) { total[k] = 0; });
 
+    var totalClasses = 0;
     var effectifs = COURS.map(function (pair) {
       var grp = pair[0], label = pair[1];
       var row = { cours: label };
@@ -335,9 +336,10 @@
         total[k] += row[k];
       });
       row.nb_classes = num(val(f, "nb_classes", grp + "/"));
+      totalClasses += row.nb_classes;
       return row;
     });
-    var total_row = { cours: "TOTAL" };
+    var total_row = { cours: "TOTAL", nb_classes: totalClasses };
     totalKeys.forEach(function (k) { total_row[k] = total[k]; });
 
     /* --- J. Mobilier --- */

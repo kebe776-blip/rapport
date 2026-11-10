@@ -490,7 +490,7 @@ persTable(ctx.malades, 3) +
     html +=
   '<tr class="totale">' +
     '<td class="c">TOTAL</td>' +
-    '<td></td>' +
+    '<td class="n">' + (t.nb_classes || 0) + '</td>' +
     '<td class="n">' + t.eff_g + '</td><td class="n">' + t.eff_f + '</td>' +
     '<td class="n" style="border-right:1.2pt solid #000;">' + t.eff_t + '</td>' +
     '<td class="n">' + t.red_g + '</td><td class="n">' + t.red_f + '</td>' +

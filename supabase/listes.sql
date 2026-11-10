@@ -62,7 +62,7 @@ begin
       ('ecole', 'EFA CHEIKH ABOUBACAR GASSAMA'),
       ('ecole', 'EFA KEUR MADIABEL 3'),
       ('ecole', 'EFA KEUR TAPHA'),
-      ('ecole', 'EFA KEUR TERI'),
+      ('ecole', 'EFA KEUR YERI'),
       ('ecole', 'EFA MBAKERY'),
       ('ecole', 'EFA NDIBA'),
       ('ecole', 'EFA NGUER BABOU'),

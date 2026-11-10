@@ -11,8 +11,7 @@
 
   /* --- Listes déroulantes réutilisables (valeurs = clés brutes) --- */
   var OUI_NON = [["", "—"], ["oui", "OUI"], ["non", "NON"]];
-  var STATUT = [["", "—"], ["public", "PUBLIC"], ["prive", "PRIVÉ"],
-                ["communautaire", "COMMUNAUTAIRE"]];
+  var STATUT = [["", "—"], ["public", "PUBLIC"], ["prive", "PRIVÉ"]];
   var LANGUE = [["", "—"], ["wolof", "WOLOF"], ["pulaar", "PULAAR"],
                 ["serere", "SERÈRE"], ["diola", "DIOLA"], ["mandinka", "MANDINKA"],
                 ["soninke", "SONINKÉ"], ["manjak", "MANJAK"], ["balant", "BALANT"],

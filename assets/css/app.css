@@ -270,6 +270,13 @@ a { color: #1f4e79; }
 .table-saisie input:focus, .table-saisie select:focus {
   outline: none; border-color: #1f4e79;
 }
+/* Champs numériques : masquer les flèches ▲▼ (spinner) — la saisie
+   reste possible au clavier, min="0" est toujours appliqué. */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none; margin: 0;
+}
+input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 .table-saisie .num { width: 46px; text-align: center; font-weight: 700; color: #666; }
 .table-saisie .col-actions { width: 40px; text-align: center; }
 .table-saisie .suppr {
