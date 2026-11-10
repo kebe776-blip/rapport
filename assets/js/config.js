@@ -18,8 +18,8 @@ window.RR_CONFIG = {
   SUPABASE_URL: "https://eiaktsyibkwigmdmfdms.supabase.co",
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVpYWt0c3lpYmt3aWdtZG1mZG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQxNTk1NjksImV4cCI6MjEwOTczNTU2OX0.z9mksIu1ANrXKlkrLsFS0JpLdlaqhgoQhcSW924P1ec",
 
-  /* --- Logo officiel optionnel : "assets/logo.png" ou "" (bloc LOGO MEN) --- */
-  LOGO: "",
+  /* --- Logo officiel optionnel : "assets/logo_men.png" ou "" (bloc LOGO MEN) --- */
+  LOGO: "assets/logo_men.png",
 
   /* --- Clés de stockage local (brouillon hors-ligne + file d'attente) --- */
   LS_BROUILLON: "rr_brouillon_v1",

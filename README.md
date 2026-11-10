@@ -97,6 +97,7 @@ assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
 assets/vendor/          supabase-js, html2canvas, jsPDF (embarqués, hors-ligne)
 assets/demo.json        Données d'exemple (rapport complet)
+assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
 supabase/listes.sql     Table `listes` (écoles / CODEC) + amorçage des 116 entrées
 ```
@@ -136,8 +137,23 @@ SUPABASE_URL: "https://xxxxxxxx.supabase.co",
 SUPABASE_ANON_KEY: "eyJhbGciOi..."
 ```
 
-Tant que ces deux valeurs sont vides, **le formulaire fonctionne quand même** :
-les saisies restent sur l'appareil et le PDF se télécharge normalement.
+Les autres réglages de ce fichier :
+
+```js
+ANNEE: "2026/2027",                 // titre du rapport + nom du PDF + colonne en base
+INSPECTION: "…KAOLACK",             // en-tête officiel (page 1)
+IEF: "…FORMATION DE KEUR MADIABEL", // en-tête officiel (page 1)
+LOGO: "assets/logo_men.png",        // logo MEN en haut à droite ("" = bloc « LOGO MEN »)
+```
+
+> Le logo est affiché en `74 × 46 px` avec `object-fit: contain` : conservez un
+> PNG **transparent**, de préférence large (le rendu reste net). Si le fichier
+> est absent du dépôt, le rapport affiche automatiquement le bloc `LOGO MEN`
+> au lieu d'une image cassée.
+
+Tant que `SUPABASE_URL` / `SUPABASE_ANON_KEY` sont vides, **le formulaire
+fonctionne quand même** : les saisies restent sur l'appareil et le PDF se
+télécharge normalement.
 
 ### 3.3 Publication sur GitHub Pages
 
