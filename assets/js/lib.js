@@ -384,7 +384,7 @@
     return {
       meta: {
         ecole: a.nom_ecole,
-        annee: opts.annee || CFG.ANNEE || "2025/2026",
+        annee: opts.annee || CFG.ANNEE || "2026/2027",
         soumission: soumission,
         id: opts.id !== undefined && opts.id !== null && opts.id !== ""
             ? opts.id : (raw._id || "—")

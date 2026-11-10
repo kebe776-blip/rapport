@@ -7,10 +7,10 @@
    ========================================================================= */
 window.RR_CONFIG = {
   /* --- Année scolaire et en-têtes officiels du rapport --- */
-  ANNEE: "2025/2026",
+  ANNEE: "2026/2027",
   MINISTERE: "MINISTÈRE DE L'ÉDUCATION NATIONALE",
   INSPECTION: "INSPECTION D'ACADÉMIE DE KAOLACK",
-  IEF: "INSPECTION DE L'ÉDUCATION ET DE LA FORMATION DE NIORO DU RIP",
+  IEF: "INSPECTION DE L'ÉDUCATION ET DE LA FORMATION DE KEUR MADIABEL",
 
   /* --- Supabase (laisser vide pour fonctionner hors-ligne / en démo) ---
      Projet "Planification" (organisation IEF-Planification)

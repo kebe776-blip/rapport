@@ -1,7 +1,7 @@
 /* =========================================================================
    ecoles.js — Listes fermées de l'inspection
    -------------------------------------------------------------------------
-   • RR_ECOLES : les écoles de l'IEF de Nioro du Rip (liste officielle).
+   • RR_ECOLES : les écoles de l'IEF de KEUR MADIABEL (liste officielle).
    • RR_CODECS : les CODEC rattachés (facultatif, mais fermé s'il est saisi).
 
    Ces tableaux alimentent les champs « combo » du formulaire (champs.js) :

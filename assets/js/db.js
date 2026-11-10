@@ -71,7 +71,7 @@
     var ligne = {
       ecole_code: el.ecole_code,
       ecole_nom: el.ecole_nom || "",
-      annee: el.annee || CFG.ANNEE || "2025/2026",
+      annee: el.annee || CFG.ANNEE || "2026/2027",
       donnees: el.donnees,
       maj_le: new Date().toISOString()
     };
@@ -96,7 +96,7 @@
     if (!c) { return null; }
     var res = await c.rpc("rapport_existe", {
       p_ecole_code: codeEcole(decodees),
-      p_annee: CFG.ANNEE || "2025/2026"
+      p_annee: CFG.ANNEE || "2026/2027"
     });
     if (res.error) { return null; }
     return !!res.data;

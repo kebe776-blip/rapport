@@ -84,7 +84,7 @@
     return doc;
   }
 
-  /** Nom officiel : Rapport_Rentree_NOM_ECOLE_2025-2026.pdf */
+  /** Nom officiel : Rapport_Rentree_NOM_ECOLE_2026-2027.pdf */
   function nomFichier(ctx) {
     var ecole = ((ctx && ctx.meta && ctx.meta.ecole) || "ECOLE")
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")

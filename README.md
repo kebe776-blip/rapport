@@ -1,6 +1,6 @@
-# Rapport Général de Rentrée Élémentaire 2025/2026
+# Rapport Général de Rentrée Élémentaire 2026/2027
 
-**IEF de Nioro du Rip — Inspection d'Académie de Kaolack**
+**IEF de KEUR MADIABEL — Inspection d'Académie de Kaolack**
 
 Système de collecte du rapport de rentrée : chaque directeur remplit le
 formulaire officiel dans son navigateur, clique sur **Soumettre**, et le
@@ -30,7 +30,7 @@ d'école.
 
 | Page | Contenu |
 |---|---|
-| **1** | En-tête officiel (République du Sénégal, MEN, IA de Kaolack, IEF de Nioro du Rip) + **A** Identification + **B** Classes pédagogiques + **C** Classes physiques + **D** Directeur |
+| **1** | En-tête officiel (République du Sénégal, MEN, IA de Kaolack, IEF de KEUR MADIABEL) + **A** Identification + **B** Classes pédagogiques + **C** Classes physiques + **D** Directeur |
 | **2** | **E** Ouvrages annexes + **F** Activités péri/para scolaires + **F**/**G** Observations |
 | **3** | **H** Personnel enseignant (20 lignes numérotées) + suppléants + malades + récapitulation FR/AR |
 | **4** | **I** Effectifs + **J** Mobilier scolaire |
@@ -38,7 +38,7 @@ d'école.
 | **6** | **L** Autres manuels + **M** Matériel didactique + **N** Autres matériels + signature *Le Directeur* |
 
 Le nom de fichier généré est toujours :
-`Rapport_Rentree_NOM_ECOLE_2025-2026.pdf`
+`Rapport_Rentree_NOM_ECOLE_2026-2027.pdf`
 
 ### Résistance au réseau 2G/3G
 

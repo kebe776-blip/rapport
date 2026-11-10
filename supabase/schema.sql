@@ -1,5 +1,5 @@
 /* =========================================================================
-   SCHÉMA SUPABASE — Rapport général de rentrée élémentaire 2025/2026
+   SCHÉMA SUPABASE — Rapport général de rentrée élémentaire 2026/2027
    -------------------------------------------------------------------------
    À exécuter une seule fois dans Supabase > SQL Editor.
 
@@ -12,7 +12,7 @@
 create table if not exists public.rapports (
   ecole_code  text        not null,          -- CODEC ou nom d'école normalisé
   ecole_nom   text        not null default '',
-  annee       text        not null default '2025/2026',
+  annee       text        not null default '2026/2027',
   donnees     jsonb       not null,          -- formulaire complet (forme sample_data.json)
   maj_le      timestamptz not null default now(),
   primary key (ecole_code, annee)
@@ -61,7 +61,7 @@ create policy rapports_delete_auth
 create or replace function public.sauver_rapport(
   p_ecole_code text,
   p_ecole_nom  text default '',
-  p_annee      text default '2025/2026',
+  p_annee      text default '2026/2027',
   p_donnees    jsonb default '{}'::jsonb
 ) returns text
 language plpgsql
@@ -85,7 +85,7 @@ end $$;
    aucune donnée d'école n'est exposée. */
 create or replace function public.rapport_existe(
   p_ecole_code text,
-  p_annee text default '2025/2026'
+  p_annee text default '2026/2027'
 ) returns boolean
 language sql
 security definer
