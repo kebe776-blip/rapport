@@ -242,17 +242,46 @@
     }
   }
 
+  /* --- « En attente d'envoi » = écoles de la liste (table `listes`) qui
+         n'ont AUCUN rapport en base. La comparaison se fait sur le nom
+         normalisé (ni casse, ni accents, ni espaces multiples), comme pour
+         les doublons. Un rapport dont l'école a été retirée de la liste
+         compte comme DÉCLARÉ, jamais comme en attente. --- */
+  function ecolesSoumises() {
+    var norm = window.RRdb.normaliserListe;
+    var vues = Object.create(null);
+    for (var i = 0; i < lignes.length; i++) {
+      vues[norm(lignes[i].ecole_nom || lignes[i].ecole_code)] = true;
+    }
+    return vues;
+  }
+
   function afficherStats() {
+    var norm = window.RRdb.normaliserListe;
+    var vues = ecolesSoumises();
+    var ecoles = window.RR_ECOLES || [];
+    var restantes = 0;
+    for (var i = 0; i < ecoles.length; i++) {
+      if (!vues[norm(ecoles[i])]) { restantes++; }
+    }
     var dernier = lignes.length ? lignes[0].maj_le : null;
+    /* Hors-ligne, la liste vient du cache ou de ecoles.js : on le signale.
+       Tant que le premier chargement n'a pas abouti (""), pas de mention. */
+    var mention = (listesSource === "cache" || listesSource === "fallback")
+      ? " (liste locale)" : "";
+
     $("stats").innerHTML =
       '<div class="stat"><div class="valeur">' + lignes.length +
         '</div><div class="libelle">Écoles déclarées</div></div>' +
+      '<div class="stat"><div class="valeur">' + restantes +
+        '</div><div class="libelle">En attente d\'envoi' + mention +
+        '</div></div>' +
       '<div class="stat"><div class="valeur">' +
         (dernier ? new Date(dernier).toLocaleDateString("fr-FR") : "—") +
         '</div><div class="libelle">Dernière soumission</div></div>' +
       '<div class="stat"><div class="valeur">' +
         window.RRdb.attente() +
-        '</div><div class="libelle">En attente d\'envoi</div></div>';
+        '</div><div class="libelle">File locale</div></div>';
   }
 
   function afficherTableau(filtre) {
@@ -402,11 +431,15 @@
      place de RR_ECOLES / RR_CODECS (référencées par champs.js côté
      formulaire) → cache localStorage. */
   var listesVides = { ecole: "", codec: "" };
+  /* D'où vient la liste affichée : "" = en cours de chargement,
+     puis "serveur" / "cache" / "fallback" (ecoles.js). */
+  var listesSource = "";
 
   async function chargerListesAdmin() {
     $("zone-listes").style.display = "block";
     try {
       var r = await window.RRdb.chargerListes();
+      listesSource = r.source;
       if (r.source === "serveur") {
         msg("msg-listes", "ok",
             "Listes synchronisées avec Supabase (" + r.ecoles +
@@ -422,8 +455,10 @@
       }
       afficherListes();
     } catch (e) {
+      listesSource = "fallback";
       msg("msg-listes", "erreur",
           "<b>Impossible de lire les listes :</b> " + window.RR.esc(e.message));
+      afficherListes();
     }
   }
 
@@ -434,6 +469,9 @@
   function afficherListes() {
     afficherUneListe("ecole");
     afficherUneListe("codec");
+    /* La liste a changé (chargement, ajout, suppression) : le compteur
+       « En attente d'envoi » en dépend, on le recalcule. */
+    afficherStats();
   }
 
   function afficherUneListe(type) {

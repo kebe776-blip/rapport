@@ -176,6 +176,23 @@ ayant soumis. Trois actions par école :
 | **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
+### Les 4 cartes du tableau de bord
+
+| Carte | Calcul |
+|---|---|
+| **Écoles déclarées** | nombre de rapports en base |
+| **En attente d'envoi** | **écoles de la liste (table `listes`) qui n'ont aucun rapport en base** — comparaison des noms **normalisés** (ni casse, ni accents, ni espaces). Une école retirée de la liste mais déjà déclarée compte comme *déclarée*, jamais comme *en attente* |
+| **Dernière soumission** | date la plus récente de `maj_le` |
+| **File locale** | saisies hors-ligne de **cet appareil** pas encore envoyées (file d'attente locale) |
+
+Le compteur « En attente d'envoi » est **recalculé** à chaque changement :
+chargement des rapports, chargement des listes, ajout ou suppression d'une
+école. Hors-ligne, la carte porte la mention **« (liste locale) »** car la
+liste vient alors du cache ou de `ecoles.js`.
+
+> L'ancien libellé « En attente d'envoi » affichait la file locale ; ce
+> compteur a été renommé **« File locale »** pour lever l'ambiguïté.
+
 ### Gérer les listes des écoles et des CODEC
 
 Dans `admin.html`, la carte **« Listes des écoles et des CODEC »** (sous le
