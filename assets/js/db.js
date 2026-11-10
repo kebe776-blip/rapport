@@ -160,6 +160,18 @@
     return res.data || [];
   }
 
+  /* Lecture complète (champs + `donnees`) — export XLSX de l'Espace
+     Inspection. Une seule requête, contrairement à obtenir() par ligne. */
+  async function listerComplets() {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("rapports")
+      .select("*")
+      .order("maj_le", { ascending: false });
+    if (res.error) { throw new Error(res.error.message); }
+    return res.data || [];
+  }
+
   async function obtenir(code) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
@@ -353,6 +365,7 @@
     existe: existe,
     viderFile: viderFile,
     lister: lister,
+    listerComplets: listerComplets,
     obtenir: obtenir,
     supprimer: supprimer,
     listerListes: listerListes,

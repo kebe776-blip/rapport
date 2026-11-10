@@ -82,7 +82,7 @@ choisit. Le filtrage est **insensible aux accents et à la casse**
 index.html              Page d'accueil = formulaire du directeur (A → N) + soumission + PDF
 saisie.html             Redirection vers index.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (démo ou brouillon)
-admin.html              Espace Inspection (connexion Supabase, liste, PDF)
+admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
 
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
 assets/css/app.css      Styles de l'interface et du formulaire
@@ -94,7 +94,8 @@ assets/js/champs.js     Définition déclarative du formulaire (sections A → N
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC (combo du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
-assets/vendor/          supabase-js, html2canvas, jsPDF (embarqués, hors-ligne)
+assets/js/xlsx-export.js Export Excel : classeur 5 feuilles depuis l'Espace Inspection
+assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne)
 assets/demo.json        Données d'exemple (rapport complet)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
@@ -193,6 +194,13 @@ ayant soumis. Trois actions par école :
 | **Voir / PDF** | aperçu des 6 pages + téléchargement du PDF officiel |
 | **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
+
+**Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
+`Rapport_Rentree_2026-2027.xlsx` — un classeur de **5 feuilles**
+(Identification · Effectifs · Personnel · Infrastructures & Mobilier ·
+Matériels didactiques) avec tous les rapports soumis, nombres somables
+et dates en jj/mm/aaaa. Si aucun rapport n'est déposé, un message
+s'affiche sans fichier.
 
 ### Les 4 cartes du tableau de bord
 

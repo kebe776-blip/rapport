@@ -51,6 +51,7 @@
         <input type="search" id="recherche" placeholder="Rechercher une école…"
                style="padding:8px 10px; border:1px solid #c7ced7; border-radius:5px; min-width:220px;">
         <button class="btn gris petit" id="btn-rafraichir">↻ Actualiser</button>
+        <button class="btn gris petit" id="btn-xlsx">⬇ Export XLSX</button>
         <button class="btn gris petit" id="btn-deconnexion">Déconnexion</button>
       </div>
       <div id="msg-admin" class="bandeau info mt"></div>
@@ -144,6 +145,8 @@
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
 <script src="assets/js/ecoles.js"></script>
+<script src="assets/vendor/xlsx.full.min.js"></script>
+<script src="assets/js/xlsx-export.js"></script>
 <script>
 (function () {
   "use strict";
@@ -321,6 +324,37 @@
     afficherTableau(this.value);
   });
   $("btn-rafraichir").addEventListener("click", chargerListe);
+
+  /* ---------------- EXPORT XLSX ----------------
+     Classeur de 5 feuilles (voir assets/js/xlsx-export.js) construit à
+     partir des rapports complets lus en base, sous la session
+     Inspection déjà connectée. */
+  $("btn-xlsx").addEventListener("click", async function () {
+    var btn = this;
+    btn.disabled = true;
+    try {
+      if (!lignes.length) {
+        msg("msg-admin", "warn", "Aucun rapport à exporter.");
+        return;
+      }
+      progres("Lecture des rapports…", 25);
+      var complets = await window.RRdb.listerComplets();
+      if (!complets.length) {
+        msg("msg-admin", "warn", "Aucun rapport à exporter.");
+        return;
+      }
+      progres("Création du classeur XLSX…", 70);
+      var nom = window.RR.xlsx.creer(complets);
+      msg("msg-admin", "ok", "Export téléchargé : <b>" +
+          window.RR.esc(nom) + "</b> (" + complets.length +
+          " rapport(s), 5 feuilles).");
+    } catch (e) {
+      msg("msg-admin", "erreur", window.RR.esc(e.message));
+    } finally {
+      finProgres();
+      btn.disabled = false;
+    }
+  });
 
   $("tableau").addEventListener("click", async function (ev) {
     var btn = ev.target.closest("button[data-code]");
