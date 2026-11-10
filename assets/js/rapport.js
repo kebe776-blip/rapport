@@ -1,6 +1,6 @@
 /* =========================================================================
    rapport.js — Générateur HTML du rapport officiel (6 pages A4 PAYSAGE)
-   Portage fidèle de templates/rapport.html validé sous Flask/xhtml2pdf.
+   Mise en page fidèle du modèle administratif papier.
    Chaque page est isolée dans <div class="pdf-page"> (275 x 194 mm),
    ce qui garantit qu'aucune section n'est jamais coupée.
    ========================================================================= */

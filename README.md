@@ -8,9 +8,8 @@ formulaire officiel dans son navigateur, clique sur **Soumettre**, et le
 strictement identique au modèle administratif, sans compte, sans sélection
 d'école.
 
-> **Architecture : GitHub Pages + Supabase uniquement.**
-> KoboToolbox et le serveur Flask ont été **abandonnés** (voir *Version
-> antérieure* en bas de page).
+> **Architecture : GitHub Pages + Supabase uniquement** — aucun serveur,
+> aucun compte, aucune dépendance externe.
 
 ---
 
@@ -235,24 +234,7 @@ la nouvelle liste : une école ajoutée est **sélectionnable aussitôt**, une
 
 ---
 
-## 5. Version antérieure (abandonnée)
-
-Les fichiers suivants constituent l'ancienne implémentation
-**KoboToolbox + Flask**, conservée pour archive. **Ils ne sont plus utilisés.**
-
-| Fichier | Rôle ancien |
-|---|---|
-| `app.py` | Serveur Flask (récupération Kobo + PDF xhtml2pdf) |
-| `templates/` | Anciens gabarits Jinja |
-| `create_xlsform.py`, `formulaire_rentree.xlsx` | Formulaire XLSForm pour KoboToolbox |
-| `render.yaml`, `requirements.txt`, `demarrer.bat` | Déploiement Render / lancement local |
-| `sample_data.json` | Données d'exemple (copiées dans `assets/demo.json`) |
-
-Le nouveau système ne dépend ni de Python, ni de KoboToolbox, ni d'un serveur.
-
----
-
-## 6. Sécurité
+## 5. Sécurité
 
 * La **clé anon** Supabase est publique (normal : elle est dans le JS).
   Les règles **RLS** du `schema.sql` limitent ce qu'elle peut faire :

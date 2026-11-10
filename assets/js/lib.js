@@ -1,6 +1,6 @@
 /* =========================================================================
-   lib.js — Portage JavaScript de build_context() (app.py)
-   Transforme les données brutes du formulaire (même forme que sample_data.json)
+   lib.js — Construction du contexte du rapport
+   Transforme les données brutes du formulaire (même forme que assets/demo.json)
    en contexte prêt à être rendu par rapport.js.
    ========================================================================= */
 (function (global) {
@@ -143,7 +143,7 @@
     return map[k] !== undefined ? map[k] : String(value).toUpperCase();
   }
 
-  /** Miroir du filtre Jinja « %02d ». */
+  /** Formatage sur 2 chiffres (« %02d »), 0 par défaut. */
   function pad2(v) {
     var n = parseInt(v, 10);
     if (isNaN(n)) { return String(v === null || v === undefined ? "" : v).trim() || "00"; }

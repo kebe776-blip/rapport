@@ -1,12 +1,6 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-.env
 .DS_Store
 
 # Artefacts de test / aperçus générés
-rapport_demo.pdf
 test_web.pdf
 test_saisie.pdf
 page*.png
