@@ -121,11 +121,9 @@
     '<td class="n">' + p2(b.nb_cdf) + '</td>' +
   '</tr>' +
 '</table>' +
-'<div class="ligne"><span class="lbl">Préciser les cours jumelés :</span> ' +
-  '<span class="souligne">' + u(b.cours_jumeles) + '</span></div>' +
-'<div class="ligne"><span class="lbl">Préciser les cours jumelés — CMG :</span> ' +
+'<div class="ligne"><span class="lbl">Cours jumelés — CMG (multi-grades) :</span> ' +
   '<span class="souligne">' + u(b.cours_jumeles_cmg) + '</span></div>' +
-'<div class="ligne"><span class="lbl">Préciser les cours jumelés — CDF :</span> ' +
+'<div class="ligne"><span class="lbl">Cours jumelés — CDF (double flux) :</span> ' +
   '<span class="souligne">' + u(b.cours_jumeles_cdf) + '</span></div>';
 
     /* ---- C. Classes physiques ---- */

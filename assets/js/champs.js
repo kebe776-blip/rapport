@@ -62,8 +62,6 @@
         { n: "nb_classes_simples", l: "Nombre de classes simples", t: "num" },
         { n: "nb_cmg", l: "Nombre de CMG", t: "num" },
         { n: "nb_cdf", l: "Nombre de CDF", t: "num" },
-        { n: "cours_jumeles", l: "Préciser les cours jumelés", t: "text", large: true,
-          aide: "Laisser vide = NÉANT" },
         { n: "cours_jumeles_cmg", l: "Cours jumelés — CMG (multi-grades)", t: "text",
           large: true, aide: "Ex. CI/CP en CMG — laisser vide = NÉANT" },
         { n: "cours_jumeles_cdf", l: "Cours jumelés — CDF (double flux)", t: "text",

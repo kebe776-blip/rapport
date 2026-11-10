@@ -183,7 +183,6 @@
       nb_classes_simples: num(val(f, "nb_classes_simples")),
       nb_cmg: num(val(f, "nb_cmg")),
       nb_cdf: num(val(f, "nb_cdf")),
-      cours_jumeles: txt(val(f, "cours_jumeles"), "NÉANT").toUpperCase(),
       cours_jumeles_cmg: txt(val(f, "cours_jumeles_cmg"), "NÉANT").toUpperCase(),
       cours_jumeles_cdf: txt(val(f, "cours_jumeles_cdf"), "NÉANT").toUpperCase()
     };
