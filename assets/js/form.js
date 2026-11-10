@@ -984,11 +984,26 @@
     return true;
   }
 
+  /**
+   * Réaffiche les listes déroulantes ouvertes après un changement des
+   * listes depuis l'espace Inspection (ajout / suppression d'une école
+   * ou d'un CODEC). Les valeurs déjà saisies restent en place.
+   */
+  function rafraichirCombos() {
+    var wraps = conteneur.querySelectorAll(".combo");
+    for (var i = 0; i < wraps.length; i++) {
+      var input = wraps[i].querySelector("input");
+      var ul = wraps[i].querySelector(".combo-liste");
+      if (input && ul && !ul.hidden) { afficherCombo(input); }
+    }
+  }
+
   /* -----------------------------------------------------------------------
      API PUBLIQUE
      ----------------------------------------------------------------------- */
   global.RRform = {
     construire: construire,
+    rafraichirCombos: rafraichirCombos,
     remplir: remplir,
     collecter: collecter,
     valider: valider,

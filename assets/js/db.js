@@ -181,6 +181,147 @@
     return true;
   }
 
+  /* ---------- Listes fermées (écoles / CODEC) ----------
+     Table `listes` : le directeur (anon) ne peut que LIRE, seule
+     l'Inspection authentifiée peut ajouter ou supprimer. */
+  var LS_LISTES = "rr_listes_v1";
+
+  /** Forme normalisée : ni accents, ni casse, ni espaces multiples. */
+  function normaliserListe(s) {
+    return String(s === null || s === undefined ? "" : s)
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^A-Za-z0-9]+/g, " ")
+      .trim()
+      .toUpperCase();
+  }
+
+  function trier(arr) {
+    arr.sort(function (a, b) { return a.localeCompare(b, "fr"); });
+  }
+
+  /* Les tableaux RR_ECOLES / RR_CODECS sont référencés par champs.js :
+     on les MUTATE en place (length = 0 + push), jamais on ne les remplace. */
+  function poserTableau(arr, items) {
+    if (!arr) { return; }
+    arr.length = 0;
+    for (var i = 0; i < items.length; i++) { arr.push(items[i]); }
+    trier(arr);
+  }
+
+  function ecrireCache(donnees) {
+    try {
+      localStorage.setItem(LS_LISTES, JSON.stringify({
+        t: Date.now(), ecoles: donnees.ecoles, codecs: donnees.codecs
+      }));
+    } catch (e) { /* stockage plein : on ignore */ }
+  }
+
+  function lireCache() {
+    try {
+      var s = localStorage.getItem(LS_LISTES);
+      if (!s) { return null; }
+      var o = JSON.parse(s);
+      return (o && o.ecoles && o.ecoles.length) ? o : null;
+    } catch (e) { return null; }
+  }
+
+  /** Lecture brute des listes (espace Inspection). */
+  async function listerListes() {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("listes").select("type, valeur");
+    if (res.error) { throw new Error(res.error.message); }
+    var ecoles = [], codecs = [];
+    (res.data || []).forEach(function (r) {
+      if (r.type === "codec") { codecs.push(r.valeur); }
+      else { ecoles.push(r.valeur); }
+    });
+    trier(ecoles); trier(codecs);
+    return { ecoles: ecoles, codecs: codecs };
+  }
+
+  /**
+   * Alimente RR_ECOLES / RR_CODECS pour le formulaire.
+   * Repli : serveur → cache localStorage → ecoles.js (déjà en place).
+   * Une liste serveur vide est IGNORÉE : on ne bloque jamais le formulaire
+   * à cause d'une table mal amorcée.
+   */
+  async function chargerListes() {
+    if (!actif()) { return { source: "fallback" }; }
+    var donnees = null;
+    try {
+      donnees = await listerListes();
+    } catch (e) {
+      donnees = null;
+    }
+    if (donnees && donnees.ecoles.length) {
+      poserTableau(global.RR_ECOLES, donnees.ecoles);
+      poserTableau(global.RR_CODECS, donnees.codecs);
+      ecrireCache(donnees);
+      return { source: "serveur", ecoles: donnees.ecoles.length,
+               codecs: donnees.codecs.length };
+    }
+    var cache = lireCache();
+    if (cache) {
+      poserTableau(global.RR_ECOLES, cache.ecoles);
+      poserTableau(global.RR_CODECS, cache.codecs || []);
+      return { source: "cache", ecoles: cache.ecoles.length,
+               codecs: (cache.codecs || []).length };
+    }
+    return { source: "fallback", ecoles: (global.RR_ECOLES || []).length,
+             codecs: (global.RR_CODECS || []).length };
+  }
+
+  /** Ajoute une valeur (doublon normalisé refusé côté client ET serveur). */
+  async function ajouterListe(type, valeur) {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var v = String(valeur === null || valeur === undefined ? "" : valeur)
+      .replace(/\s+/g, " ").trim();
+    if (!v) { throw new Error("Merci de saisir une valeur."); }
+    if (type !== "ecole" && type !== "codec") {
+      throw new Error("Type de liste inconnu.");
+    }
+    var cible = type === "codec" ? global.RR_CODECS : global.RR_ECOLES;
+    var doublon = (cible || []).some(function (x) {
+      return normaliserListe(x) === normaliserListe(v);
+    });
+    if (doublon) {
+      throw new Error("« " + v + " » figure déjà dans la liste des " +
+        (type === "codec" ? "CODEC" : "écoles") + ".");
+    }
+    var res = await c.from("listes")
+      .insert({ type: type, valeur: v }).select("type, valeur");
+    if (res.error) { throw new Error(res.error.message); }
+    if (!res.data || !res.data.length) {
+      throw new Error("Ajout refusé : droits administrateur requis.");
+    }
+    cible.push(v);
+    trier(cible);
+    ecrireCache({ ecoles: global.RR_ECOLES, codecs: global.RR_CODECS });
+    return v;
+  }
+
+  /** Supprime une valeur de la liste (les rapports déjà soumis sont conservés). */
+  async function supprimerListe(type, valeur) {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("listes")
+      .delete().eq("type", type).eq("valeur", valeur).select("valeur");
+    if (res.error) { throw new Error(res.error.message); }
+    if (!res.data || !res.data.length) {
+      throw new Error("Suppression refusée : droits administrateur requis.");
+    }
+    var cible = type === "codec" ? global.RR_CODECS : global.RR_ECOLES;
+    if (cible) {
+      for (var i = cible.length - 1; i >= 0; i--) {
+        if (cible[i] === valeur) { cible.splice(i, 1); }
+      }
+    }
+    ecrireCache({ ecoles: global.RR_ECOLES, codecs: global.RR_CODECS });
+    return true;
+  }
+
   /* ---------- Authentification administrateur ---------- */
   async function connexion(email, mdp) {
     var c = sb();
@@ -214,6 +355,11 @@
     lister: lister,
     obtenir: obtenir,
     supprimer: supprimer,
+    listerListes: listerListes,
+    chargerListes: chargerListes,
+    ajouterListe: ajouterListe,
+    supprimerListe: supprimerListe,
+    normaliserListe: normaliserListe,
     connexion: connexion,
     deconnexion: deconnexion,
     utilisateur: utilisateur,

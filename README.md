@@ -62,16 +62,18 @@ déroulantes **filtrables** : on tape quelques lettres, la liste réduit, on
 choisit. Le filtrage est **insensible aux accents et à la casse**
 (`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
 
-* **`assets/js/ecoles.js`** contient les deux tableaux : `RR_ECOLES`
-  (**101 écoles**) et `RR_CODECS` (**15 CODEC**).
+* **`assets/js/ecoles.js`** contient les deux tableaux de repli :
+  `RR_ECOLES` (**101 écoles**) et `RR_CODECS` (**15 CODEC**). La source de
+  vérité est la table Supabase **`listes`** (voir `supabase/listes.sql`).
 * **Blocage** : une valeur absente de la liste est **refusée à la
   soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
 * **CODEC facultatif** : le champ peut rester vide (les écoles sans CODEC
   dans la liste le laissent tel quel), mais s'il est saisi il doit figer
   dans la liste.
-* **Ajouter une école ou un CODEC** : ajoutez simplement l'entrée au bon
-  tableau dans `ecoles.js`. Relisez l'orthographe — une faute bloquerait
-  la soumission de cette école.
+* **Gestion depuis l'espace Inspection** : la carte *« Listes des écoles
+  et des CODEC »* permet d'**ajouter** et de **supprimer** une école ou un
+  CODEC sans toucher au code (voir § 4).
+* **Repli hors-ligne** : serveur → cache localStorage → `ecoles.js`.
 
 ---
 
@@ -96,6 +98,7 @@ assets/js/db.js         Accès Supabase + file d'attente hors-ligne
 assets/vendor/          supabase-js, html2canvas, jsPDF (embarqués, hors-ligne)
 assets/demo.json        Données d'exemple (rapport complet)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
+supabase/listes.sql     Table `listes` (écoles / CODEC) + amorçage des 116 entrées
 ```
 
 ---
@@ -110,15 +113,19 @@ supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
 2. **SQL Editor → New query** → collez le contenu de `supabase/schema.sql` → **Run**
    (table `rapports` + règles RLS + fonctions `sauver_rapport` /
    `rapport_existe`)
-3. **Authentication → Users → Add user** : créez le compte de l'Inspection
+3. **Reprenez « New query »** → collez le contenu de `supabase/listes.sql` → **Run**
+   (table `listes` : 101 écoles + 15 CODEC). L'amorçage n'a lieu **que si la
+   table est vide** : le ré-exécuter ne remet jamais une école supprimée.
+4. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-4. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+5. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
-> ⚠️ Le rôle `anon` n'a **pas** de droit SELECT : les écritures passent par la
-> fonction SQL `sauver_rapport` (SECURITY DEFINER). N'ajoutez pas de policy
-> SELECT pour `anon`, sinon n'importe qui pourrait télécharger tous les
-> rapports avec la clé publique.
+> ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
+> passent par la fonction SQL `sauver_rapport` (SECURITY DEFINER). N'ajoutez pas
+> de policy SELECT pour `anon` **sur `rapports`**, sinon n'importe qui pourrait
+> télécharger tous les rapports avec la clé publique. Seule la table `listes`
+> (noms d'écoles / CODEC, sans aucune donnée de rapport) est lisible par `anon`.
 
 ### 3.2 Configuration du site
 
@@ -169,6 +176,27 @@ ayant soumis. Trois actions par école :
 | **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
+### Gérer les listes des écoles et des CODEC
+
+Dans `admin.html`, la carte **« Listes des écoles et des CODEC »** (sous le
+tableau de bord) donne les deux colonnes, avec recherche, ajout et
+suppression :
+
+| Action | Effet |
+|---|---|
+| **＋ Ajouter** | écrit dans Supabase (table `listes`) puis met à jour la liste. **Doublon refusé** même si la casse ou les accents diffèrent (`ecole de test` ≡ `ECOLE DE TEST`), valeur vide refusée |
+| **🗑** (par ligne) | confirmation native → suppression. Si l'école a **déjà déposé des rapports**, un avertissement rappelle qu'ils restent consultables mais qu'elle ne pourra plus soumettre |
+| **Rechercher** | filtre la colonne affichée (le total reste visible) |
+
+À chaque changement, le formulaire du directeur (déjà ouvert ou non) utilise
+la nouvelle liste : une école ajoutée est **sélectionnable aussitôt**, une
+école supprimée est **refusée à la soumission**.
+
+> Les droits RLS : `anon` (le directeur) ne peut que **lire** `listes`,
+> seuls les comptes `authenticated` (l'Inspection) peuvent insérer ou
+> supprimer. Sans réseau, le formulaire retombe sur le cache puis sur
+> `ecoles.js`.
+
 ---
 
 ## 5. Version antérieure (abandonnée)
@@ -192,8 +220,11 @@ Le nouveau système ne dépend ni de Python, ni de KoboToolbox, ni d'un serveur.
 
 * La **clé anon** Supabase est publique (normal : elle est dans le JS).
   Les règles **RLS** du `schema.sql` limitent ce qu'elle peut faire :
-  * `anon` → **insert / update** uniquement (pas de lecture, pas de suppression)
-  * `authenticated` → **select / delete** (réservé à l'Inspection)
+  * `anon` → **insert / update** uniquement sur `rapports` (pas de lecture,
+    pas de suppression) ; **select** uniquement sur `listes` (noms d'écoles
+    et de CODEC, sans aucune donnée de rapport)
+  * `authenticated` → **select / delete** sur `rapports`, **select / insert /
+    delete** sur `listes` (réservé à l'Inspection)
 * Aucun mot de passe de directeur : le formulaire est public, les données sont
   des données administratives non nominatives sensibles (effectifs, personnels).
 * Pour renforcer : activer dans Supabase **Authentication → Providers → Email**

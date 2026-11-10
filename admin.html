@@ -69,6 +69,54 @@
       </div>
     </div>
 
+    <!-- ============ LISTES DES ÉCOLES ET DES CODEC ============ -->
+    <div class="carte" id="zone-listes" style="display:none;">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h2 style="margin:0; border:none; padding:0; flex:1;">
+          Listes des écoles et des CODEC
+        </h2>
+        <button class="btn gris petit" id="btn-listes-rafraichir">↻ Actualiser</button>
+      </div>
+      <div class="aide mt">
+        Ces listes alimentent les listes déroulantes du formulaire du
+        directeur. Une école ou un CODEC absent de la liste ne pourra pas
+        soumettre son rapport.
+      </div>
+      <div id="msg-listes" class="bandeau info mt" style="display:none;"></div>
+
+      <div class="listes-deux">
+        <div class="liste-colonne" data-type="ecole">
+          <div class="liste-entete">
+            <b id="nb-ecoles">—</b> école(s)
+          </div>
+          <input type="search" class="liste-recherche" data-type="ecole"
+                 placeholder="Rechercher une école…">
+          <div class="liste-ajout">
+            <input type="text" data-ajout="ecole" maxlength="90"
+                   placeholder="Ajouter une école…"
+                   aria-label="Nouvelle école">
+            <button class="btn vert petit" data-ajout-btn="ecole">＋ Ajouter</button>
+          </div>
+          <ul class="liste-items" id="items-ecoles"></ul>
+        </div>
+
+        <div class="liste-colonne" data-type="codec">
+          <div class="liste-entete">
+            <b id="nb-codecs">—</b> CODEC
+          </div>
+          <input type="search" class="liste-recherche" data-type="codec"
+                 placeholder="Rechercher un CODEC…">
+          <div class="liste-ajout">
+            <input type="text" data-ajout="codec" maxlength="90"
+                   placeholder="Ajouter un CODEC…"
+                   aria-label="Nouveau CODEC">
+            <button class="btn vert petit" data-ajout-btn="codec">＋ Ajouter</button>
+          </div>
+          <ul class="liste-items" id="items-codecs"></ul>
+        </div>
+      </div>
+    </div>
+
     <!-- Aperçu du rapport sélectionné -->
     <div class="carte" id="zone-apercu" style="display:none;">
       <h2 id="titre-apercu">Aperçu</h2>
@@ -95,6 +143,7 @@
 <script src="assets/js/rapport.js"></script>
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
+<script src="assets/js/ecoles.js"></script>
 <script>
 (function () {
   "use strict";
@@ -170,6 +219,7 @@
   async function afficherAdmin() {
     $("zone-admin").style.display = "block";
     await chargerListe();
+    chargerListesAdmin();
     var attente = window.RRdb.attente();
     if (attente) {
       msg("msg-admin", "warn",
@@ -346,6 +396,170 @@
       btn.disabled = false;
     }
   });
+
+  /* ---------------- LISTES ÉCOLES / CODEC ----------------
+     La table `listes` est la source de vérité : lecture → mise à jour en
+     place de RR_ECOLES / RR_CODECS (référencées par champs.js côté
+     formulaire) → cache localStorage. */
+  var listesVides = { ecole: "", codec: "" };
+
+  async function chargerListesAdmin() {
+    $("zone-listes").style.display = "block";
+    try {
+      var r = await window.RRdb.chargerListes();
+      if (r.source === "serveur") {
+        msg("msg-listes", "ok",
+            "Listes synchronisées avec Supabase (" + r.ecoles +
+            " écoles, " + r.codecs + " CODEC).");
+      } else if (r.source === "cache") {
+        msg("msg-listes", "warn",
+            "<b>Hors-ligne :</b> listes lues en cache local — " +
+            "ajouts et suppressions indisponibles sans réseau.");
+      } else {
+        msg("msg-listes", "warn",
+            "<b>Hors-ligne :</b> listes embarquées (ecoles.js) — " +
+            "ajouts et suppressions indisponibles sans réseau.");
+      }
+      afficherListes();
+    } catch (e) {
+      msg("msg-listes", "erreur",
+          "<b>Impossible de lire les listes :</b> " + window.RR.esc(e.message));
+    }
+  }
+
+  function elementsDe(type) {
+    return type === "codec" ? (window.RR_CODECS || []) : (window.RR_ECOLES || []);
+  }
+
+  function afficherListes() {
+    afficherUneListe("ecole");
+    afficherUneListe("codec");
+  }
+
+  function afficherUneListe(type) {
+    var items = elementsDe(type);
+    var f = (listesVides[type] || "").trim().toLowerCase();
+    var ul = $(type === "codec" ? "items-codecs" : "items-ecoles");
+    var vus = items.filter(function (v) {
+      return !f || String(v).toLowerCase().indexOf(f) !== -1;
+    });
+
+    $(type === "codec" ? "nb-codecs" : "nb-ecoles").textContent = items.length;
+
+    if (!items.length) {
+      ul.innerHTML = '<li class="liste-vide">Liste vide.</li>';
+      return;
+    }
+    if (!vus.length) {
+      ul.innerHTML = '<li class="liste-vide">Aucune correspondance.</li>';
+      return;
+    }
+    ul.innerHTML = vus.map(function (v) {
+      var esc = window.RR.esc(v);
+      return '<li class="liste-item"><span class="liste-nom" title="' + esc + '">' +
+             esc + '</span>' +
+             '<button class="btn rouge petit" data-liste-sup="' + esc + '" ' +
+             'data-type="' + type + '" title="Retirer de la liste">🗑</button></li>';
+    }).join("");
+  }
+
+  document.querySelectorAll(".liste-recherche").forEach(function (inp) {
+    inp.addEventListener("input", function () {
+      listesVides[this.getAttribute("data-type")] = this.value;
+      afficherUneListe(this.getAttribute("data-type"));
+    });
+  });
+
+  /* Ajout : doublon normalisé (ni casse, ni accents) refusé, valeur vide
+     refusée. L'écriture part en Supabase, puis les tableaux locaux. */
+  async function ajouterALaListe(type) {
+    var inp = document.querySelector('[data-ajout="' + type + '"]');
+    var v = inp.value.replace(/\s+/g, " ").trim();
+    if (!v) {
+      msg("msg-listes", "erreur", "Merci de saisir une valeur avant d'ajouter.");
+      inp.focus();
+      return;
+    }
+    var btn = document.querySelector('[data-ajout-btn="' + type + '"]');
+    btn.disabled = true;
+    try {
+      var ajoute = await window.RRdb.ajouterListe(type, v);
+      inp.value = "";
+      msg("msg-listes", "ok",
+          "➕ <b>" + window.RR.esc(ajoute) + "</b> ajouté(e) à la liste des " +
+          (type === "codec" ? "CODEC" : "écoles") +
+          " — visible immédiatement dans le formulaire du directeur.");
+      afficherListes();
+    } catch (e) {
+      msg("msg-listes", "erreur", window.RR.esc(e.message));
+      inp.select();
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.querySelectorAll("[data-ajout-btn]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      ajouterALaListe(this.getAttribute("data-ajout-btn"));
+    });
+  });
+  document.querySelectorAll("[data-ajout]").forEach(function (inp) {
+    inp.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        ajouterALaListe(this.getAttribute("data-ajout"));
+      }
+    });
+  });
+
+  /* Suppression : confirmation native ; si l'école a déjà déposé des
+     rapports, on l'avertit (les rapports sont conservés). */
+  async function retirerDeLaListe(type, valeur) {
+    var libelle = type === "codec" ? "CODEC" : "école";
+    var details = "Valeur : " + valeur + "\n";
+
+    if (type === "ecole") {
+      var norm = window.RRdb.normaliserListe;
+      var nb = lignes.filter(function (l) {
+        return norm(l.ecole_nom || l.ecole_code) === norm(valeur);
+      }).length;
+      if (nb) {
+        details += "\n⚠ " + nb + " rapport(s) déjà déposé(s) par cette école : " +
+          "ils restent consultables, mais elle ne pourra plus soumettre.\n";
+      }
+    }
+
+    var confirme = confirm(
+      "⚠ RETIRER CETTE VALEUR DE LA LISTE\n\n" + details + "\n" +
+      "OK     → retirer « " + valeur + " » des " + libelle + "\n" +
+      "Annuler → conserver"
+    );
+    if (!confirme) {
+      msg("msg-listes", "info",
+          "Suppression annulée : <b>" + window.RR.esc(valeur) +
+          "</b> reste dans la liste des " + libelle + ".");
+      return;
+    }
+
+    try {
+      await window.RRdb.supprimerListe(type, valeur);
+      msg("msg-listes", "ok",
+          "🗑 <b>" + window.RR.esc(valeur) + "</b> retiré(e) des " + libelle +
+          " — ce nom est désormais refusé à la soumission.");
+      afficherListes();
+    } catch (e) {
+      msg("msg-listes", "erreur", window.RR.esc(e.message));
+    }
+  }
+
+  $("zone-listes").addEventListener("click", function (ev) {
+    var btn = ev.target.closest("button[data-liste-sup]");
+    if (!btn) { return; }
+    retirerDeLaListe(btn.getAttribute("data-type"),
+                     btn.getAttribute("data-liste-sup"));
+  });
+
+  $("btn-listes-rafraichir").addEventListener("click", chargerListesAdmin);
 
   window.addEventListener("resize", function () {
     if (ctxCourant) { window.RR.fitPreview($("apercu")); }
