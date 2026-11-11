@@ -161,6 +161,7 @@
 <script src="assets/js/db.js"></script>
 <script src="assets/js/ecoles.js"></script>
 <script src="assets/vendor/xlsx.full.min.js"></script>
+<script src="assets/js/xlsx-modele.js"></script>
 <script src="assets/js/xlsx-export.js"></script>
 <script>
 (function () {
@@ -341,9 +342,10 @@
   $("btn-rafraichir").addEventListener("click", chargerListe);
 
   /* ---------------- EXPORT XLSX ----------------
-     Classeur de 5 feuilles (voir assets/js/xlsx-export.js) construit à
-     partir des rapports complets lus en base, sous la session
-     Inspection déjà connectée. */
+     Classeur de 8 feuilles (voir assets/js/xlsx-export.js) : nos feuilles
+     Identification et Effectifs et cours, plus les 6 feuilles du modèle
+     officiel (assets/js/xlsx-modele.js). Construit à partir des rapports
+     complets lus en base, sous la session Inspection déjà connectée. */
   $("btn-xlsx").addEventListener("click", async function () {
     var btn = this;
     btn.disabled = true;
@@ -362,7 +364,7 @@
       var nom = window.RR.xlsx.creer(complets);
       msg("msg-admin", "ok", "Export téléchargé : <b>" +
           window.RR.esc(nom) + "</b> (" + complets.length +
-          " rapport(s), 5 feuilles).");
+          " rapport(s), 8 feuilles).");
     } catch (e) {
       msg("msg-admin", "erreur", window.RR.esc(e.message));
     } finally {

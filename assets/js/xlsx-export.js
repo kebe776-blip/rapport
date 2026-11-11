@@ -1,43 +1,46 @@
 /* =========================================================================
    xlsx-export.js — Export XLSX de l'Espace Inspection (SheetJS local)
    -------------------------------------------------------------------------
-   Construit un classeur de 5 feuilles à partir des rapports soumis :
+   Construit un classeur de 8 feuilles à partir des rapports soumis :
 
-     1. Identification      — une ligne par école (section A + D + méta)
-     2. Effectifs           — une ligne par école et par niveau (section I)
-     3. Personnel           — enseignants / suppléants / malades + récap FR/AR
-     4. Infrastructures & Mobilier — sections C, E puis J
-     5. Matériels didactiques — sections K, L, M, N
+     1. Identification              — une ligne par école (section A + D + méta)
+     2. Effectifs et cours          — une ligne par école et par niveau (I)
+     3. Type de classe              — modèle TYPE DE CLASSE
+     4. Personnel enseignant        — modèle PERSONNELS ENSEIGNANT
+     5. Liste du personnel          — modèle LISTE PERSONNELS (1 ligne / personne)
+     6. Ouvrages annexes            — modèle OUVRAGES ET ACTIVITES ANNEXES
+     7. Mobilier et équipements     — modèle MOBILIERS ET EQUIPEMENTS
+     8. Manuels et matériel didact. — modèle MANUELS ET MATERIELS DIDACTIQUE
 
-   Les valeurs numériques restent des nombres (somables dans Excel) et
-   les dates sont formatées en jj/mm/aaaa. Aucun CDN : la librairie est
-   vendorisée dans assets/vendor/xlsx.full.min.js.
+   Les feuilles 3 à 8 reprennent à l'identique les en-têtes, les fusions et
+   les largeurs du fichier officiel (voir assets/js/xlsx-modele.js). On ne
+   remplit que les colonnes du modèle qui ont un équivalent dans nos
+   données : les colonnes non collectées (sexe, surplus/déficit, effectifs
+   distinguant classe simple / multigrade…) restent vides, et les données
+   sans colonne dans le modèle (Cahier PAAME, RELIT, planche
+   d'alphabétisation, mobilier « Autres »…) sont ignorées.
+
+   Les formules du modèle (=F8+G8, =SUM(…)) sont recalculées en JavaScript :
+   les valeurs sont écrites comme des nombres, somables dans Excel.
+
+   Pied de tableau des feuilles 3, 4, 6, 7 et 8 : une ligne
+   « Total COM. <commune> » après chaque groupe d'écoles d'une même
+   commune, puis une ligne « TOTAL GÉNÉRAL ». Aucune ligne ARRDT ni
+   DEPARTEMENT.
+
+   Les 8 feuilles sont triées par commune puis par nom d'école afin que la
+   ligne N corresponde à la même école partout dans le classeur.
+
+   Les valeurs numériques restent des nombres et les dates sont formatées
+   en jj/mm/aaaa. Aucun CDN : SheetJS est vendorisé dans
+   assets/vendor/xlsx.full.min.js.
    ========================================================================= */
 (function (global) {
   "use strict";
 
   var R = global.RR;
   var CFG = global.RR_CONFIG || {};
-
-  /* Libellés du récapitulatif (sections H FR / AR) — même ordre que
-     les clés lues par buildContext() dans lib.js. */
-  var RECAP_FR = [
-    ["inst_h", "Instituteurs H"], ["inst_f", "Instituteurs F"],
-    ["inst_t", "Instituteurs Total"],
-    ["inst_adj_h", "Inst. adjoints H"], ["inst_adj_f", "Inst. adjoints F"],
-    ["inst_adj_t", "Inst. adjoints Total"],
-    ["mc_h", "Maîtres contr. H"], ["mc_f", "Maîtres contr. F"],
-    ["mc_t", "Maîtres contr. Total"]
-  ];
-  var RECAP_AR = [
-    ["arabe_inst_h", "Instituteurs H"], ["arabe_inst_f", "Instituteurs F"],
-    ["arabe_inst_t", "Instituteurs Total"],
-    ["arabe_inst_adj_h", "Inst. adjoints H"],
-    ["arabe_inst_adj_f", "Inst. adjoints F"],
-    ["arabe_inst_adj_t", "Inst. adjoints Total"],
-    ["arabe_mc_h", "Maîtres contr. H"], ["arabe_mc_f", "Maîtres contr. F"],
-    ["arabe_mc_t", "Maîtres contr. Total"]
-  ];
+  var M = global.RR_MODELE || {};
 
   /* --------------------------------------------------------------------
      Utilitaires
@@ -52,14 +55,136 @@
     return s;
   }
 
+  /** Comparaison sans accents ni casse (appariement des titres de manuels). */
+  function norm(s) {
+    var t = (s === null || s === undefined) ? "" : String(s);
+    if (t.normalize) { t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+    return t.toLowerCase().replace(/\s+/g, " ").trim();
+  }
+
+  /** Ligne de n cellules vides. */
+  function rangee(n) {
+    var a = [];
+    for (var i = 0; i < n; i++) { a.push(""); }
+    return a;
+  }
+
+  /** [r0,c0,r1,c1] → objet de fusion attendu par SheetJS. */
+  function versFusions(tab) {
+    return (tab || []).map(function (m) {
+      return { s: { r: m[0], c: m[1] }, e: { r: m[2], c: m[3] } };
+    });
+  }
+
   /** Feuille à partir d'un tableau de tableaux + largeurs + fusions. */
   function feuille(XLSX, aoa, largeurs, merges) {
     var ws = XLSX.utils.aoa_to_sheet(aoa);
     if (largeurs && largeurs.length) {
-      ws["!cols"] = largeurs.map(function (w) { return { wch: w }; });
+      ws["!cols"] = largeurs.map(function (w) {
+        return { wch: (w === null || w === undefined) ? 8.43 : w };
+      });
     }
     if (merges && merges.length) { ws["!merges"] = merges; }
     return ws;
+  }
+
+  /* --------------------------------------------------------------------
+     Squelette des feuilles reprises du modèle : 3 lignes de titre
+     (Académie / IEF / titre de la feuille), lignes éventuellement vides,
+     puis les lignes d'en-tête fusionnées du modèle.
+     -------------------------------------------------------------------- */
+  function squelette(modele) {
+    var aoa = [
+      [CFG.INSPECTION || "ACADEMIE DE KAOLACK"],
+      [CFG.IEF || ""],
+      [modele.titre || ""]
+    ];
+    var i;
+    for (i = 0; i < modele.decalage; i++) { aoa.push([]); }
+    for (i = 0; i < modele.entetes.length; i++) {
+      aoa.push(modele.entetes[i].slice());
+    }
+    return aoa;
+  }
+
+  /** { aoa, largeurs, merges } prêts pour feuille(). */
+  function modeleFeuille(modele, aoa) {
+    return { aoa: aoa, largeurs: modele.largeurs,
+             merges: versFusions(modele.merges) };
+  }
+
+  /* --------------------------------------------------------------------
+     Regroupement par commune (sous-totaux)
+     -------------------------------------------------------------------- */
+  function cleCommune(x) {
+    var c = (x && x.a && x.a.commune) || "";
+    c = String(c).trim().toUpperCase();
+    if (!c || c === "—" || c === "-" || c === "0") { return "SANS COMMUNE"; }
+    return c;
+  }
+
+  /** Écoles triées par commune, puis par nom. */
+  function trier(ctxs) {
+    return (ctxs || []).slice().sort(function (a, b) {
+      var ca = cleCommune(a), cb = cleCommune(b);
+      if (ca !== cb) {
+        if (ca === "SANS COMMUNE") { return 1; }
+        if (cb === "SANS COMMUNE") { return -1; }
+        return ca < cb ? -1 : 1;
+      }
+      var na = String((a.meta && a.meta.ecole) || "");
+      var nb = String((b.meta && b.meta.ecole) || "");
+      return na < nb ? -1 : na > nb ? 1 : 0;
+    });
+  }
+
+  /** Découpe en groupes contigus de même commune (ctxs déjà triés). */
+  function grouper(ctxs) {
+    var out = [], index = {};
+    ctxs.forEach(function (x) {
+      var c = cleCommune(x);
+      if (!index[c]) { index[c] = { commune: c, ecoles: [] }; out.push(index[c]); }
+      index[c].ecoles.push(x);
+    });
+    return out;
+  }
+
+  /**
+   * Ligne de sous-total : colonne B = libellé, colonnes numériques sommées
+   * (une colonne entièrement vide reste vide : on n'invente pas de 0).
+   */
+  function ligneSomme(lignes, debutSomme, nbColonnes, libelle) {
+    var out = rangee(nbColonnes);
+    out[1] = libelle;
+    for (var c = debutSomme; c < nbColonnes; c++) {
+      var somme = 0, vu = false;
+      for (var i = 0; i < lignes.length; i++) {
+        var v = lignes[i][c];
+        if (typeof v === "number" && !isNaN(v)) { somme += v; vu = true; }
+      }
+      if (vu) { out[c] = somme; }
+    }
+    return out;
+  }
+
+  /**
+   * Corps d'une feuille « une ligne par école » : écoles groupées par
+   * commune, ligne « Total COM. x » après chaque groupe, puis
+   * « TOTAL GÉNÉRAL ».
+   * @param {number} debutSomme — première colonne à sommer (les colonnes
+   *   d'identification avant celle-ci restent vides dans les totaux).
+   */
+  function corpsGroupe(ctxs, debutSomme, nbColonnes, fabrique) {
+    var aoa = [], toutes = [], n = 0;
+    grouper(trier(ctxs)).forEach(function (g) {
+      var lignes = g.ecoles.map(function (x) { n += 1; return fabrique(x, n); });
+      toutes = toutes.concat(lignes);
+      aoa = aoa.concat(lignes);
+      aoa.push(ligneSomme(lignes, debutSomme, nbColonnes,
+                          "Total COM. " + g.commune));
+    });
+    aoa.push(ligneSomme(toutes, debutSomme, nbColonnes, "TOTAL GÉNÉRAL"));
+    return aoa;
   }
 
   /* --------------------------------------------------------------------
@@ -165,136 +290,375 @@
   }
 
   /* --------------------------------------------------------------------
-     3. Personnel (H) — 3 blocs par école + récapitulatif FR / AR
+     3. Type de classe — colonnes du modèle (indices 0-based) :
+        0 N° | 1 Etablissement | 2 Nombre de classes | 3 CL simples |
+        4 CMG | 5 CDF | 6-11 CLASSES SIMPLES par niveau (non collecté) |
+        12-26 15 combinaisons MULTIGRADES | 27-32 DOUBLE FLUX par niveau |
+        33-167 effectifs par type de classe (non collectés) |
+        168-170 TOTAL GENERAL ECOLE (G / F / T)
      -------------------------------------------------------------------- */
+  var TC_MULTIGRADE = 12;            /* 12 → 26 : 15 combinaisons */
+  var TC_DOUBLEFLUX = 27;            /* 27 → 32 : CI CP CE1 CE2 CM1 CM2 */
+  var TC_TOT_G = 168, TC_TOT_F = 169, TC_TOT_T = 170;
+
+  var NIVEAUX = ["CI", "CP", "CE1", "CE2", "CM1", "CM2"];
+  var RE_NIVEAU = /\b(CI|CP|CE1|CE2|CM1|CM2)\b/g;
+
+  /** Texte libre « CI/CP et CE1/CE2 » → groupes de niveaux. */
+  function groupesNiveaux(texte) {
+    if (!texte) { return []; }
+    var t = String(texte).toUpperCase().trim();
+    if (!t || /^N[ÉE]ANT$/.test(t) || t === "—") { return []; }
+    return t.split(/\s*[,;\n\r|]|\s+ET\s+/)
+      .map(function (s) { return s.match(RE_NIVEAU) || []; })
+      .filter(function (niv) { return niv.length > 0; });
+  }
+
+  /** Paires de niveaux d'un groupe : « CI/CP » → ["CI","CP"]. */
+  function pairesDuGroupe(niv) {
+    var out = [];
+    for (var i = 0; i + 1 < niv.length; i++) {
+      var a = niv[i], b = niv[i + 1];
+      var ia = NIVEAUX.indexOf(a), ib = NIVEAUX.indexOf(b);
+      out.push(ia <= ib ? a + "/" + b : b + "/" + a);
+    }
+    return out;
+  }
+
+  function ligneTypeClasse(x, n) {
+    var md = M.type_classe;
+    var l = rangee(md.nb_colonnes);
+    l[0] = n;
+    l[1] = x.meta.ecole;
+    l[2] = x.b.nb_cours;
+    l[3] = x.b.nb_classes_simples;
+    l[4] = x.b.nb_cmg;
+    l[5] = x.b.nb_cdf;
+
+    /* Cours jumelés CMG → 1 dans la colonne de la combinaison (coche). */
+    var combos = md.entetes[1].slice(TC_MULTIGRADE,
+                                     TC_MULTIGRADE + 15);
+    groupesNiveaux(x.b.cours_jumeles_cmg).forEach(function (niv) {
+      pairesDuGroupe(niv).forEach(function (p) {
+        var i = combos.indexOf(p);
+        if (i >= 0) { l[TC_MULTIGRADE + i] = 1; }
+      });
+    });
+
+    /* Cours jumelés CDF → 1 dans chaque niveau concerné (coche). */
+    groupesNiveaux(x.b.cours_jumeles_cdf).forEach(function (niv) {
+      niv.forEach(function (lv) {
+        var i = NIVEAUX.indexOf(lv);
+        if (i >= 0) { l[TC_DOUBLEFLUX + i] = 1; }
+      });
+    });
+
+    /* TOTAL GENERAL ECOLE = effectifs de l'école (section I). */
+    l[TC_TOT_G] = x.effectifs_total.eff_g;
+    l[TC_TOT_F] = x.effectifs_total.eff_f;
+    l[TC_TOT_T] = x.effectifs_total.eff_t;
+    return l;
+  }
+
+  function feuilleTypeClasse(ctxs) {
+    var md = M.type_classe;
+    var aoa = squelette(md);
+    corpsGroupe(ctxs, 2, md.nb_colonnes, ligneTypeClasse)
+      .forEach(function (r) { aoa.push(r); });
+    return modeleFeuille(md, aoa);
+  }
+
+  /* --------------------------------------------------------------------
+     4. Personnel enseignant — colonnes du modèle :
+        0 N° | 1 Etablissement | 2 Statut | 3 Nbre cours |
+        4-9   INSTITUTEURS (FR puis AR : H / F / Total)
+        10-15 INSTITUTEURS ADJOINTS
+        16-21 MAITRES CONTRACTUELS
+        22-27 AUTRES (non collecté)
+        28-33 TOTAL PERSONNEL (recalculé comme dans le modèle)
+        34-43 DIRECTEURS (Homme, Femme, Chargé, Déchargé, Titulaire,
+               Interimaire, Institut., Instit. Adjt, MC, Autre)
+        44-46 NON TITULAIRES DE CLASSE (Supléant, Malade, Congé Mat.)
+        47-48 SURPLUS (FR / AR) | 49-50 DEFICIT (FR / AR)
+     -------------------------------------------------------------------- */
+  function drapeau(v) {
+    var s = String(v || "").toUpperCase();
+    if (s === "OUI") { return 1; }
+    if (s === "NON") { return 0; }
+    return "";
+  }
+
+  function drapeauStatut(v, attendu) {
+    var s = norm(v);
+    if (!s || s === "—") { return ""; }
+    return s === norm(attendu) ? 1 : 0;
+  }
+
+  function statutAbbr(v) {
+    var s = String(v || "").toUpperCase().trim();
+    if (s === "PUBLIC") { return "Pu"; }
+    if (s === "PRIVÉ" || s === "PRIVE") { return "Pr"; }
+    if (s === "COMMUNAUTAIRE") { return "Com"; }
+    return (!s || s === "—") ? "" : v;
+  }
+
+  function lignePersonnel(x, n) {
+    var md = M.personnel;
+    var l = rangee(md.nb_colonnes);
+    var rf = x.recap_fr, ra = x.recap_ar;
+
+    l[0] = n;
+    l[1] = x.meta.ecole;
+    l[2] = statutAbbr(x.a.statut);
+    l[3] = x.b.nb_cours;
+
+    /* INSTITUTEURS : Français puis Arabe */
+    l[4] = rf.inst_h; l[5] = rf.inst_f; l[6] = l[4] + l[5];
+    l[7] = ra.arabe_inst_h; l[8] = ra.arabe_inst_f; l[9] = l[7] + l[8];
+    /* INSTITUTEURS ADJOINTS */
+    l[10] = rf.inst_adj_h; l[11] = rf.inst_adj_f; l[12] = l[10] + l[11];
+    l[13] = ra.arabe_inst_adj_h; l[14] = ra.arabe_inst_adj_f;
+    l[15] = l[13] + l[14];
+    /* MAITRES CONTRACTUELS */
+    l[16] = rf.mc_h; l[17] = rf.mc_f; l[18] = l[16] + l[17];
+    l[19] = ra.arabe_mc_h; l[20] = ra.arabe_mc_f; l[21] = l[19] + l[20];
+    /* AUTRES (22-27) : non collecté → vide */
+
+    /* TOTAL PERSONNEL : même calcul que les formules du modèle */
+    l[28] = l[4] + l[10] + l[16];
+    l[29] = l[5] + l[11] + l[17];
+    l[30] = l[28] + l[29];
+    l[31] = l[7] + l[13] + l[19];
+    l[32] = l[8] + l[14] + l[20];
+    l[33] = l[31] + l[32];
+
+    /* DIRECTEURS : 1 directeur par école → indicateurs 0 / 1 */
+    l[36] = drapeau(x.d.position);            /* Chargé */
+    l[37] = drapeau(x.d.decharge);            /* Déchargé */
+    l[38] = drapeauStatut(x.d.statut_directeur, "TITULAIRE");
+    l[39] = drapeauStatut(x.d.statut_directeur, "INTÉRIMAIRE");
+    /* Homme / Femme / fonction du directeur : non collectés → vide */
+
+    /* NON TITULAIRES DE CLASSE */
+    l[44] = x.suppleants.length;
+    l[45] = x.malades.length;
+    /* Congé Maternité : non distingué des malades → vide */
+    /* SURPLUS (47-48) et DEFICIT (49-50) : non collectés → vide */
+    return l;
+  }
+
   function feuillePersonnel(ctxs) {
-    var tete = [
-      "École", "Bloc", "Prénom", "Nom", "Grade", "Matricule", "Discipline",
-      "Dipl. acad.", "Dipl. prof.", "Date entrée ens.", "Date affectation",
-      "Cours tenu", "Contact", "Valeur (récap)"
-    ];
-    var lignes = [];
-    ctxs.forEach(function (x) {
-      [["Enseignant", x.personnel], ["Suppléant", x.suppleants],
-       ["Malade / Congé", x.malades]].forEach(function (bloc) {
-        bloc[1].forEach(function (p) {
-          lignes.push([
-            x.meta.ecole, bloc[0], p.prenom, p.nom, p.grade, p.matricule,
-            p.discipline, p.diplome_acad, p.diplome_prof, p.date_entree,
-            p.date_affectation, p.cours_tenu, p.contact, ""
+    var md = M.personnel;
+    var aoa = squelette(md);
+    corpsGroupe(ctxs, 3, md.nb_colonnes, lignePersonnel)
+      .forEach(function (r) { aoa.push(r); });
+    return modeleFeuille(md, aoa);
+  }
+
+  /* --------------------------------------------------------------------
+     5. Liste du personnel — une ligne par personne, colonnes du modèle
+        (SEXE, Colonne1 et Colonne2 ne sont pas collectés → vides).
+     -------------------------------------------------------------------- */
+  var BLOCS_LISTE = [
+    ["ENSEIGNANT", "personnel"],
+    ["SUPPLÉANT", "suppleants"],
+    ["MALADE / CONGÉ", "malades"]
+  ];
+
+  function feuilleListePersonnel(ctxs) {
+    var md = M.liste_personnel;
+    var aoa = squelette(md);
+    var n = 0;
+    trier(ctxs).forEach(function (x) {
+      BLOCS_LISTE.forEach(function (bloc) {
+        (x[bloc[1]] || []).forEach(function (p) {
+          n += 1;
+          aoa.push([
+            n, x.meta.ecole, p.prenom, p.nom, "", p.grade, p.matricule,
+            bloc[0], p.discipline, p.diplome_acad, p.diplome_prof,
+            dateFr(p.date_entree), dateFr(p.date_affectation),
+            p.cours_tenu, p.contact, "", ""
           ]);
         });
       });
-      RECAP_FR.forEach(function (pair) {
-        lignes.push([x.meta.ecole, "Récap FR", "", pair[1], "", "", "", "",
-                     "", "", "", "", "", x.recap_fr[pair[0]] || 0]);
-      });
-      RECAP_AR.forEach(function (pair) {
-        lignes.push([x.meta.ecole, "Récap AR", "", pair[1], "", "", "", "",
-                     "", "", "", "", "", x.recap_ar[pair[0]] || 0]);
-      });
     });
-    return [tete].concat(lignes);
+    return modeleFeuille(md, aoa);
   }
 
   /* --------------------------------------------------------------------
-     4. Infrastructures (C + E) et Mobilier (J)
-        Trois blocs séparés par une ligne-titre.
+     6. Ouvrages annexes — colonnes du modèle (indices 0-based) :
+        2 Classes en dur | 3 Utilisées | 4 Non utilisées |
+        5 Abris provisoires | 6 A Réhabiliter |
+        7-9 BLOCS D'HYGIENE (Nbre cabines / Fonct. / Non fonct.) |
+        10-13 POINT D'EAU (Robinet / Puits / Fonct. / Non fonct.) |
+        14-15 ELECTRICITE (Réseau / Solaire) |
+        16-26 activités para-scolaires (OUI/NON)
      -------------------------------------------------------------------- */
-  function feuilleInfraMobilier(ctxs) {
-    var aoa = [];
+  function ligneOuvrages(x, n) {
+    var md = M.ouvrages;
+    var l = rangee(md.nb_colonnes);
+    var c = x.c, e = x.e, f = x.f;
+    l[0] = n;
+    l[1] = x.meta.ecole;
+    l[2] = c.salles_totale;
+    l[3] = c.salles_utilisees;
+    l[4] = c.salles_non_utilisees;
+    l[5] = c.abris_provisoires;
+    l[6] = c.a_rehabiliter;
+    l[7] = e.nb_cabines;
+    l[8] = e.cabines_fonctionnelles;
+    l[9] = e.cabines_non_fonctionnelles;
+    l[10] = e.nb_robinets;
+    l[11] = e.puits;                     /* OUI / NON (pas un décompte) */
+    /* 12-13 Puits fonctionnel / non fonctionnel : non collectés → vide */
+    l[14] = e.senelec;
+    l[15] = e.plaques_solaires;
+    l[16] = e.bureau;
+    l[17] = e.magasin;
+    l[18] = e.cloture;
+    l[19] = e.cuisine;
+    l[20] = f.cantine;
+    l[21] = f.cooperative;
+    l[22] = f.jardin;
+    l[23] = f.mallette_pedagogique;
+    l[24] = f.bibliotheque;
+    l[25] = f.terrain_sport;
+    l[26] = f.boite_pharmacie;
+    return l;
+  }
 
-    /* --- Bloc 1 : classes physiques (C) --- */
-    aoa.push(["SITUATION DES CLASSES PHYSIQUES (C)"]);
-    aoa.push([
-      "École", "Salles bonnes", "Salles acceptables", "Salles mauvaises",
-      "Salles totale", "Salles utilisées", "Salles non utilisées",
-      "Abris provisoires", "À réhabiliter", "En construction",
-      "Programme / année"
-    ]);
-    ctxs.forEach(function (x) {
-      aoa.push([
-        x.meta.ecole, x.c.salles_bonnes, x.c.salles_acceptables,
-        x.c.salles_mauvaises, x.c.salles_totale, x.c.salles_utilisees,
-        x.c.salles_non_utilisees, x.c.abris_provisoires,
-        x.c.a_rehabiliter, x.c.cours_construction, x.c.programme_construction
-      ]);
-    });
-
-    /* --- Bloc 2 : ouvrages annexes (E) --- */
-    aoa.push([]);
-    aoa.push(["SITUATION DES OUVRAGES ANNEXES (E)"]);
-    aoa.push([
-      "École", "Toilettes", "Nb blocs", "Nb cabines",
-      "Cabines fonctionnelles", "Cabines non fonctionnelles",
-      "Bailleur toilettes", "Point d'eau", "Nb robinets",
-      "État point d'eau", "Bailleur point d'eau", "Puits", "État puits",
-      "Bailleur puits", "Senelec", "État électricité",
-      "Plaques solaires", "État solaire", "Groupe électrogène",
-      "État groupe", "Internet", "Modem wifi MEN", "Bureau",
-      "Bailleur bureau", "Magasin", "Bailleur magasin", "Clôture",
-      "Bailleur clôture", "Cuisine", "Bailleur cuisine", "Logement",
-      "Bailleur logement"
-    ]);
-    ctxs.forEach(function (x) {
-      aoa.push([
-        x.meta.ecole, x.e.toilettes, x.e.nb_blocs, x.e.nb_cabines,
-        x.e.cabines_fonctionnelles, x.e.cabines_non_fonctionnelles,
-        x.e.bailleur_toilettes, x.e.point_eau, x.e.nb_robinets,
-        x.e.etat_point_eau, x.e.bailleur_point_eau, x.e.puits,
-        x.e.etat_puits, x.e.bailleur_puits, x.e.senelec,
-        x.e.etat_electricite, x.e.plaques_solaires,
-        x.e.etat_plaques_solaires, x.e.groupe_electrogene,
-        x.e.etat_groupe_electrogene, x.e.internet,
-        x.e.modem_wifi_men, x.e.bureau, x.e.bailleur_bureau,
-        x.e.magasin, x.e.bailleur_magasin, x.e.cloture,
-        x.e.bailleur_cloture, x.e.cuisine, x.e.bailleur_cuisine,
-        x.e.logement, x.e.bailleur_logement
-      ]);
-    });
-
-    /* --- Bloc 3 : mobilier (J) --- */
-    aoa.push([]);
-    aoa.push(["MOBILIER SCOLAIRE (J)"]);
-    aoa.push(["École", "Désignation", "Bon", "À réparer", "Total",
-              "Déficit"]);
-    ctxs.forEach(function (x) {
-      var tot = { bon: 0, a_reparer: 0, total: 0, defecat: 0 };
-      x.mobilier.forEach(function (m) {
-        aoa.push([x.meta.ecole, m.designation, m.bon, m.a_reparer,
-                  m.total, m.defecat]);
-        tot.bon += m.bon; tot.a_reparer += m.a_reparer;
-        tot.total += m.total; tot.defecat += m.defecat;
-      });
-      aoa.push([x.meta.ecole, "TOTAL GÉNÉRAL", tot.bon, tot.a_reparer,
-                tot.total, tot.defecat]);
-    });
-
-    return aoa;
+  function feuilleOuvrages(ctxs) {
+    var md = M.ouvrages;
+    var aoa = squelette(md);
+    corpsGroupe(ctxs, 2, md.nb_colonnes, ligneOuvrages)
+      .forEach(function (r) { aoa.push(r); });
+    return modeleFeuille(md, aoa);
   }
 
   /* --------------------------------------------------------------------
-     5. Matériels didactiques (K, L, M, N)
+     7. Mobilier et équipements — 10 blocs de 4 colonnes
+        (Bon / À réparer / Total / Déficit) à partir de la colonne 2.
+        « Total » = Bon + À réparer (la formule du modèle, calculée en JS).
+        La ligne « Autres » du mobilier n'a pas de colonne : ignorée.
      -------------------------------------------------------------------- */
-  function feuilleMateriaux(ctxs) {
-    var tete = ["École", "Section", "Titre / Désignation", "Quantité",
-                "Provenance", "Besoins", "Observations"];
-    var sections = [
-      ["K — Manuels (officiels)", "manuels"],
-      ["L — Autres manuels", "autres_manuels"],
-      ["M — Matériel didactique", "materiel"],
-      ["N — Autres matériel", "autres_materiels"]
-    ];
-    var lignes = [];
-    ctxs.forEach(function (x) {
-      sections.forEach(function (s) {
-        (x[s[1]] || []).forEach(function (it) {
-          lignes.push([x.meta.ecole, s[0], it.titre, it.quantite,
-                       it.provenance, it.besoins, it.observations]);
-        });
+  var MOB_BLOCS = 10;
+
+  function ligneMobilier(x, n) {
+    var md = M.mobilier;
+    var l = rangee(md.nb_colonnes);
+    l[0] = n;
+    l[1] = x.meta.ecole;
+    for (var b = 0; b < MOB_BLOCS; b++) {
+      var m = x.mobilier[b] || { bon: 0, a_reparer: 0, total: 0, defecat: 0 };
+      var base = 2 + b * 4;
+      l[base] = m.bon;
+      l[base + 1] = m.a_reparer;
+      l[base + 2] = (m.total > 0 ? m.total : (m.bon + m.a_reparer));
+      l[base + 3] = m.defecat;
+    }
+    return l;
+  }
+
+  function feuilleMobilier(ctxs) {
+    var md = M.mobilier;
+    var aoa = squelette(md);
+    corpsGroupe(ctxs, 2, md.nb_colonnes, ligneMobilier)
+      .forEach(function (r) { aoa.push(r); });
+    return modeleFeuille(md, aoa);
+  }
+
+  /* --------------------------------------------------------------------
+     8. Manuels et matériel didactique — 44 colonnes :
+        0 N° | 1 Etablissement | 2 Année de création | 3 Statut |
+        4-29  26 colonnes de manuels | 30-43 14 désignations de matériel.
+
+        Appariement des titres de notre formulaire (section K) sur les
+        colonnes du modèle :
+          - « Mathematiques CI » → « Maths CI », « Langue et
+            communication CI » → « Français CI », idem CP ;
+          - les guides CI et CP sont fusionnés dans la colonne « … CI/CP » ;
+          - « Guide Mathematiques CM » → « Guide Maths CM1/CM2 », idem
+            pour les guides Langue et Découverte du monde ;
+          - un titre couvrant CM1 ET CM2 (Mathematiques CM, Langue et
+            communication CM, Decouvertte du monde CM) est partagé en deux
+            sur les colonnes CM1 / CM2 (le total reste inchangé) ;
+          - « Guide revise 1ere etape » + « 2eme etape » → « Guide révisé » ;
+          - les titres hors modèle (Cahier PAAME, RELIT, planche
+            d'alphabétisation) sont ignorés, et les colonnes sans équivalent
+            (Maths/Français CE1 et CE2, Dictionnaire…) restent vides.
+        Les 14 désignations de matériel (AE → AR) correspondent exactement
+        à DESIGNATIONS_MATERIEL.
+     -------------------------------------------------------------------- */
+  var MANUELS_SOMME = {
+    "4": ["Mathematiques CI"],
+    "5": ["Langue et communication CI"],
+    "6": ["Mathematiques CP"],
+    "7": ["Langue et communication CP"],
+    "8": ["Guide Mathematiques CI", "Guide Mathematiques CP"],
+    "9": ["Guide L C CI", "Guide L C CP"],
+    "25": ["Guide Mathematiques CM"],
+    "26": ["Guide L C CM"],
+    "27": ["Guide Decouverte du monde CM"],
+    "28": ["Guide revise 1ere etape", "Guide revise 2eme etape"]
+  };
+
+  var MANUELS_PARTAGE = [
+    { src: "Mathematiques CM", cols: [19, 21] },           /* Maths CM1/CM2 */
+    { src: "Langue et communication CM", cols: [20, 22] }, /* Français CM1/CM2 */
+    { src: "Decouvertte du monde CM", cols: [23, 24] }     /* Déc. CM1/CM2 */
+  ];
+
+  var MAT_DEBUT = 30;   /* première colonne de matériel (Equerre) */
+
+  function annee(v) {
+    var s = (v === null || v === undefined) ? "" : String(v).trim();
+    if (!s || s === "—" || s === "-") { return ""; }
+    var m = s.match(/(\d{4})/);
+    return m ? Number(m[1]) : s;
+  }
+
+  function ligneManuels(x, n) {
+    var md = M.manuels;
+    var l = rangee(md.nb_colonnes);
+    l[0] = n;
+    l[1] = x.meta.ecole;
+    l[2] = annee(x.a.date_creation);
+    l[3] = statutAbbr(x.a.statut);
+
+    var q = {}, qm = {};
+    x.manuels.forEach(function (it) { q[norm(it.titre)] = it.quantite; });
+    x.materiel.forEach(function (it) { qm[norm(it.titre)] = it.quantite; });
+
+    Object.keys(MANUELS_SOMME).forEach(function (c) {
+      var somme = 0, vu = false;
+      MANUELS_SOMME[c].forEach(function (t) {
+        var v = q[norm(t)];
+        if (v !== undefined) { somme += v; vu = true; }
       });
+      if (vu) { l[Number(c)] = somme; }
     });
-    return [tete].concat(lignes);
+
+    MANUELS_PARTAGE.forEach(function (p) {
+      var v = q[norm(p.src)];
+      if (v === undefined) { return; }
+      var premier = Math.ceil(v / 2);
+      l[p.cols[0]] = premier;
+      l[p.cols[1]] = v - premier;
+    });
+
+    for (var c = MAT_DEBUT; c < md.nb_colonnes; c++) {
+      var v = qm[norm(md.entetes[0][c])];
+      if (v !== undefined) { l[c] = v; }
+    }
+    return l;
+  }
+
+  function feuilleManuels(ctxs) {
+    var md = M.manuels;
+    var aoa = squelette(md);
+    corpsGroupe(ctxs, 4, md.nb_colonnes, ligneManuels)
+      .forEach(function (r) { aoa.push(r); });
+    return modeleFeuille(md, aoa);
   }
 
   /* --------------------------------------------------------------------
@@ -309,6 +673,9 @@
   function creer(lignes) {
     var XLSX = global.XLSX;
     if (!XLSX) { throw new Error("Librairie XLSX absente"); }
+    if (!M.type_classe) {
+      throw new Error("En-têtes du modèle absents (assets/js/xlsx-modele.js)");
+    }
 
     var ctxs = (lignes || []).map(function (l) {
       return R.buildContext(l.donnees, {
@@ -318,6 +685,7 @@
       });
     });
     if (!ctxs.length) { throw new Error("Aucun rapport à exporter"); }
+    ctxs = trier(ctxs);                 /* même ordre dans les 8 feuilles */
 
     var wb = XLSX.utils.book_new();
 
@@ -334,23 +702,22 @@
       })(),
       "2. Effectifs et cours");
 
-    XLSX.utils.book_append_sheet(wb,
-      feuille(XLSX, feuillePersonnel(ctxs),
-              [26, 15, 12, 16, 9, 12, 14, 12, 12, 15, 15, 14, 15, 15]),
-      "3. Personnel");
+    var neuves = [
+      ["3. Type de classe", feuilleTypeClasse],
+      ["4. Personnel enseignant", feuillePersonnel],
+      ["5. Liste du personnel", feuilleListePersonnel],
+      ["6. Ouvrages annexes", feuilleOuvrages],
+      ["7. Mobilier et équipements", feuilleMobilier],
+      ["8. Manuels et matériel didact.", feuilleManuels]
+    ];
+    neuves.forEach(function (p) {
+      var f = p[1](ctxs);
+      XLSX.utils.book_append_sheet(wb,
+        feuille(XLSX, f.aoa, f.largeurs, f.merges), p[0]);
+    });
 
-    XLSX.utils.book_append_sheet(wb,
-      feuille(XLSX, feuilleInfraMobilier(ctxs),
-              [26, 18, 18, 18, 14, 16, 18, 14, 14, 16, 26]),
-      "4. Infra-Mobilier");
-
-    XLSX.utils.book_append_sheet(wb,
-      feuille(XLSX, feuilleMateriaux(ctxs),
-              [26, 24, 44, 10, 14, 16, 30]),
-      "5. Matériels didactiques");
-
-    var annee = String(CFG.ANNEE || "2026/2027").replace("/", "-");
-    var nom = "Rapport_Rentree_" + annee + ".xlsx";
+    var anneeCfg = String(CFG.ANNEE || "2026/2027").replace("/", "-");
+    var nom = "Rapport_Rentree_" + anneeCfg + ".xlsx";
     XLSX.writeFile(wb, nom);
     return nom;
   }
