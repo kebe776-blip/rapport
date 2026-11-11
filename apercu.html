@@ -45,8 +45,7 @@
   <div class="barre-interne"><div id="prog-barre"></div></div>
 </div>
 
-<script src="assets/vendor/html2canvas.min.js"></script>
-<script src="assets/vendor/jspdf.umd.min.js"></script>
+<!-- jsPDF + html2canvas : chargés à la demande par assets/js/pdf.js -->
 <script src="assets/vendor/supabase.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/lib.js"></script>
@@ -139,7 +138,10 @@
     var barre = document.getElementById("prog-barre");
     var texte = document.getElementById("prog-texte");
     prog.classList.add("visible");
+    texte.textContent = "Chargement du module PDF…";
+    barre.style.width = "0%";
     try {
+      await window.RR.pdf.precharger();
       var pages = apertu.querySelectorAll(".pdf-page");
       var nom = await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
         texte.textContent = "Génération du PDF — page " + i + " / " + n + "…";

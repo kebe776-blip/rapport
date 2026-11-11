@@ -70,8 +70,7 @@
   <div class="barre-interne"><div id="prog-barre"></div></div>
 </div>
 
-<script src="assets/vendor/html2canvas.min.js"></script>
-<script src="assets/vendor/jspdf.umd.min.js"></script>
+<!-- jsPDF + html2canvas : chargés à la demande par assets/js/pdf.js -->
 <script src="assets/vendor/supabase.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/lib.js"></script>
@@ -220,6 +219,8 @@
     var btn = this;
     btn.disabled = true;
     try {
+      page.progres("Chargement du module PDF…", 0);
+      await window.RR.pdf.precharger();
       var pages = document.getElementById("apercu").querySelectorAll(".pdf-page");
       await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
         page.progres("Génération du PDF — page " + i + " / " + n + "…",

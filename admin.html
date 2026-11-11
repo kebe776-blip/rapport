@@ -151,8 +151,7 @@
   <div class="barre-interne"><div id="prog-barre"></div></div>
 </div>
 
-<script src="assets/vendor/html2canvas.min.js"></script>
-<script src="assets/vendor/jspdf.umd.min.js"></script>
+<!-- jsPDF + html2canvas : chargés à la demande par assets/js/pdf.js -->
 <script src="assets/vendor/supabase.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/lib.js"></script>
@@ -160,9 +159,8 @@
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
 <script src="assets/js/ecoles.js"></script>
-<script src="assets/vendor/xlsx.full.min.js"></script>
-<script src="assets/js/xlsx-modele.js"></script>
-<script src="assets/js/xlsx-export.js"></script>
+<!-- SheetJS + en-têtes du modèle + export : chargés à la demande
+     au clic sur « Export XLSX » (voir le handler btn-xlsx) -->
 <script>
 (function () {
   "use strict";
@@ -354,6 +352,12 @@
         msg("msg-admin", "warn", "Aucun rapport à exporter.");
         return;
       }
+      progres("Chargement du module XLSX…", 10);
+      await window.RR.chargerScripts([
+        "assets/vendor/xlsx.full.min.js",
+        "assets/js/xlsx-modele.js",
+        "assets/js/xlsx-export.js"
+      ]);
       progres("Lecture des rapports…", 25);
       var complets = await window.RRdb.listerComplets();
       if (!complets.length) {
@@ -464,6 +468,8 @@
     var btn = this;
     btn.disabled = true;
     try {
+      progres("Chargement du module PDF…", 0);
+      await window.RR.pdf.precharger();
       var pages = $("apercu").querySelectorAll(".pdf-page");
       await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
         progres("Génération du PDF — page " + i + " / " + n + "…",

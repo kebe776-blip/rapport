@@ -413,6 +413,38 @@
   }
 
   /* -----------------------------------------------------------------------
+     CHARGEMENT À LA DEMANDE DE SCRIPTS
+     Les grosses bibliothèques (PDF : jsPDF + html2canvas ≈ 550 Ko ;
+     XLSX : SheetJS ≈ 930 Ko) ne servent qu'au clic sur un bouton : on ne
+     les télécharge donc qu'au moment de l'utiliser, ce qui allège
+     fortement le 1er chargement des pages sur connexion lente (2G).
+     Les scripts sont insérés avec async = false : téléchargement en
+     parallèle mais exécution dans l'ordre des URL (xlsx-modele avant
+     xlsx-export). Une promesse par URL évite les doubles chargements.
+     ----------------------------------------------------------------------- */
+  var scriptsEnCours = {};
+
+  function chargerScripts(urls) {
+    var promesses = (urls || []).map(function (u) {
+      if (!scriptsEnCours[u]) {
+        scriptsEnCours[u] = new Promise(function (ok, ko) {
+          var s = document.createElement("script");
+          s.src = u;
+          s.async = false;              /* exécution dans l'ordre d'insertion */
+          s.onload = function () { ok(u); };
+          s.onerror = function () {
+            delete scriptsEnCours[u];   /* on pourra réessayer */
+            ko(new Error("Script introuvable : " + u));
+          };
+          document.head.appendChild(s);
+        });
+      }
+      return scriptsEnCours[u];
+    });
+    return Promise.all(promesses).then(function () { return urls; });
+  }
+
+  /* -----------------------------------------------------------------------
      EXPORTS
      ----------------------------------------------------------------------- */
   global.RR = global.RR || {};
@@ -427,5 +459,6 @@
   global.RR.pad2 = pad2;
   global.RR.txt = txt;
   global.RR.buildContext = buildContext;
+  global.RR.chargerScripts = chargerScripts;
 
 }(window));

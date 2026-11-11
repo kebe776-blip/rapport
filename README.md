@@ -19,7 +19,7 @@ d'école.
 |---|---|
 | **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
-| **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. |
+| **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. Ces deux bibliothèques (≈ 550 Ko) ne sont téléchargées qu'au 1er clic sur un bouton PDF, pas à l'ouverture de la page (gain important sur connexion lente, type 2G). |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et, pour chacune : **Voir / PDF**, **Modifier** (corrige le rapport puis régénère le PDF) ou **Supprimer**. |
 
 ### Mise en page du PDF (conforme au modèle)
@@ -95,8 +95,10 @@ assets/js/champs.js     Définition déclarative du formulaire (sections A → N
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes (combos du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
-assets/js/xlsx-export.js Export Excel : classeur 5 feuilles depuis l'Espace Inspection
-assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne)
+assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Inspection
+assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
+assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne ;
+                        jsPDF + html2canvas et SheetJS sont chargés à la demande, au clic)
 assets/demo.json        Données d'exemple (rapport complet)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
@@ -200,10 +202,14 @@ ayant soumis. Trois actions par école :
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
 **Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
-`Rapport_Rentree_2026-2027.xlsx` — un classeur de **5 feuilles**
-(Identification · Effectifs et cours · Personnel · Infrastructures &
-Mobilier · Matériels didactiques) avec tous les rapports soumis, nombres
-somables et dates en jj/mm/aaaa. La feuille *Effectifs et cours* suit le
+`Rapport_Rentree_2026-2027.xlsx` — un classeur de **8 feuilles**
+(1. Identification · 2. Effectifs et cours · puis les 6 feuilles du
+modèle officiel « Structures et effectifs élémentaires » : Type de
+classe, Personnel enseignant, Liste du personnel, Ouvrages annexes,
+Mobilier et équipements, Manuels et matériel didactique) avec tous les
+rapports soumis, triés par commune puis école, sous-totaux
+« Total COM. … » + TOTAL GÉNÉRAL, nombres somables et dates en
+jj/mm/aaaa. La feuille *Effectifs et cours* suit le
 modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2 avec
 Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL) puis
 **TOTAL ÉTABLISSEMENT**. Si aucun rapport n'est déposé, un message

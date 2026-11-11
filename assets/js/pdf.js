@@ -12,6 +12,23 @@
   var PAGE_W = 275, PAGE_H = 194;   /* mm — zone utile */
   var MARGE_X = 11, MARGE_Y = 8;    /* mm — marges officielles */
 
+  /* Bibliothèques lourdes (≈ 550 Ko) : téléchargées à la 1re génération,
+     pas à l'ouverture de la page (gain ≈ 550 Ko sur le 1er chargement). */
+  var LIB_PDF = ["assets/vendor/html2canvas.min.js",
+                 "assets/vendor/jspdf.umd.min.js"];
+  var prete = null;
+
+  /** Promesse unique de chargement des bibliothèques PDF (réutilisable). */
+  function precharger() {
+    if (!prete) {
+      prete = R.chargerScripts(LIB_PDF).catch(function (e) {
+        prete = null;                   /* échec : on pourra réessayer */
+        throw e;
+      });
+    }
+    return prete;
+  }
+
   /** Nettoie une chaîne pour en faire un nom de fichier sûr. */
   function safeName(s) {
     return String(s || "ECOLE")
@@ -26,6 +43,7 @@
    * @param {Function} onProgress     (i, total) => void
    */
   async function generate(pageEls, ctx, onProgress) {
+    await precharger();                 /* jsPDF + html2canvas au 1er usage */
     var jsPDF = global.jspdf && global.jspdf.jsPDF;
     if (!jsPDF) { throw new Error("jsPDF non chargé."); }
     if (typeof global.html2canvas !== "function") {
@@ -104,6 +122,7 @@
   R.pdf = {
     generate: generate,
     download: download,
+    precharger: precharger,
     nomFichier: nomFichier,
     safeName: safeName
   };
