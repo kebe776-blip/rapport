@@ -197,9 +197,12 @@ ayant soumis. Trois actions par école :
 
 **Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
 `Rapport_Rentree_2026-2027.xlsx` — un classeur de **5 feuilles**
-(Identification · Effectifs · Personnel · Infrastructures & Mobilier ·
-Matériels didactiques) avec tous les rapports soumis, nombres somables
-et dates en jj/mm/aaaa. Si aucun rapport n'est déposé, un message
+(Identification · Effectifs et cours · Personnel · Infrastructures &
+Mobilier · Matériels didactiques) avec tous les rapports soumis, nombres
+somables et dates en jj/mm/aaaa. La feuille *Effectifs et cours* suit le
+modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2 avec
+Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL) puis
+**TOTAL ÉTABLISSEMENT**. Si aucun rapport n'est déposé, un message
 s'affiche sans fichier.
 
 ### Les 4 cartes du tableau de bord

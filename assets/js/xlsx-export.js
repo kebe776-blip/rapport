@@ -52,18 +52,13 @@
     return s;
   }
 
-  /** Arrondi à `d` décimales (retour numérique). */
-  function rnd(n, d) {
-    var p = Math.pow(10, d === undefined ? 1 : d);
-    return Math.round(n * p) / p;
-  }
-
-  /** Feuille à partir d'un tableau de tableaux + largeurs de colonnes. */
-  function feuille(XLSX, aoa, largeurs) {
+  /** Feuille à partir d'un tableau de tableaux + largeurs + fusions. */
+  function feuille(XLSX, aoa, largeurs, merges) {
     var ws = XLSX.utils.aoa_to_sheet(aoa);
     if (largeurs && largeurs.length) {
       ws["!cols"] = largeurs.map(function (w) { return { wch: w }; });
     }
+    if (merges && merges.length) { ws["!merges"] = merges; }
     return ws;
   }
 
@@ -90,36 +85,83 @@
   }
 
   /* --------------------------------------------------------------------
-     2. Effectifs (I) — une ligne par niveau + TOTAL, par école
+     2. Effectifs et cours (I) — modèle officiel :
+        N° | Etablissement | par niveau (CI → CM2) : Nombre +
+        EFFECTIFS (G/F/T) + REDOUBLANTS (G/F/T) + HANDICAPÉS (G/F/T) +
+        SANS ÉTAT CIVIL (G/F/T), puis TOTAL ÉTABLISSEMENT (somme des
+        6 niveaux). Une ligne par école, en-têtes fusionnés.
+        Retourne { aoa, merges } — les fusions couvrent les 2 lignes
+        d'en-tête.
      -------------------------------------------------------------------- */
+  var GROUPES_EFF = ["EFFECTIFS", "REDOUBLANTS", "HANDICAPÉS",
+                     "SANS ÉTAT CIVIL"];
+  var COLS_NIVEAU = 1 + GROUPES_EFF.length * 3;   /* Nombre + 4×3 */
+
   function feuilleEffectifs(ctxs) {
-    var tete = [
-      "École", "Niveau", "Nbr classe",
-      "Eff. G", "Eff. F", "Eff. T",
-      "Redoublants G", "Redoublants F", "Redoublants T",
-      "Handicapés G", "Handicapés F", "Handicapés T",
-      "Sans état civil G", "Sans état civil F", "Sans état civil T",
-      "Élèves / classe", "% filles", "% redoublants"
-    ];
-    var lignes = [];
-    ctxs.forEach(function (x) {
-      var tout = x.effectifs.concat([x.effectifs_total]);
-      tout.forEach(function (r) {
-        var classes = r.nb_classes || 0;
-        var tg = r.eff_t || 0;
-        lignes.push([
-          x.meta.ecole, r.cours, classes,
-          r.eff_g || 0, r.eff_f || 0, tg,
-          r.red_g || 0, r.red_f || 0, r.red_t || 0,
-          r.hand_g || 0, r.hand_f || 0, r.hand_t || 0,
-          r.sans_etat_g || 0, r.sans_etat_f || 0, r.sans_etat_t || 0,
-          classes > 0 ? rnd(tg / classes) : "",
-          tg > 0 ? rnd((r.eff_f || 0) * 100 / tg) : "",
-          tg > 0 ? rnd((r.red_t || 0) * 100 / tg) : ""
-        ]);
+    var merges = [];
+    var aoa = [];
+
+    /* --- Ligne 1 : N° / Etablissement + nom de chaque bloc --- */
+    var r0 = ["N°", "Etablissement"];
+    var r1 = ["", ""];
+    var blocs = [];
+    ctxs.forEach(function (x) {          /* niveaux réels du rapport */
+      blocs.push(x.effectifs.map(function (r) { return r.cours; }));
+    });
+    var nomsBlocs = (blocs[0] || ["CI", "CP", "CE1", "CE2", "CM1", "CM2"])
+      .concat(["TOTAL ÉTABLISSEMENT"]);
+
+    nomsBlocs.forEach(function (nom) {
+      r0.push(nom);
+      for (var i = 1; i < COLS_NIVEAU; i++) { r0.push(""); }
+      r1.push("Nombre");
+      GROUPES_EFF.forEach(function (g) {
+        r1.push(g, "", "");
       });
     });
-    return [tete].concat(lignes);
+    aoa.push(r0, r1);
+
+    /* --- Fusions --- */
+    merges.push({ s: { r: 0, c: 0 }, e: { r: 1, c: 0 } });   /* N° */
+    merges.push({ s: { r: 0, c: 1 }, e: { r: 1, c: 1 } });   /* École */
+    nomsBlocs.forEach(function (nom, b) {
+      var c0 = 2 + b * COLS_NIVEAU;
+      merges.push({ s: { r: 0, c: c0 }, e: { r: 0, c: c0 + COLS_NIVEAU - 1 } });
+      GROUPES_EFF.forEach(function (g, gi) {
+        var gs = c0 + 1 + gi * 3;                            /* Nombre puis groupes */
+        merges.push({ s: { r: 1, c: gs }, e: { r: 1, c: gs + 2 } });
+      });
+    });
+
+    /* --- Données : une ligne par école --- */
+    ctxs.forEach(function (x, idx) {
+      var ligne = [idx + 1, x.meta.ecole];
+      var tot = { nb_classes: 0, eff_g: 0, eff_f: 0, eff_t: 0,
+                  red_g: 0, red_f: 0, red_t: 0, hand_g: 0, hand_f: 0,
+                  hand_t: 0, sans_etat_g: 0, sans_etat_f: 0,
+                  sans_etat_t: 0 };
+      var cles = Object.keys(tot);
+      var niveaux = x.effectifs.concat([x.effectifs_total]);
+      niveaux.forEach(function (r) {
+        cles.forEach(function (k) {
+          var v = r[k] || 0;
+          ligne.push(v);
+          if (r.cours !== "TOTAL") { tot[k] += v; }
+        });
+      });
+      aoa.push(ligne);
+    });
+
+    /* --- Largeurs : N° + école, puis 7 blocs identiques --- */
+    var largeurs = [5, 28];
+    for (var b = 0; b < nomsBlocs.length; b++) {
+      largeurs.push(8);                                  /* Nombre */
+      for (var g = 0; g < GROUPES_EFF.length; g++) {
+        largeurs.push(8, 8, 9);                          /* G, F, T */
+      }
+    }
+
+    return { aoa: aoa, merges: merges, largeurs: largeurs };
   }
 
   /* --------------------------------------------------------------------
@@ -286,10 +328,11 @@
       "1. Identification");
 
     XLSX.utils.book_append_sheet(wb,
-      feuille(XLSX, feuilleEffectifs(ctxs),
-              [26, 10, 10, 9, 9, 9, 12, 12, 12, 11, 11, 11, 13, 13, 13,
-               12, 9, 14]),
-      "2. Effectifs");
+      (function () {
+        var eff = feuilleEffectifs(ctxs);
+        return feuille(XLSX, eff.aoa, eff.largeurs, eff.merges);
+      })(),
+      "2. Effectifs et cours");
 
     XLSX.utils.book_append_sheet(wb,
       feuille(XLSX, feuillePersonnel(ctxs),
