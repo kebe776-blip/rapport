@@ -257,11 +257,11 @@
     location.reload();
   });
 
-  /* --- Listes des écoles / CODEC : on interroge Supabase en tâche de
-         fond (non bloquant). Si le serveur ne répond pas, on garde les
-         listes embarquées de ecoles.js ; sinon les tableaux
-         RR_ECOLES / RR_CODECS sont mis à jour à la volée et la liste
-         ouverte, le cas échéant, est rafraîchie. --- */
+  /* --- Listes des écoles / CODEC / communes : on interroge Supabase en
+         tâche de fond (non bloquant). Si le serveur ne répond pas, on
+         garde les listes embarquées de ecoles.js ; sinon les tableaux
+         RR_ECOLES / RR_CODECS / RR_COMMUNES sont mis à jour à la volée et
+         la liste ouverte, le cas échéant, est rafraîchie. --- */
   if (window.RRdb && window.RRdb.chargerListes) {
     window.RRdb.chargerListes()
       .then(function (r) {

@@ -884,7 +884,8 @@
         });
         if (connu) { return; }
         erreurs.push("« " + v + " » ne figure pas dans la liste des " +
-          (c.n === "codec" ? "CODEC" : "écoles") +
+          (c.n === "codec" ? "CODEC" :
+           c.n === "commune" ? "communes" : "écoles") +
           " : choisissez une valeur dans la liste déroulante.");
         var champ = el.closest(".champ");
         if (champ) { champ.classList.add("invalid"); }

@@ -54,24 +54,25 @@ Le nom de fichier généré est toujours :
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût
 
-### Listes fermées : écoles et CODEC
+### Listes fermées : écoles, CODEC et communes
 
-Les champs **Nom de l'école** et **CODEC** (section A) sont des listes
-déroulantes **filtrables** : on tape quelques lettres, la liste réduit, on
-choisit. Le filtrage est **insensible aux accents et à la casse**
+Les champs **Nom de l'école**, **CODEC** et **Commune** (section A) sont des
+listes déroulantes **filtrables** : on tape quelques lettres, la liste réduit,
+on choisit. Le filtrage est **insensible aux accents et à la casse**
 (`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
 
-* **`assets/js/ecoles.js`** contient les deux tableaux de repli :
-  `RR_ECOLES` (**101 écoles**) et `RR_CODECS` (**15 CODEC**). La source de
+* **`assets/js/ecoles.js`** contient les trois tableaux de repli :
+  `RR_ECOLES` (**101 écoles**), `RR_CODECS` (**15 CODEC**) et
+  `RR_COMMUNES` (**5 communes** : KEUR MABA DIAKHOU, KEUR MADIABEL,
+  KEUR MANDONGO, NDRAMÉ ESCALE, WACK NGOUNA). La source de
   vérité est la table Supabase **`listes`** (voir `supabase/listes.sql`).
 * **Blocage** : une valeur absente de la liste est **refusée à la
   soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
-* **CODEC facultatif** : le champ peut rester vide (les écoles sans CODEC
-  dans la liste le laissent tel quel), mais s'il est saisi il doit figer
-  dans la liste.
+* **CODEC et Commune facultatifs** : le champ peut rester vide, mais s'il
+  est saisi il doit figer dans la liste.
 * **Gestion depuis l'espace Inspection** : la carte *« Listes des écoles
-  et des CODEC »* permet d'**ajouter** et de **supprimer** une école ou un
-  CODEC sans toucher au code (voir § 4).
+  et des CODEC »* donne les **trois colonnes** (écoles, CODEC, communes)
+  pour ajouter ou supprimer une valeur sans toucher au code (voir § 4).
 * **Repli hors-ligne** : serveur → cache localStorage → `ecoles.js`.
 
 ---
@@ -91,7 +92,7 @@ assets/js/lib.js        Construction du contexte du rapport (portage de build_co
 assets/js/rapport.js    Génération HTML des 6 pages officielles
 assets/js/pdf.js        Génération du PDF A4 paysage dans le navigateur
 assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
-assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC (combo du formulaire)
+assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes (combos du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
 assets/js/xlsx-export.js Export Excel : classeur 5 feuilles depuis l'Espace Inspection
@@ -100,7 +101,7 @@ assets/demo.json        Données d'exemple (rapport complet)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
-supabase/listes.sql     Table `listes` (écoles / CODEC) + amorçage des 116 entrées
+supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
 ```
 
 ---
@@ -116,8 +117,11 @@ supabase/listes.sql     Table `listes` (écoles / CODEC) + amorçage des 116 ent
    (table `rapports` + règles RLS + fonctions `sauver_rapport` /
    `rapport_existe`)
 3. **Reprenez « New query »** → collez le contenu de `supabase/listes.sql` → **Run**
-   (table `listes` : 101 écoles + 15 CODEC). L'amorçage n'a lieu **que si la
-   table est vide** : le ré-exécuter ne remet jamais une école supprimée.
+   (table `listes` : 101 écoles + 15 CODEC + 5 communes). L'amorçage des
+   écoles/CODEC n'a lieu **que si la table est vide** (le ré-exécuter ne
+   remet jamais une école supprimée) ; les **communes** sont, elles,
+   ré-amorcées à chaque exécution sans jamais dupliquer, et la contrainte
+   `type` accepte les 3 types même sur une base ancienne.
 4. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
 5. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
@@ -222,11 +226,11 @@ liste vient alors du cache ou de `ecoles.js`.
 > L'ancien libellé « En attente d'envoi » affichait la file locale ; ce
 > compteur a été renommé **« File locale »** pour lever l'ambiguïté.
 
-### Gérer les listes des écoles et des CODEC
+### Gérer les listes des écoles, des CODEC et des communes
 
 Dans `admin.html`, la carte **« Listes des écoles et des CODEC »** (sous le
-tableau de bord) donne les deux colonnes, avec recherche, ajout et
-suppression :
+tableau de bord) donne les **trois colonnes** (écoles, CODEC, communes),
+avec recherche, ajout et suppression :
 
 | Action | Effet |
 |---|---|

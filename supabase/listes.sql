@@ -16,13 +16,32 @@
    ========================================================================= */
 
 create table if not exists public.listes (
-  type   text        not null check (type in ('ecole', 'codec')),
+  type   text        not null check (type in ('ecole', 'codec', 'commune')),
   valeur text        not null,
   maj_le timestamptz not null default now(),
   primary key (type, valeur)
 );
 
 create index if not exists listes_type_idx on public.listes (type, valeur);
+
+/* --- Migration depuis l'ancienne version (sans 'commune') -------------
+   Idempotent : on retombe toutes les contraintes CHECK de la table puis
+   on remet celle qui accepte les 3 types. Ne touche jamais aux valeurs. */
+do $$
+declare c record;
+begin
+  for c in
+    select conname from pg_constraint
+    where conrelid = 'public.listes'::regclass and contype = 'c'
+  loop
+    execute format('alter table public.listes drop constraint %I',
+                   c.conname);
+  end loop;
+end $$;
+
+alter table public.listes
+  add constraint listes_type_check
+  check (type in ('ecole', 'codec', 'commune'));
 
 alter table public.listes enable row level security;
 
@@ -175,3 +194,16 @@ begin
 
   end if;
 end $$;
+
+/* =========================================================================
+   COMMUNES DE L'IEF (5) — amorçage TOUJOURS, même si la table est déjà
+   peuplée en écoles/CODEC (le bloc ci-dessus ne s'exécute que si elle est
+   vide). Idempotent : `on conflict do nothing` ne duplique jamais.
+   ========================================================================= */
+insert into public.listes (type, valeur) values
+  ('commune', 'KEUR MABA DIAKHOU'),
+  ('commune', 'KEUR MADIABEL'),
+  ('commune', 'KEUR MANDONGO'),
+  ('commune', 'NDRAMÉ ESCALE'),
+  ('commune', 'WACK NGOUNA')
+on conflict do nothing;

@@ -115,6 +115,21 @@
           </div>
           <ul class="liste-items" id="items-codecs"></ul>
         </div>
+
+        <div class="liste-colonne" data-type="commune">
+          <div class="liste-entete">
+            <b id="nb-communes">—</b> commune(s)
+          </div>
+          <input type="search" class="liste-recherche" data-type="commune"
+                 placeholder="Rechercher une commune…">
+          <div class="liste-ajout">
+            <input type="text" data-ajout="commune" maxlength="90"
+                   placeholder="Ajouter une commune…"
+                   aria-label="Nouvelle commune">
+            <button class="btn vert petit" data-ajout-btn="commune">＋ Ajouter</button>
+          </div>
+          <ul class="liste-items" id="items-communes"></ul>
+        </div>
       </div>
     </div>
 
@@ -460,11 +475,11 @@
     }
   });
 
-  /* ---------------- LISTES ÉCOLES / CODEC ----------------
+  /* ---------------- LISTES ÉCOLES / CODEC / COMMUNES ----------------
      La table `listes` est la source de vérité : lecture → mise à jour en
-     place de RR_ECOLES / RR_CODECS (référencées par champs.js côté
-     formulaire) → cache localStorage. */
-  var listesVides = { ecole: "", codec: "" };
+     place de RR_ECOLES / RR_CODECS / RR_COMMUNES (référencées par
+     champs.js côté formulaire) → cache localStorage. */
+  var listesVides = { ecole: "", codec: "", commune: "" };
   /* D'où vient la liste affichée : "" = en cours de chargement,
      puis "serveur" / "cache" / "fallback" (ecoles.js). */
   var listesSource = "";
@@ -477,7 +492,8 @@
       if (r.source === "serveur") {
         msg("msg-listes", "ok",
             "Listes synchronisées avec Supabase (" + r.ecoles +
-            " écoles, " + r.codecs + " CODEC).");
+            " écoles, " + r.codecs + " CODEC, " +
+            (r.communes || 0) + " communes).");
       } else if (r.source === "cache") {
         msg("msg-listes", "warn",
             "<b>Hors-ligne :</b> listes lues en cache local — " +
@@ -497,12 +513,21 @@
   }
 
   function elementsDe(type) {
-    return type === "codec" ? (window.RR_CODECS || []) : (window.RR_ECOLES || []);
+    if (type === "codec") { return window.RR_CODECS || []; }
+    if (type === "commune") { return window.RR_COMMUNES || []; }
+    return window.RR_ECOLES || [];
+  }
+
+  function libelleDe(type) {
+    if (type === "codec") { return "CODEC"; }
+    if (type === "commune") { return "communes"; }
+    return "écoles";
   }
 
   function afficherListes() {
     afficherUneListe("ecole");
     afficherUneListe("codec");
+    afficherUneListe("commune");
     /* La liste a changé (chargement, ajout, suppression) : le compteur
        « En attente d'envoi » en dépend, on le recalcule. */
     afficherStats();
@@ -511,12 +536,15 @@
   function afficherUneListe(type) {
     var items = elementsDe(type);
     var f = (listesVides[type] || "").trim().toLowerCase();
-    var ul = $(type === "codec" ? "items-codecs" : "items-ecoles");
+    var ul = $(type === "codec" ? "items-codecs" :
+               type === "commune" ? "items-communes" : "items-ecoles");
     var vus = items.filter(function (v) {
       return !f || String(v).toLowerCase().indexOf(f) !== -1;
     });
 
-    $(type === "codec" ? "nb-codecs" : "nb-ecoles").textContent = items.length;
+    $(type === "codec" ? "nb-codecs" :
+      type === "commune" ? "nb-communes" : "nb-ecoles").textContent =
+      items.length;
 
     if (!items.length) {
       ul.innerHTML = '<li class="liste-vide">Liste vide.</li>';
@@ -559,7 +587,7 @@
       inp.value = "";
       msg("msg-listes", "ok",
           "➕ <b>" + window.RR.esc(ajoute) + "</b> ajouté(e) à la liste des " +
-          (type === "codec" ? "CODEC" : "écoles") +
+          libelleDe(type) +
           " — visible immédiatement dans le formulaire du directeur.");
       afficherListes();
     } catch (e) {
@@ -587,7 +615,8 @@
   /* Suppression : confirmation native ; si l'école a déjà déposé des
      rapports, on l'avertit (les rapports sont conservés). */
   async function retirerDeLaListe(type, valeur) {
-    var libelle = type === "codec" ? "CODEC" : "école";
+    var libelle = type === "codec" ? "CODEC" :
+                  type === "commune" ? "communes" : "écoles";
     var details = "Valeur : " + valeur + "\n";
 
     if (type === "ecole") {

@@ -117,6 +117,15 @@
     "WACK NGOUNA"
   ];
 
+  /* --- Communes de l'IEF (5) — liste officielle, fermée --- */
+  global.RR_COMMUNES = [
+    "KEUR MABA DIAKHOU",
+    "KEUR MADIABEL",
+    "KEUR MANDONGO",
+    "NDRAMÉ ESCALE",
+    "WACK NGOUNA"
+  ];
+
   /* --- CODEC (15) — facultatif, mais fermé s'il est saisi --- */
   global.RR_CODECS = [
     "KEUR DAME",
