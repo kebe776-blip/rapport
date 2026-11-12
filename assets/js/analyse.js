@@ -994,16 +994,29 @@
       }
       var user = await window.RRdb.utilisateur();
       if (!user) {
+        /* Message adapté à l'adresse réelle : en local on explique l'écueil
+           127.0.0.1 / localhost, en ligne on invite simplement à se
+           connecter sur CE site (la session vaut par domaine). */
+        var local = window.location.hostname === "localhost" ||
+                    window.location.hostname === "127.0.0.1";
+        var aide = local
+          ? "Deux causes fréquentes si vous êtes pourtant connecté : " +
+            "l'adresse n'est pas la même que celle de la connexion " +
+            "(elle doit commencer par <span class='mono'>http://localhost:…</span> " +
+            "et non <span class='mono'>127.0.0.1</span> — la page se redirige " +
+            "automatiquement), ou la connexion a été faite dans un autre " +
+            "navigateur."
+          : "Connectez-vous d'abord sur <b>ce même site</b> : ouvrez l'" +
+            "<a href=\"admin.html\">Espace Inspection</a>, saisissez vos " +
+            "identifiants, puis revenez ici — la session est conservée pour " +
+            "les prochaines visites. (Une connexion faite sur " +
+            "<span class='mono'>localhost</span> ne vaut pas en ligne : " +
+            "chaque adresse a sa propre session.)";
         msg("warn", "<b>Accès réservé.</b> Ouvrez cette page depuis l'" +
           "<a href=\"admin.html\">Espace Inspection</a> : connectez-vous puis " +
           "cliquez sur le bouton « 📊 Analyse ». " +
-          "<br><span class='petit'>Deux causes fréquentes si vous êtes pourtant " +
-          "connecté : l'adresse n'est pas la même que celle de la connexion " +
-          "(elle doit commencer par <span class='mono'>http://localhost:…</span> " +
-          "et non <span class='mono'>127.0.0.1</span> — la page se redirige " +
-          "automatiquement), ou la connexion a été faite dans un autre " +
-          "navigateur. " +
-          "(Aucune donnée n'est lue sans session.)</span>");
+          "<br><span class='petit'>" + aide +
+          " (Aucune donnée n'est lue sans session.)</span>");
         return;
       }
 
