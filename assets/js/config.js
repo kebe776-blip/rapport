@@ -25,6 +25,22 @@ window.RR_CONFIG = {
   INSPECTION: "INSPECTION D'ACADÉMIE DE KAOLACK",
   IEF: "INSPECTION DE L'ÉDUCATION ET DE LA FORMATION DE KEUR MADIABEL",
 
+  /* --- Types de rapport (Espace Inspection + Analyse par type) ---
+     id    : valeur stockée dans la colonne `rapports.type`
+     nom   : libellé complet affiché dans les titres
+     form  : page du formulaire, "" = formulaire à venir
+     La page active choisit son type avec ?type=<id> (défaut : le 1er). */
+  TYPES: [
+    { id: "succinct-prescolaire",  nom: "Rapport succinct de rentrée préscolaire",  form: "" },
+    { id: "succinct-elementaire",  nom: "Rapport succinct de rentrée élémentaire",  form: "" },
+    { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",        form: "" },
+    { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",   form: "" },
+    { id: "general-elementaire",   nom: "Rapport général de rentrée élémentaire",
+      form: "general-elementaire.html" },
+    { id: "general-moyen",         nom: "Rapport général de rentrée moyen",         form: "" }
+  ],
+  TYPE_DEFAUT: "general-elementaire",
+
   /* --- Supabase (laisser vide pour fonctionner hors-ligne sans base) ---
      Projet "Planification" (organisation IEF-Planification)
      Clé anon = publique par design (protégée par les règles RLS) */

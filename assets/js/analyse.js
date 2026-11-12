@@ -13,6 +13,51 @@
   var TOUTES = "";
 
   /* -----------------------------------------------------------------------
+     TYPE DE RAPPORT — l'Analyse est partagée : ?type=<id> choisit le type
+     affiché (défaut = general-elementaire). Titre, liens et lecture des
+     rapports sont filtrés sur ce type.
+     ----------------------------------------------------------------------- */
+  var TYPE = (window.RRdb && window.RRdb.typeDepuisUrl()) ||
+             CFG.TYPE_DEFAUT || "general-elementaire";
+  window.RR_TYPE = TYPE;
+  var TYPES = CFG.TYPES || [];
+
+  function infoType(id) {
+    for (var i = 0; i < TYPES.length; i++) {
+      if (TYPES[i].id === id) { return TYPES[i]; }
+    }
+    return { id: id, nom: id, form: "" };
+  }
+  var typeInfo = infoType(TYPE);
+
+  function initType() {
+    document.title = "Analyse — " + typeInfo.nom;
+    $("sous-type").textContent = typeInfo.nom +
+      " — exploitation par école, CODEC, commune et sexe — 2026/2027";
+    var sel = $("select-type");
+    sel.innerHTML = TYPES.map(function (t) {
+      return '<option value="' + t.id + '"' + (t.id === TYPE ? " selected" : "") +
+             ">" + esc(t.nom) + "</option>";
+    }).join("");
+    sel.addEventListener("change", function () {
+      location.href = "analyse.html?type=" + encodeURIComponent(this.value);
+    });
+    /* Retour vers l'Espace Inspection du MÊME type */
+    $("lien-admin").setAttribute("href",
+      "admin.html?type=" + encodeURIComponent(TYPE));
+    /* Saisie directeur : formulaire du type, sinon retour accueil */
+    var saisie = $("lien-saisie");
+    if (typeInfo.form) {
+      saisie.setAttribute("href", typeInfo.form);
+      saisie.textContent = "Saisie directeur";
+    } else {
+      saisie.setAttribute("href", "index.html");
+      saisie.textContent = "Formulaire à venir";
+      saisie.title = "Le formulaire « " + typeInfo.nom + " » n'est pas encore disponible.";
+    }
+  }
+
+  /* -----------------------------------------------------------------------
      Utilitaires locaux
      RR.esc est défini dans rapport.js (non chargé ici) : on le redéfinit.
      ----------------------------------------------------------------------- */
@@ -1007,13 +1052,14 @@
             "automatiquement), ou la connexion a été faite dans un autre " +
             "navigateur."
           : "Connectez-vous d'abord sur <b>ce même site</b> : ouvrez l'" +
-            "<a href=\"admin.html\">Espace Inspection</a>, saisissez vos " +
+            "<a href=\"admin.html?type=" + encodeURIComponent(TYPE) + "\">Espace Inspection</a>, saisissez vos " +
             "identifiants, puis revenez ici — la session est conservée pour " +
             "les prochaines visites. (Une connexion faite sur " +
             "<span class='mono'>localhost</span> ne vaut pas en ligne : " +
             "chaque adresse a sa propre session.)";
         msg("warn", "<b>Accès réservé.</b> Ouvrez cette page depuis l'" +
-          "<a href=\"admin.html\">Espace Inspection</a> : connectez-vous puis " +
+          "<a href=\"admin.html?type=" + encodeURIComponent(TYPE) + "\">Espace Inspection</a> : " +
+          "connectez-vous puis " +
           "cliquez sur le bouton « 📊 Analyse ». " +
           "<br><span class='petit'>" + aide +
           " (Aucune donnée n'est lue sans session.)</span>");
@@ -1021,12 +1067,14 @@
       }
 
       progres("Lecture des rapports…", 25);
-      var bruts = await window.RRdb.listerComplets();
+      var bruts = await window.RRdb.listerComplets(TYPE);
       finProgres();
 
       if (!bruts.length) {
-        msg("info", "<b>Aucun rapport à analyser.</b> Déposez d'abord des rapports " +
-          "depuis l'<a href=\"admin.html\">Espace Inspection</a>.");
+        msg("info", "<b>Aucun rapport « " + esc(typeInfo.nom) +
+          " » à analyser.</b> Déposez d'abord des rapports de ce type depuis " +
+          "l'<a href=\"admin.html?type=" + encodeURIComponent(TYPE) +
+          "\">Espace Inspection</a>.");
         return;
       }
 
@@ -1044,6 +1092,7 @@
      ÉVÈNEMENTS
      ======================================================================= */
   function init() {
+    initType();
     $("f-commune").addEventListener("change", function () {
       $("f-codec").value = "";
       $("f-ecole").value = "";

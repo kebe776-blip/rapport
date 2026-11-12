@@ -12,13 +12,18 @@
 <div class="topbar">
   <div>
     <h1>ESPACE INSPECTION</h1>
-    <div class="sous">Suivi des rapports de rentrée — 2026/2027</div>
+    <div class="sous" id="sous-type">Suivi des rapports de rentrée — 2026/2027</div>
   </div>
   <div class="spacer"></div>
+  <!-- Sélecteur de type : chaque type a son propre espace (?type=<id>) -->
+  <label class="sous" for="select-type" style="opacity:.9;">Type :</label>
+  <select id="select-type" title="Choisir le type de rapport"
+          style="padding:5px 8px; border-radius:5px; border:1px solid #9fb4cc;
+                 font-size:13px; max-width:330px;"></select>
   <a class="lien" href="index.html">Accueil</a>
   <!-- Visible uniquement après connexion (afficherAdmin) -->
   <a class="lien" id="lien-analyse" href="analyse.html" style="display:none;">📊 Analyse</a>
-  <a class="lien" href="general-elementaire.html">Saisie directeur</a>
+  <a class="lien" id="lien-saisie" href="general-elementaire.html">Saisie directeur</a>
 </div>
 
 <div class="conteneur">
@@ -171,6 +176,55 @@
   var lignes = [];
   var $ = function (id) { return document.getElementById(id); };
 
+  /* ---------------- TYPE DE RAPPORT ----------------
+     L'espace Inspection est partagé : ?type=<id> choisit le type affiché
+     (défaut = general-elementaire). Titre, liens et lectures suivent. */
+  var TYPE = window.RRdb.typeDepuisUrl();
+  window.RR_TYPE = TYPE;
+  var TYPES = (window.RR_CONFIG && window.RR_CONFIG.TYPES) || [];
+  function infoType(id) {
+    for (var i = 0; i < TYPES.length; i++) {
+      if (TYPES[i].id === id) { return TYPES[i]; }
+    }
+    return { id: id, nom: id, form: "" };
+  }
+  var typeInfo = infoType(TYPE);
+  /* Le modèle (PDF, XLSX, formulaire) n'existe que pour le type
+     général-élémentaire : les actions concernées sont désactivées ailleurs. */
+  var modeleOk = (TYPE === "general-elementaire");
+
+  (function initType() {
+    document.title = "Espace Inspection — " + typeInfo.nom;
+    $("sous-type").textContent = typeInfo.nom + " — 2026/2027";
+    var sel = $("select-type");
+    sel.innerHTML = TYPES.map(function (t) {
+      return '<option value="' + t.id + '"' + (t.id === TYPE ? " selected" : "") +
+             ">" + window.RR.esc(t.nom) + "</option>";
+    }).join("");
+    sel.addEventListener("change", function () {
+      location.href = "admin.html?type=" + encodeURIComponent(this.value);
+    });
+    /* Lien Analyse : même type */
+    $("lien-analyse").setAttribute("href",
+      "analyse.html?type=" + encodeURIComponent(TYPE));
+    /* Saisie directeur : formulaire du type, sinon retour accueil */
+    var saisie = $("lien-saisie");
+    if (typeInfo.form) {
+      saisie.setAttribute("href", typeInfo.form);
+      saisie.textContent = "Saisie directeur";
+    } else {
+      saisie.setAttribute("href", "index.html");
+      saisie.textContent = "Formulaire à venir";
+      saisie.title = "Le formulaire « " + typeInfo.nom + " » n'est pas encore disponible.";
+    }
+    /* Export XLSX : classeur câblé sur le modèle général-élémentaire */
+    if (!modeleOk) {
+      var x = $("btn-xlsx");
+      x.disabled = true;
+      x.title = "Export du modèle général élémentaire — à venir pour ce type.";
+    }
+  }());
+
   function msg(id, classe, texte) {
     var el = $(id);
     el.className = "bandeau " + classe;
@@ -252,9 +306,11 @@
   async function chargerListe() {
     msg("msg-admin", "info", "Chargement…");
     try {
-      lignes = await window.RRdb.lister();
-      msg("msg-admin", "ok",
-          "<b>" + lignes.length + " école(s)</b> ont soumis leur rapport.");
+      lignes = await window.RRdb.lister(TYPE);
+      msg("msg-admin", lignes.length ? "ok" : "info",
+          lignes.length
+            ? "<b>" + lignes.length + " école(s)</b> ont soumis leur rapport."
+            : "<b>Aucun rapport</b> de ce type pour l'instant.");
       afficherTableau("");
       afficherStats();
     } catch (e) {
@@ -314,22 +370,32 @@
     });
     if (!liste.length) {
       tb.innerHTML = '<tr><td colspan="4" class="center petit">' +
-        "Aucune école ne correspond.</td></tr>";
+        (lignes.length
+          ? "Aucune école ne correspond."
+          : "Aucun rapport de ce type n'a encore été déposé.") +
+        "</td></tr>";
       return;
     }
     tb.innerHTML = liste.map(function (l) {
       var d = l.maj_le ? new Date(l.maj_le).toLocaleString("fr-FR") : "—";
       var code = window.RR.esc(l.ecole_code);
       var nom = window.RR.esc(l.ecole_nom || l.ecole_code);
+      /* PDF / modification : modèle officiel uniquement (général
+         élémentaire) — les autres types n'ont pas encore de formulaire
+         ni de gabarit. */
+      var actions = modeleOk
+        ? "<button class='btn petit' data-act='voir' data-code='" + code + "'>" +
+            "Voir / PDF</button> " +
+          "<button class='btn petit' data-act='modifier' data-code='" + code + "' " +
+            "title='Modifier ce rapport puis régénérer le PDF'>✏ Modifier</button> "
+        : "<span class='petit' title='Gabarit à venir pour ce type de rapport'>" +
+            "PDF / modification à venir</span> ";
       return "<tr>" +
         "<td><b>" + nom + "</b></td>" +
         "<td class='mono'>" + code + "</td>" +
         "<td>" + window.RR.esc(d) + "</td>" +
         "<td>" +
-          "<button class='btn petit' data-act='voir' data-code='" + code + "'>" +
-            "Voir / PDF</button> " +
-          "<button class='btn petit' data-act='modifier' data-code='" + code + "' " +
-            "title='Modifier ce rapport puis régénérer le PDF'>✏ Modifier</button> " +
+          actions +
           "<button class='btn rouge petit' data-act='supprimer' data-code='" + code +
             "' data-nom='" + nom + "' title='Supprimer définitivement ce rapport'>" +
             "🗑 Supprimer</button>" +
@@ -363,7 +429,7 @@
         "assets/js/xlsx-export.js"
       ]);
       progres("Lecture des rapports…", 25);
-      var complets = await window.RRdb.listerComplets();
+      var complets = await window.RRdb.listerComplets(TYPE);
       if (!complets.length) {
         msg("msg-admin", "warn", "Aucun rapport à exporter.");
         return;
@@ -393,7 +459,7 @@
       } else if (act === "modifier") {
         await modifierRapport(code);
       } else {
-        var ligne = await window.RRdb.obtenir(code);
+        var ligne = await window.RRdb.obtenir(code, TYPE);
         if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
         ouvrirApercu(ligne);
       }
@@ -419,7 +485,7 @@
           "</b> est conservé.");
       return;
     }
-    await window.RRdb.supprimer(code);
+    await window.RRdb.supprimer(code, TYPE);
     /* si l'aperçu ouvert porte sur cette école, on le referme */
     if (codeApercu === code) {
       $("zone-apercu").style.display = "none";
@@ -437,7 +503,7 @@
      ouvre le formulaire de saisie : l'inspection corrige, re-soumet, et
      la RPC sauver_rapport remplace le rapport + régénère le PDF. */
   async function modifierRapport(code) {
-    var ligne = await window.RRdb.obtenir(code);
+    var ligne = await window.RRdb.obtenir(code, TYPE);
     if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
     try {
       sessionStorage.setItem("RR_MODIF", JSON.stringify({

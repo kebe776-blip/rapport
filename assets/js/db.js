@@ -26,6 +26,14 @@
     return client;
   }
 
+  /* ---------- Type de rapport courant ----------
+     Chaque page déclare window.RR_TYPE (voir config.js TYPES) ; à défaut
+     on se rabat sur le type par défaut — les pages anciennes restent donc
+     compatibles. */
+  function typeCourant(type) {
+    return type || global.RR_TYPE || CFG.TYPE_DEFAUT || "general-elementaire";
+  }
+
   /* ---------- File d'attente hors-ligne ---------- */
   function lireFile() {
     try { return JSON.parse(localStorage.getItem(CFG.LS_FILE) || "[]"); }
@@ -39,8 +47,11 @@
 
   function mettreEnFile(element) {
     var liste = lireFile();
-    /* une seule entrée par école : la dernière soumission gagne */
-    liste = liste.filter(function (x) { return x.ecole_code !== element.ecole_code; });
+    /* une seule entrée par école ET par type : la dernière soumission gagne */
+    liste = liste.filter(function (x) {
+      return !(x.ecole_code === element.ecole_code &&
+               (x.type || CFG.TYPE_DEFAUT) === (element.type || CFG.TYPE_DEFAUT));
+    });
     liste.push(element);
     ecrireFile(liste);
     return liste.length;
@@ -71,6 +82,7 @@
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
     var ligne = {
+      type: el.type || typeCourant(),
       ecole_code: el.ecole_code,
       ecole_nom: el.ecole_nom || "",
       annee: el.annee || CFG.ANNEE || "2026/2027",
@@ -78,6 +90,7 @@
       maj_le: new Date().toISOString()
     };
     var res = await c.rpc("sauver_rapport", {
+      p_type: ligne.type,
       p_ecole_code: ligne.ecole_code,
       p_ecole_nom: ligne.ecole_nom,
       p_annee: ligne.annee,
@@ -93,10 +106,11 @@
    * Renvoie null si Supabase est inactif ou si la vérification échoue
    * (on laisse alors la soumission passer normalement).
    */
-  async function existe(decodees) {
+  async function existe(decodees, type) {
     var c = sb();
     if (!c) { return null; }
     var res = await c.rpc("rapport_existe", {
+      p_type: typeCourant(type),
       p_ecole_code: codeEcole(decodees),
       p_annee: CFG.ANNEE || "2026/2027"
     });
@@ -108,10 +122,11 @@
    * Enregistre la soumission : Supabase si possible, sinon file locale.
    * @returns {Promise<{envoye:boolean, horsLigne:boolean, ref:string, message:string}>}
    */
-  async function enregistrer(donnees) {
+  async function enregistrer(donnees, type) {
     var code = codeEcole(donnees);
     var nom = (donnees.identification && donnees.identification.nom_ecole) || "";
-    var el = { ecole_code: code, ecole_nom: nom.toUpperCase(),
+    var el = { type: typeCourant(type),
+               ecole_code: code, ecole_nom: nom.toUpperCase(),
                annee: CFG.ANNEE, donnees: donnees,
                horodatage: new Date().toISOString() };
 
@@ -151,12 +166,15 @@
     return { reste: reste.length, envoyes: envoyes };
   }
 
-  /* ---------- Lecture (admin authentifié) ---------- */
-  async function lister() {
+  /* ---------- Lecture (admin authentifié) ----------
+     Chaque lecture est FILTRÉE par type : un espace Inspection n'affiche
+     que les rapports de son type. */
+  async function lister(type) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
     var res = await c.from("rapports")
-      .select("ecole_code, ecole_nom, annee, maj_le")
+      .select("type, ecole_code, ecole_nom, annee, maj_le")
+      .eq("type", typeCourant(type))
       .order("maj_le", { ascending: false });
     if (res.error) { throw new Error(res.error.message); }
     return res.data || [];
@@ -164,21 +182,24 @@
 
   /* Lecture complète (champs + `donnees`) — export XLSX de l'Espace
      Inspection. Une seule requête, contrairement à obtenir() par ligne. */
-  async function listerComplets() {
+  async function listerComplets(type) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
     var res = await c.from("rapports")
       .select("*")
+      .eq("type", typeCourant(type))
       .order("maj_le", { ascending: false });
     if (res.error) { throw new Error(res.error.message); }
     return res.data || [];
   }
 
-  async function obtenir(code) {
+  async function obtenir(code, type) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
     var res = await c.from("rapports")
-      .select("*").eq("ecole_code", code).limit(1);
+      .select("*")
+      .eq("type", typeCourant(type))
+      .eq("ecole_code", code).limit(1);
     if (res.error) { throw new Error(res.error.message); }
     return (res.data && res.data[0]) || null;
   }
@@ -187,10 +208,11 @@
      Le rôle `authenticated` possède la policy DELETE : contrairement à
      l'écriture du directeur (qui passe par la RPC SECURITY DEFINER),
      la suppression peut se faire directement en PostgREST. */
-  async function supprimer(code) {
+  async function supprimer(code, type) {
     var c = sb();
     if (!c) { throw new Error("Supabase non configuré"); }
-    var res = await c.from("rapports").delete().eq("ecole_code", code);
+    var res = await c.from("rapports")
+      .delete().eq("type", typeCourant(type)).eq("ecole_code", code);
     if (res.error) { throw new Error(res.error.message); }
     return true;
   }
@@ -397,10 +419,25 @@
 
   function attente() { return lireFile().length; }
 
+  /* Lit ?type=<id> dans l'URL ; renvoie le type valide ou le défaut.
+     Les valeurs inconnues retombent sur TYPE_DEFAUT (pas d'erreur). */
+  function typeDepuisUrl() {
+    var v = null;
+    try { v = new URLSearchParams(global.location.search).get("type"); }
+    catch (e) { v = null; }
+    var types = CFG.TYPES || [];
+    for (var i = 0; i < types.length; i++) {
+      if (types[i].id === v) { return v; }
+    }
+    return CFG.TYPE_DEFAUT || "general-elementaire";
+  }
+
   global.RRdb = {
     actif: actif,
     slug: slug,
     codeEcole: codeEcole,
+    typeCourant: typeCourant,
+    typeDepuisUrl: typeDepuisUrl,
     enregistrer: enregistrer,
     existe: existe,
     viderFile: viderFile,

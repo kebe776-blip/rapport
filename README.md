@@ -83,11 +83,14 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 ```
 index.html              Page d'accueil : menu des 6 rapports (succinct/général ×
                         préscolaire/élémentaire/moyen) + Espace Inspection
+                        (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
 general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF
 saisie.html             Redirection vers general-elementaire.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (brouillon local ou rapport en base)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
+                        — partagé entre les 6 types : admin.html?type=<id>
 analyse.html            Exploitation des données (filtres, KPI, graphiques, synthèse, export XLSX)
+                        — partagée entre les 6 types : analyse.html?type=<id>
 
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
 assets/css/app.css      Styles de l'interface et du formulaire
@@ -108,6 +111,7 @@ assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, ho
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
+supabase/migration_types.sql  Colonne `type` + PK (type, ecole_code, annee) + RPC avec p_type
 supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
 ```
 
@@ -129,9 +133,16 @@ supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage 
    remet jamais une école supprimée) ; les **communes** sont, elles,
    ré-amorcées à chaque exécution sans jamais dupliquer, et la contrainte
    `type` accepte les 3 types même sur une base ancienne.
-4. **Authentication → Users → Add user** : créez le compte de l'Inspection
+4. **Puis, une seule fois aussi** → collez le contenu de
+   `supabase/migration_types.sql` → **Run** : ajoute la colonne `type`,
+   passe la clé primaire à `(type, ecole_code, annee)` et met à jour les
+   fonctions `sauver_rapport` / `rapport_existe` (anti-doublon **par type**).
+   Les rapports déjà enregistrés deviennent `general-elementaire` automatiquement.
+   ⚠️ À exécuter **avant** (ou en même temps que) la mise en ligne du code :
+   l'ancien code n'appelle plus les nouvelles signatures.
+5. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-5. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+6. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
 > ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
@@ -204,6 +215,34 @@ ayant soumis. Trois actions par école :
 | **Voir / PDF** | aperçu des 6 pages + téléchargement du PDF officiel |
 | **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
+
+### Un espace et une Analyse PAR TYPE de rapport
+
+Chaque type de rapport possède **son propre Espace Inspection et sa propre
+Analyse**, distingués par le paramètre d'URL `?type=<id>` :
+
+```
+admin.html?type=succinct-prescolaire    analyse.html?type=succinct-prescolaire
+admin.html?type=succinct-elementaire    analyse.html?type=succinct-elementaire
+admin.html?type=succinct-moyen          analyse.html?type=succinct-moyen
+admin.html?type=general-prescolaire     analyse.html?type=general-prescolaire
+admin.html?type=general-elementaire     analyse.html?type=general-elementaire   ← défaut
+admin.html?type=general-moyen           analyse.html?type=general-moyen
+```
+
+- **Accueil** : chaque carte du menu porte deux liens **🔒 Espace** et
+  **📊 Analyse** ouvrant l'espace de *ce* type ;
+- **Sélecteur « Type »** dans la barre supérieure des deux pages : bascule
+  d'un type à l'autre sans repasser par l'accueil ;
+- URL **sans paramètre ou valeur inconnue** → type par défaut
+  `general-elementaire` (tous les liens existants restent valides) ;
+- le **titre, le sous-titre, les liens de retour** (Espace ↔ Analyse, même
+  type) et **la lecture des rapports** suivent le type choisi ;
+- l'**anti-doublon s'applique par type** : une école peut déposer un
+  rapport succinct ET un rapport général sans se bloquer ;
+- garde-fous : **Voir / PDF**, **✏ Modifier** et **⬇ Export XLSX** ne sont
+  actifs que pour `general-elementaire` (seul type disposant à ce jour du
+  modèle et d'un formulaire) — les autres affichent « à venir ».
 
 **Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
 `Rapport_Rentree_2026-2027.xlsx` — un classeur de **8 feuilles**

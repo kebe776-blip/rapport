@@ -42,6 +42,18 @@
   }
   .lien-menu:focus { outline: 2px solid #173d61; outline-offset: 2px; }
   .btn-menu { margin-top: 4px; }
+  /* Accès par type : Espace Inspection / Analyse de CE type */
+  .lien-groupe { display: flex; flex-direction: column; gap: 0; }
+  .liens-rapide {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px;
+  }
+  .liens-rapide a {
+    flex: 1 1 auto; text-align: center; text-decoration: none;
+    font-size: 12px; font-weight: 700; padding: 6px 8px;
+    border-radius: 6px; border: 1px solid #9fb4cc;
+    background: #eef4fa; color: #12406e; white-space: nowrap;
+  }
+  .liens-rapide a:hover { background: #dceafa; }
   .espacement { height: 10px; }
 </style>
 </head>
@@ -77,6 +89,10 @@
       <span class="desc">Relevé condensé de la rentrée en section préscolaire.</span>
       <span class="badge avenir">Bientôt disponible</span>
       <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+      <div class="liens-rapide">
+        <a href="admin.html?type=succinct-prescolaire" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=succinct-prescolaire" title="Analyse de ce type">📊 Analyse</a>
+      </div>
     </div>
 
     <div class="carte carte-menu avenir">
@@ -85,6 +101,10 @@
       <span class="desc">Relevé condensé de la rentrée en école élémentaire.</span>
       <span class="badge avenir">Bientôt disponible</span>
       <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+      <div class="liens-rapide">
+        <a href="admin.html?type=succinct-elementaire" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=succinct-elementaire" title="Analyse de ce type">📊 Analyse</a>
+      </div>
     </div>
 
     <div class="carte carte-menu avenir">
@@ -93,6 +113,10 @@
       <span class="desc">Relevé condensé de la rentrée en collège.</span>
       <span class="badge avenir">Bientôt disponible</span>
       <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+      <div class="liens-rapide">
+        <a href="admin.html?type=succinct-moyen" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=succinct-moyen" title="Analyse de ce type">📊 Analyse</a>
+      </div>
     </div>
 
   </div>
@@ -107,18 +131,30 @@
       <span class="desc">Rapport complet de la rentrée en section préscolaire.</span>
       <span class="badge avenir">Bientôt disponible</span>
       <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+      <div class="liens-rapide">
+        <a href="admin.html?type=general-prescolaire" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=general-prescolaire" title="Analyse de ce type">📊 Analyse</a>
+      </div>
     </div>
 
-    <a class="lien-menu" href="general-elementaire.html">
-      <div class="carte carte-menu">
-        <span class="icone">🏫</span>
-        <span class="nom">Rapport général de rentrée <b>élémentaire</b></span>
-        <span class="desc">Rapport complet (sections A → N) : classes, effectifs,
-          directeur, ouvrages, manuels, matériel, infrastructures.</span>
-        <span class="badge dispo">Disponible</span>
-        <span class="btn vert large btn-menu">Remplir le formulaire →</span>
+    <!-- Carte active : le lien principal ne peut pas englober les liens
+         rapides (lien dans lien = invalide) → conteneur commun. -->
+    <div class="lien-groupe">
+      <a class="lien-menu" href="general-elementaire.html">
+        <div class="carte carte-menu">
+          <span class="icone">🏫</span>
+          <span class="nom">Rapport général de rentrée <b>élémentaire</b></span>
+          <span class="desc">Rapport complet (sections A → N) : classes, effectifs,
+            directeur, ouvrages, manuels, matériel, infrastructures.</span>
+          <span class="badge dispo">Disponible</span>
+          <span class="btn vert large btn-menu">Remplir le formulaire →</span>
+        </div>
+      </a>
+      <div class="liens-rapide" style="margin-top:8px;">
+        <a href="admin.html?type=general-elementaire" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=general-elementaire" title="Analyse de ce type">📊 Analyse</a>
       </div>
-    </a>
+    </div>
 
     <div class="carte carte-menu avenir">
       <span class="icone">🏫</span>
@@ -126,6 +162,10 @@
       <span class="desc">Rapport complet de la rentrée en collège.</span>
       <span class="badge avenir">Bientôt disponible</span>
       <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+      <div class="liens-rapide">
+        <a href="admin.html?type=general-moyen" title="Espace Inspection de ce type">🔒 Espace</a>
+        <a href="analyse.html?type=general-moyen" title="Analyse de ce type">📊 Analyse</a>
+      </div>
     </div>
 
   </div>

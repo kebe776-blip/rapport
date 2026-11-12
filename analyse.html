@@ -12,11 +12,15 @@
 <div class="topbar">
   <div>
     <h1>ANALYSE DES DONNÉES</h1>
-    <div class="sous">Exploitation par école, CODEC, commune et sexe — 2026/2027</div>
+    <div class="sous" id="sous-type">Exploitation par école, CODEC, commune et sexe — 2026/2027</div>
   </div>
   <div class="spacer"></div>
-  <a class="lien" href="admin.html">← Espace Inspection</a>
-  <a class="lien" href="general-elementaire.html">Saisie directeur</a>
+  <label class="sous" for="select-type" style="opacity:.9;">Type :</label>
+  <select id="select-type" title="Choisir le type de rapport"
+          style="padding:5px 8px; border-radius:5px; border:1px solid #9fb4cc;
+                 font-size:13px; max-width:330px;"></select>
+  <a class="lien" id="lien-admin" href="admin.html">← Espace Inspection</a>
+  <a class="lien" id="lien-saisie" href="general-elementaire.html">Saisie directeur</a>
 </div>
 
 <div class="conteneur">
