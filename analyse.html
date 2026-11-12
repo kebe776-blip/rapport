@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analyse des données — Rapport de rentrée</title>
+<link rel="stylesheet" href="assets/css/app.css">
+<link rel="stylesheet" href="assets/css/analyse.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>ANALYSE DES DONNÉES</h1>
+    <div class="sous">Exploitation par école, CODEC, commune et sexe — 2026/2027</div>
+  </div>
+  <div class="spacer"></div>
+  <a class="lien" href="admin.html">← Espace Inspection</a>
+  <a class="lien" href="index.html">Saisie directeur</a>
+</div>
+
+<div class="conteneur">
+
+  <div id="msg" class="bandeau info" style="display:none;"></div>
+
+  <div id="zone" style="display:none;">
+
+    <!-- ================= FILTRES ================= -->
+    <div class="carte">
+      <h2>Filtres</h2>
+      <div class="filtres">
+        <div class="champ">
+          <label for="f-commune">Commune</label>
+          <select id="f-commune"></select>
+        </div>
+        <div class="champ">
+          <label for="f-codec">CODEC</label>
+          <select id="f-codec"></select>
+        </div>
+        <div class="champ">
+          <label for="f-ecole">École</label>
+          <select id="f-ecole"></select>
+        </div>
+        <div class="champ">
+          <label for="f-sexe">Sexe</label>
+          <select id="f-sexe">
+            <option value="tous">Garçons et Filles</option>
+            <option value="g">Garçons seulement</option>
+            <option value="f">Filles seulement</option>
+          </select>
+        </div>
+      </div>
+      <div class="filtres-pied">
+        <span id="filtre-etat" class="petit"></span>
+        <span class="spacer"></span>
+        <button class="btn gris petit" id="btn-reset">↻ Réinitialiser</button>
+        <button class="btn vert petit" id="btn-xlsx">⬇ Export XLSX</button>
+      </div>
+      <div class="petit mt">Le filtre <b>Sexe</b> s'applique aux effectifs et au
+        personnel (les tableaux restent complets).</div>
+      <div id="msg-analyse" class="bandeau info mt" style="display:none;"></div>
+    </div>
+
+    <!-- ================= KPI ================= -->
+    <div class="stats" id="stats"></div>
+
+    <!-- ================= GRAPHIQUES ================= -->
+    <div class="deux-colonnes">
+      <div class="carte">
+        <h2>Effectifs par niveau — CI → CM2</h2>
+        <div id="chart-effectifs"></div>
+      </div>
+      <div class="carte">
+        <h2>Types de classes</h2>
+        <div id="chart-classes"></div>
+      </div>
+    </div>
+
+    <div class="deux-colonnes">
+      <div class="carte">
+        <h2>Personnel enseignant (H / F)</h2>
+        <div id="chart-personnel"></div>
+      </div>
+      <div class="carte">
+        <h2>Mobilier — bon / à réparer (déficit)</h2>
+        <div id="chart-mobilier"></div>
+      </div>
+    </div>
+
+    <div class="deux-colonnes">
+      <div class="carte">
+        <h2>Infrastructures — % d'écoles</h2>
+        <div id="chart-infra"></div>
+      </div>
+      <div class="carte">
+        <h2>Couverture des manuels — % d'écoles</h2>
+        <div id="chart-manuels"></div>
+      </div>
+    </div>
+
+    <!-- ================= TAUX PAR ÉCOLE ================= -->
+    <div class="carte">
+      <h2>Taux par école <span class="petit">(cliquer un en-tête pour trier)</span></h2>
+      <div class="table-defilement">
+        <table class="tableau" id="table-taux">
+          <thead><tr id="taux-entete"></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ================= SYNTHÈSE ================= -->
+    <div class="carte">
+      <div class="synthese-tete">
+        <h2>Synthèse</h2>
+        <div class="champ">
+          <label for="groupement">Regrouper par</label>
+          <select id="groupement">
+            <option value="commune">Commune</option>
+            <option value="codec">CODEC</option>
+            <option value="ecole">École</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-defilement">
+        <table class="tableau" id="table-synthese">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="petit mt">Sous-totaux « Total COM. … » / « Total CODEC … » puis
+        <b>TOTAL GÉNÉRAL</b>. L'export XLSX reprend ce tableau tel quel.</div>
+    </div>
+
+  </div><!-- /zone -->
+</div><!-- /conteneur -->
+
+<div class="progression" id="progression">
+  <span id="prog-texte">Chargement…</span>
+  <div class="barre-interne"><div id="prog-barre"></div></div>
+</div>
+
+<script src="assets/vendor/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/db.js"></script>
+<script src="assets/js/analyse.js"></script>
+</body>
+</html>

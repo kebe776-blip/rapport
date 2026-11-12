@@ -1,0 +1,108 @@
+/* =========================================================================
+   analyse.css — Page « Analyse des données » (exploitation)
+   Complète app.css : filtres, graphiques SVG, tableaux d'analyse.
+   ========================================================================= */
+
+/* ---------- Filtres ---------- */
+.filtres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px 16px;
+}
+.filtres-pied {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.filtres-pied .spacer { flex: 1; }
+
+/* ---------- Grille de graphiques ---------- */
+.deux-colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(430px, 1fr));
+  gap: 16px;
+}
+.deux-colonnes .carte { margin-bottom: 0; }
+.deux-colonnes { margin-bottom: 16px; }
+
+/* ---------- Légende des graphiques ---------- */
+.legende {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: #444;
+}
+.legende .leg { display: inline-flex; align-items: center; gap: 5px; }
+.legende i {
+  display: inline-block; width: 11px; height: 11px;
+  border-radius: 2px; background: #999;
+}
+
+/* ---------- Graphiques SVG ---------- */
+.graphique svg { display: block; width: 100%; height: auto; }
+.graphique .vide {
+  padding: 26px 0; text-align: center; color: #777; font-size: 13.5px;
+}
+.graphique svg text { font-family: "Segoe UI", Helvetica, Arial, sans-serif; }
+.graphique svg text.ax   { font-size: 11px;   fill: #667; }
+.graphique svg text.val  { font-size: 10.5px; fill: #333; font-weight: 600; }
+.graphique svg text.val-inv { font-size: 10.5px; fill: #fff; font-weight: 700; }
+.graphique svg text.lbl   { font-size: 11.5px; fill: #333; }
+.graphique svg text.lbl-fin { font-size: 12px; fill: #1f4e79; font-weight: 700; }
+.graphique svg text.pct   { font-size: 11.5px; fill: #1f4e79; font-weight: 700; }
+.graphique svg text.note  { font-size: 10.5px; fill: #fff; font-weight: 600; }
+
+/* ---------- Cartes KPI : sous-ligne ---------- */
+.stat .sous {
+  font-size: 12px; color: #667; margin-top: 3px; line-height: 1.35;
+}
+.stat .sous b { color: #1f4e79; }
+
+/* ---------- Tableaux d'analyse ---------- */
+#table-taux th.tri { cursor: pointer; user-select: none; white-space: nowrap; }
+#table-taux th.tri:hover { background: #173d61; }
+#table-taux th .fleche { font-size: 10px; opacity: .55; }
+#table-taux th.actif .fleche { opacity: 1; color: #ffd54f; }
+#table-taux td.num,
+#table-synthese td.num { text-align: right; font-variant-numeric: tabular-nums; }
+#table-taux td.center,
+#table-synthese td.center { text-align: center; }
+
+/* Mini-barre de pourcentage dans les cellules */
+.taux-cell {
+  display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end;
+}
+.taux-cell .pct { min-width: 44px; text-align: right; }
+.taux-cell svg { display: block; }
+
+/* Lignes de total de la synthèse */
+#table-synthese tr.total-groupe td {
+  background: #eef3f9 !important;
+  font-weight: 700; color: #1f4e79;
+  border-top: 2px solid #cfdcee;
+}
+#table-synthese tr.total-general td {
+  background: #1f4e79 !important;
+  color: #fff; font-weight: 700;
+  border-top: 2px solid #173d61;
+}
+#table-synthese tr.total-general td { background: #173d61 !important; }
+
+/* ---------- Titre de la synthèse (avec sélecteur) ---------- */
+.synthese-tete {
+  display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.synthese-tete h2 {
+  flex: 1; margin: 0; border: none; padding: 0;
+}
+.synthese-tete .champ { min-width: 190px; }
+
+@media (max-width: 700px) {
+  .deux-colonnes { grid-template-columns: 1fr; }
+  .filtres { grid-template-columns: 1fr; }
+}

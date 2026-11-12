@@ -21,6 +21,7 @@ d'école.
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. Ces deux bibliothèques (≈ 550 Ko) ne sont téléchargées qu'au 1er clic sur un bouton PDF, pas à l'ouverture de la page (gain important sur connexion lente, type 2G). |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et, pour chacune : **Voir / PDF**, **Modifier** (corrige le rapport puis régénère le PDF) ou **Supprimer**. |
+| **5. Analyse** | Après connexion à l'Espace Inspection, le bouton **📊 Analyse** ouvre `analyse.html` : exploitation par **école / CODEC / commune / sexe** (KPI, graphiques SVG, taux par école, synthèse) et export **XLSX**. |
 
 ### Mise en page du PDF (conforme au modèle)
 
@@ -84,9 +85,11 @@ index.html              Page d'accueil = formulaire du directeur (A → N) + sou
 saisie.html             Redirection vers index.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (démo ou brouillon)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
+analyse.html            Exploitation des données (filtres, KPI, graphiques, synthèse, export XLSX)
 
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
 assets/css/app.css      Styles de l'interface et du formulaire
+assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-barres)
 assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire)
 assets/js/lib.js        Construction du contexte du rapport (portage de build_context)
 assets/js/rapport.js    Génération HTML des 6 pages officielles
@@ -95,6 +98,7 @@ assets/js/champs.js     Définition déclarative du formulaire (sections A → N
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes (combos du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne
+assets/js/analyse.js    Exploitation : agrégation, graphiques SVG maison, synthèse, export XLSX
 assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Inspection
 assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
 assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne ;
@@ -214,6 +218,35 @@ modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2 avec
 Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL) puis
 **TOTAL ÉTABLISSEMENT**. Si aucun rapport n'est déposé, un message
 s'affiche sans fichier.
+
+### Exploitation des données — la page « 📊 Analyse »
+
+`analyse.html` est la page d'**analyse et d'exploitation** des rapports
+déposés. Elle n'a **aucun formulaire de connexion** : elle n'est accessible
+que par le bouton **📊 Analyse** de la barre de l'Espace Inspection, qui
+n'apparaît **qu'après connexion**. Si l'URL est ouverte à la main sans
+session, la page affiche un simple message et un lien de retour (aucune
+donnée n'est lue sans session).
+
+**Filtres combinables** (recalcul instantané) : **Commune → CODEC → École**
+(en cascade) et **Sexe** (Garçons / Filles / les deux — appliqué aux
+effectifs et au personnel ; les tableaux restent complets).
+
+**Contenu :**
+
+| Bloc | Détail |
+|---|---|
+| **Cartes KPI** | écoles analysées · élèves G/F + % filles · cours/classes (simples/CMG/CDF) · taux de redoublants · handicapés & sans état civil · personnel H/F |
+| **Graphiques SVG** (faits main, aucun CDN) | effectifs par niveau **CI → CM2** en barres groupées G/F · types de classes empilés · personnel **H/F** (français + arabe) · **mobilier** bon / à réparer / déficit · **infrastructures** en % d'écoles · **couverture des manuels** en % d'écoles |
+| **Taux par école** | % filles, % redoublants, % handicapés, % sans état civil, élèves/classe — **triable** (clic sur un en-tête) avec mini-barres |
+| **Synthèse** | regroupement au choix **Commune / CODEC / École**, sous-totaux « Total COM. … » / « Total CODEC … » puis **TOTAL GÉNÉRAL** (même convention que l'export XLSX) |
+| **⬇ Export XLSX** | classeur `Analyse_Rentree_2026-2027.xlsx`, feuille unique **« Synthèse »**, tableau exactement tel qu'affiché, **nombres restant des nombres** (somables). SheetJS (930 Ko) n'est téléchargé **qu'au clic**, comme les autres pages |
+
+**Mode démonstration** : `analyse.html?demo=1` construit 4 rapports fictifs
+à partir de `assets/demo.json` — utile tant que la base est vide.
+
+Poids au chargement : **≈ 315 Ko** (dont 215 Ko de supabase-js) — les
+autres pages ne changent pas.
 
 ### Les 4 cartes du tableau de bord
 

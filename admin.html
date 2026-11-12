@@ -16,6 +16,8 @@
   </div>
   <div class="spacer"></div>
   <a class="lien" href="index.html">Accueil</a>
+  <!-- Visible uniquement après connexion (afficherAdmin) -->
+  <a class="lien" id="lien-analyse" href="analyse.html" style="display:none;">📊 Analyse</a>
   <a class="lien" href="index.html">Saisie directeur</a>
 </div>
 
@@ -234,6 +236,8 @@
 
   /* ---------------- LISTE ---------------- */
   async function afficherAdmin() {
+    /* La page d'analyse n'est accessible qu'une fois la session ouverte. */
+    $("lien-analyse").style.display = "";
     $("zone-admin").style.display = "block";
     await chargerListe();
     chargerListesAdmin();
