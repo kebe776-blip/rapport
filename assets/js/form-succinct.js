@@ -177,7 +177,7 @@
             "<thead>" +
               "<tr>" +
                 '<th rowspan="2" style="width:15%;">' +
-                  esc(def.colonne_titre || "&nbsp;") + "</th>" +
+                  (def.colonne_titre ? esc(def.colonne_titre) : "&nbsp;") + "</th>" +
                 '<th colspan="3" class="grp">EFFECTIFS</th>';
     def.colonnes_maitre.forEach(function (c) {
       html += '<th rowspan="2" style="width:' + c.w + '">' + esc(c.l) + "</th>";

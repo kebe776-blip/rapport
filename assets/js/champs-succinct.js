@@ -137,6 +137,7 @@
   var EFFECTIFS = {
     lettre: "D", groupe: "effectifs",
     titre: "4. SITUATION DES EFFECTIFS",
+    colonne_titre: "COURS",
     aide: "Total = G + F par ligne, puis somme des sections (calcul automatique).",
     lignes: [
       ["ps", "Petite Section"],

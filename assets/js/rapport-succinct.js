@@ -98,7 +98,8 @@
     var html =
       '<table class="grid rs-maitre">' +
         "<thead><tr>" +
-          '<th rowspan="2" style="width:14%;">' + esc(def.colonne_titre || "&nbsp;") + "</th>" +
+          '<th rowspan="2" style="width:14%;">' +
+            (def.colonne_titre ? esc(def.colonne_titre) : "&nbsp;") + "</th>" +
           '<th colspan="3" class="cat">EFFECTIFS</th>' +
           '<th rowspan="2" style="width:27%;">Prénoms, Nom, Matricule et Grade du maître</th>' +
           '<th rowspan="2" style="width:13%;">Diplôme<br>Académique</th>' +
