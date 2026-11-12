@@ -40,12 +40,6 @@
       ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL
     </button>
     <div class="petit mt">
-      Le PDF est construit <b>sur votre appareil</b> puis téléchargé : aucune pièce
-      jointe n'est envoyée par email, aucune connexion n'est nécessaire pour
-      télécharger le fichier.
-      <br>
-      <a href="#" id="lien-exemple">Tester avec des données d'exemple</a>
-      ·
       <a href="#" id="lien-reset">Effacer la saisie en cours</a>
     </div>
   </div>
@@ -235,22 +229,7 @@
     }
   });
 
-  /* --- Outils de test / remise à zéro --- */
-  document.getElementById("lien-exemple").addEventListener("click", function (ev) {
-    ev.preventDefault();
-    fetch("assets/demo.json", { cache: "no-store" })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        delete d._id;
-        window.RRform.remplir(d);
-        window.RRform.sauverBrouillon();
-        message.className = "bandeau info";
-        message.innerHTML = "<b>Données d'exemple chargées.</b> " +
-          "Vérifiez le formulaire puis cliquez sur Soumettre.";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-  });
-
+  /* --- Remise à zéro de la saisie --- */
   document.getElementById("lien-reset").addEventListener("click", function (ev) {
     ev.preventDefault();
     if (!confirm("Effacer toute la saisie en cours ?")) { return; }
