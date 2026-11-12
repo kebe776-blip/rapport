@@ -5,6 +5,19 @@
    AVANT MISE EN LIGNE : renseignez SUPABASE_URL et SUPABASE_ANON_KEY
    (Supabase > Project Settings > API). Le reste est déjà paramétré.
    ========================================================================= */
+
+/* --- ORIGINE UNIQUE ------------------------------------------------------
+   La session Supabase est gardée dans localStorage, qui est propre à CHAQUE
+   origine : ouvrir le site sur 127.0.0.1 alors qu'on s'est connecté sur
+   localhost (ou l'inverse) fait perdre la connexion — la page Analyse
+   affiche alors « Accès réservé » et masque toutes les données.
+   On redirige donc vers localhost, seule origine de référence. Aucun effet
+   sur un domaine public (GitHub Pages) ni sur localhost lui-même. */
+if (window.location.hostname === "127.0.0.1") {
+  window.location.replace(
+    window.location.href.replace("127.0.0.1", "localhost"));
+}
+
 window.RR_CONFIG = {
   /* --- Année scolaire et en-têtes officiels du rapport --- */
   ANNEE: "2026/2027",

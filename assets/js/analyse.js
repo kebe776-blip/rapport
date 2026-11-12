@@ -997,7 +997,13 @@
         msg("warn", "<b>Accès réservé.</b> Ouvrez cette page depuis l'" +
           "<a href=\"admin.html\">Espace Inspection</a> : connectez-vous puis " +
           "cliquez sur le bouton « 📊 Analyse ». " +
-          "(Aucune donnée n'est lue sans session.)");
+          "<br><span class='petit'>Deux causes fréquentes si vous êtes pourtant " +
+          "connecté : l'adresse n'est pas la même que celle de la connexion " +
+          "(elle doit commencer par <span class='mono'>http://localhost:…</span> " +
+          "et non <span class='mono'>127.0.0.1</span> — la page se redirige " +
+          "automatiquement), ou la connexion a été faite dans un autre " +
+          "navigateur. " +
+          "(Aucune donnée n'est lue sans session.)</span>");
         return;
       }
 
