@@ -87,7 +87,7 @@
   /* -----------------------------------------------------------------------
      État
      ----------------------------------------------------------------------- */
-  var state = { lignes: [], demo: false, taux: [] };
+  var state = { lignes: [], taux: [] };
   var triTaux = { cle: "commune", sens: 1 };
 
   var TITRES_MAJEURS = [
@@ -512,8 +512,7 @@
     }
 
     $("stats").innerHTML =
-      carte(fmt(A.n), "Écoles analysées",
-            state.demo ? "données de démonstration" : "rapports en base") +
+      carte(fmt(A.n), "Écoles analysées", "rapports en base") +
       carte(fmt(effBase), s === "tous" ? "Élèves" :
             (s === "g" ? "Élèves garçons" : "Élèves filles"), sousEff) +
       carte(fmt(A.classes.total), "Cours / classes",
@@ -982,117 +981,38 @@
     });
   }
 
-  /** 4 rapports fictifs pour développer / démontrer (base réelle vide). */
-  async function chargerDemo() {
-    var res = await fetch("assets/demo.json", { cache: "no-store" });
-    if (!res.ok) { throw new Error("assets/demo.json introuvable."); }
-    var brut = await res.json();
-    var defs = [
-      { nom: "ECOLE PRIMAIRE PUBLIC DE WACK NGOUNA", commune: "WACK NGOUNA", codec: "WACK NGOUNA", k: 1 },
-      { nom: "ECOLE PRIMAIRE PRIVEE KEUR MABA DIAKHOU", commune: "KEUR MABA DIAKHOU", codec: "KEUR MABA DIAKHOU", k: 0.74 },
-      { nom: "ECOLE PRIMAIRE DE SAMB WOLOF", commune: "SAMB WOLOF", codec: "MADIANA", k: 1.31 },
-      { nom: "ECOLE COMMUNAUTAIRE DE DIAGANE", commune: "", codec: "", k: 0.52 }
-    ];
-    return defs.map(function (d, i) {
-      var c = JSON.parse(JSON.stringify(brut));
-      c.identification.nom_ecole = d.nom;
-      c.identification.commune = d.commune;
-      c.identification.codec = d.codec;
-
-      Object.keys(c.effectifs).forEach(function (k) {
-        var r = c.effectifs[k];
-        r.eff_g = Math.round(num(r.eff_g) * d.k);
-        r.eff_f = Math.round(num(r.eff_f) * d.k * (0.92 + 0.05 * i));
-        r.eff_t = r.eff_g + r.eff_f;
-        r.red_g = Math.round(num(r.red_g) * d.k);
-        r.red_f = Math.round(num(r.red_f) * d.k);
-        r.red_t = r.red_g + r.red_f;
-        r.hand_g = Math.round(num(r.hand_g) * d.k);
-        r.hand_f = Math.round(num(r.hand_f) * d.k);
-        r.hand_t = r.hand_g + r.hand_f;
-        r.sans_etat_g = Math.round(num(r.sans_etat_g) * d.k);
-        r.sans_etat_f = Math.round(num(r.sans_etat_f) * d.k);
-        r.sans_etat_t = r.sans_etat_g + r.sans_etat_f;
-      });
-
-      var cp = c.classes_pedagogiques || {};
-      var s = Math.max(1, Math.round(num(cp.nb_classes_simples) * d.k));
-      var mg = Math.round(num(cp.nb_cmg) * d.k);
-      var df = Math.round(num(cp.nb_cdf) * d.k);
-      if (s + mg + df > 0) {
-        cp.nb_classes_simples = s;
-        cp.nb_cmg = mg;
-        cp.nb_cdf = df;
-        cp.nb_cours = s + mg + df;
-      }
-
-      var oa = c.ouvrages_annexes || {};
-      if (i >= 2) { oa.internet = "non"; }
-      if (i === 3) { oa.toilettes = "non"; oa.senelec = "non"; oa.magasin = "non"; }
-
-      if (i === 3) {
-        (c.manuels || []).forEach(function (m) {
-          if (/Mathematiques CM|Guide revise/i.test(String(m.titre || ""))) {
-            m.quantite = 0;
-          }
-        });
-      }
-
-      return {
-        ecole_code: "DEMO-" + (i + 1),
-        ecole_nom: d.nom,
-        annee: CFG.ANNEE || "2026/2027",
-        maj_le: "2026-11-11 10:00:00+00:00",
-        donnees: c
-      };
-    });
-  }
-
   /* =======================================================================
      DÉMARRAGE + GARDE-FOU (aucun formulaire de connexion sur la page)
      ======================================================================= */
   async function demarrer() {
-    var params = new URLSearchParams(location.search);
-    state.demo = params.get("demo") === "1";
-
     try {
-      if (!state.demo) {
-        if (!window.RRdb.actif()) {
-          msg("warn", "<b>Supabase non configuré.</b> Ouvrez cette page depuis " +
-            "l'<a href=\"admin.html\">Espace Inspection</a> après avoir renseigné " +
-            "<span class='mono'>assets/js/config.js</span>.");
-          return;
-        }
-        var user = await window.RRdb.utilisateur();
-        if (!user) {
-          msg("warn", "<b>Accès réservé.</b> Ouvrez cette page depuis l'" +
-            "<a href=\"admin.html\">Espace Inspection</a> : connectez-vous puis " +
-            "cliquez sur le bouton « 📊 Analyse ». " +
-            "(Aucune donnée n'est lue sans session.)");
-          return;
-        }
+      if (!window.RRdb.actif()) {
+        msg("warn", "<b>Supabase non configuré.</b> Ouvrez cette page depuis " +
+          "l'<a href=\"admin.html\">Espace Inspection</a> après avoir renseigné " +
+          "<span class='mono'>assets/js/config.js</span>.");
+        return;
+      }
+      var user = await window.RRdb.utilisateur();
+      if (!user) {
+        msg("warn", "<b>Accès réservé.</b> Ouvrez cette page depuis l'" +
+          "<a href=\"admin.html\">Espace Inspection</a> : connectez-vous puis " +
+          "cliquez sur le bouton « 📊 Analyse ». " +
+          "(Aucune donnée n'est lue sans session.)");
+        return;
       }
 
-      progres(state.demo ? "Chargement des données de démonstration…"
-                         : "Lecture des rapports…", 25);
-      var bruts = state.demo ? await chargerDemo() : await window.RRdb.listerComplets();
+      progres("Lecture des rapports…", 25);
+      var bruts = await window.RRdb.listerComplets();
       finProgres();
 
       if (!bruts.length) {
         msg("info", "<b>Aucun rapport à analyser.</b> Déposez d'abord des rapports " +
-          "depuis l'<a href=\"admin.html\">Espace Inspection</a> — ou ouvrez " +
-          "<a href=\"analyse.html?demo=1\">analyse.html?demo=1</a> pour un " +
-          "exemple avec des données fictives.");
+          "depuis l'<a href=\"admin.html\">Espace Inspection</a>.");
         return;
       }
 
       state.lignes = construireLignes(bruts);
       $("zone").style.display = "block";
-      if (state.demo) {
-        msgAnalyse("info", "<b>Mode démonstration</b> — " + state.lignes.length +
-          " rapports fictifs construits à partir de <span class='mono'>assets/demo.json</span>.");
-      }
-
       reconstruireFiltres();
       rendre();
     } catch (e) {

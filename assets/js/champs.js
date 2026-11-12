@@ -1,8 +1,8 @@
 /* =========================================================================
    champs.js — Définition déclarative du formulaire officiel
    Sections A → N du « RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE ».
-   Les noms de champs (n) correspondent exactement à assets/demo.json,
-   ce que buildContext() attend pour produire le PDF.
+   Les noms de champs (n) correspondent à l'objet brut enregistré dans la
+   colonne `donnees`, ce que buildContext() attend pour produire le PDF.
    ========================================================================= */
 (function (global) {
   "use strict";

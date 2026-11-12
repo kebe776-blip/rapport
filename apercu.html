@@ -74,15 +74,9 @@
     return p;
   }
 
-  /** Récupère les données : brouillon local, ?demo=1, ou ?ref= (Supabase). */
+  /** Récupère les données : brouillon local, ou ?ref= (Supabase). */
   async function charger() {
     var p = params();
-
-    if (p.demo === "1") {
-      var r = await fetch("assets/demo.json", { cache: "no-store" });
-      if (!r.ok) { throw new Error("Données de démonstration introuvables."); }
-      return { brut: await r.json(), source: "démo" };
-    }
 
     /* Dernière saisie enregistrée sur cet appareil */
     var brut = null;

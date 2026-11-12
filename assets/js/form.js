@@ -11,7 +11,7 @@
   var esc = R.esc;
 
   var conteneur = null;   /* élément qui reçoit le HTML du formulaire */
-  var donnees = {};       /* objet en cours de saisie (forme assets/demo.json) */
+  var donnees = {};       /* objet en cours de saisie (sections A → N) */
   var minuteur = null;
 
   /* -----------------------------------------------------------------------

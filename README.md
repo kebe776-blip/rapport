@@ -103,7 +103,6 @@ assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Insp
 assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
 assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne ;
                         jsPDF + html2canvas et SheetJS sont chargés à la demande, au clic)
-assets/demo.json        Données d'exemple (rapport complet)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
@@ -184,7 +183,6 @@ directeurs (à raccourcir avec un lien type `bit.ly` pour les villages).
 ```bash
 python -m http.server 8099
 # puis http://localhost:8099/            (la saisie = page d'accueil)
-#      http://localhost:8099/apercu.html?demo=1   (rapport d'exemple)
 ```
 
 ---
@@ -242,10 +240,7 @@ effectifs et au personnel ; les tableaux restent complets).
 | **Synthèse** | regroupement au choix **Commune / CODEC / École**, sous-totaux « Total COM. … » / « Total CODEC … » puis **TOTAL GÉNÉRAL** (même convention que l'export XLSX) |
 | **⬇ Export XLSX** | classeur `Analyse_Rentree_2026-2027.xlsx`, feuille unique **« Synthèse »**, tableau exactement tel qu'affiché, **nombres restant des nombres** (somables). SheetJS (930 Ko) n'est téléchargé **qu'au clic**, comme les autres pages |
 
-**Mode démonstration** : `analyse.html?demo=1` construit 4 rapports fictifs
-à partir de `assets/demo.json` — utile tant que la base est vide.
-
-Poids au chargement : **≈ 315 Ko** (dont 215 Ko de supabase-js) — les
+Poids au chargement : **≈ 312 Ko** (dont 215 Ko de supabase-js) — les
 autres pages ne changent pas.
 
 ### Les 4 cartes du tableau de bord

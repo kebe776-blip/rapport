@@ -1,6 +1,6 @@
 /* =========================================================================
    lib.js — Construction du contexte du rapport
-   Transforme les données brutes du formulaire (même forme que assets/demo.json)
+   Transforme les données brutes du formulaire (sections A → N)
    en contexte prêt à être rendu par rapport.js.
    ========================================================================= */
 (function (global) {

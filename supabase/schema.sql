@@ -13,7 +13,7 @@ create table if not exists public.rapports (
   ecole_code  text        not null,          -- CODEC ou nom d'école normalisé
   ecole_nom   text        not null default '',
   annee       text        not null default '2026/2027',
-  donnees     jsonb       not null,          -- formulaire complet (forme assets/demo.json)
+  donnees     jsonb       not null,          -- formulaire complet (sections A → N)
   maj_le      timestamptz not null default now(),
   primary key (ecole_code, annee)
 );
