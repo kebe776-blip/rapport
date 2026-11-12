@@ -50,7 +50,7 @@ Le nom de fichier généré est toujours :
 ### Passage à l'échelle : 500 écoles
 
 * Supabase (PostgreSQL) : un rapport pèse 10 à 50 Ko → **≈ 25 Mo pour 500 écoles** (l'offre gratuite en stocke 500 Mo)
-* Clé primaire `(ecole_code, annee)` : une école qui soumet deux fois **met à jour** sa ligne, pas de doublon
+* Clé primaire `(ecole_code, annee)` où `ecole_code` = **slug du nom de l'école** : une école qui soumet deux fois **met à jour** sa ligne, pas de doublon. Le **CODEC ne sert jamais de clé** — plusieurs écoles peuvent partager le même CODEC (c'est leur regroupement) et déposent chacune leur propre rapport
 * Contrôle **avant** envoi (fonction SQL `rapport_existe`) : le directeur est prévenu dès la soumission si son école a déjà déposé — hors-ligne, ce contrôle est simplement ignoré et la file se synchronise plus tard
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût

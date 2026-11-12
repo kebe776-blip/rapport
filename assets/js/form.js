@@ -948,11 +948,13 @@
         deja = null;
       }
       if (deja === true) {
-        var codeEcole = global.RRdb.codeEcole(donneesSaisies);
+        var nomEcole = (donneesSaisies.identification &&
+                       donneesSaisies.identification.nom_ecole) ||
+                       global.RRdb.codeEcole(donneesSaisies);
         var remplacer = confirm(
           "⚠ RAPPORT DÉJÀ SOUMIS\n\n" +
           "Un rapport de rentrée a déjà été déposé pour l'école\n" +
-          "« " + codeEcole + " ».\n\n" +
+          "« " + nomEcole + " ».\n\n" +
           "OK     → remplacer le rapport déjà enregistré (mise à jour + PDF)\n" +
           "Annuler → abandonner la soumission (aucun envoi, aucun PDF)"
         );

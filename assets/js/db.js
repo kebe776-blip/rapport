@@ -55,9 +55,11 @@
   }
 
   function codeEcole(donnees) {
-    var codec = donnees && donnees.identification && donnees.identification.codec;
+    /* Clé d'unicité du rapport : le NOM de l'école uniquement. Le CODEC
+       n'entre jamais en compte — plusieurs écoles partagent le même
+       CODEC (c'est leur regroupement) et restent des rapports distincts. */
     var nom = donnees && donnees.identification && donnees.identification.nom_ecole;
-    return slug(codec || nom || "ECOLE");
+    return slug(nom || "ECOLE");
   }
 
   /* ---------- Envoi d'un élément ----------
