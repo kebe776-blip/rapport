@@ -3,255 +3,162 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Saisie du rapport de rentrée — École élémentaire</title>
+<title>Accueil — Rapports de rentrée 2026/2027</title>
 <link rel="stylesheet" href="assets/css/rapport.css">
 <link rel="stylesheet" href="assets/css/app.css">
+<style>
+  /* --- Menu d'accueil : grille de cartes-boutons (HTML/CSS pur) --- */
+  .menu-titre { margin: 26px 0 12px; font-size: 15px; letter-spacing: .5px;
+                text-transform: uppercase; color: #12406e; }
+  .menu-titre:first-of-type { margin-top: 6px; }
+  .grille-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 14px;
+  }
+  .carte-menu {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 16px; text-align: left;
+  }
+  .carte-menu .icone { font-size: 26px; line-height: 1; }
+  .carte-menu .nom { font-weight: 700; font-size: 14.5px; color: #1a1a1a;
+                     line-height: 1.35; }
+  .carte-menu .desc { font-size: 12px; color: #666; flex: 1; }
+  .badge {
+    display: inline-block; align-self: flex-start;
+    font-size: 11px; font-weight: 700; letter-spacing: .4px;
+    padding: 3px 9px; border-radius: 999px; text-transform: uppercase;
+  }
+  .badge.dispo   { background: #e7f6ec; color: #155f31; border: 1px solid #b6e3c6; }
+  .badge.avenir  { background: #f1f2f4; color: #6b7280; border: 1px solid #d9dce1; }
+  .carte-menu.avenir { background: #fafbfc; opacity: .85; }
+  .carte-menu.avenir .nom { color: #555; }
+  .lien-menu {
+    display: block; text-decoration: none;
+  }
+  .lien-menu:focus { outline: 2px solid #173d61; outline-offset: 2px; }
+  .btn-menu { margin-top: 4px; }
+  .espacement { height: 10px; }
+</style>
 </head>
 <body>
 
 <div class="topbar">
   <div>
-    <h1>FORMULAIRE DE RENTRÉE ÉLÉMENTAIRE 2026/2027</h1>
+    <h1>RAPPORTS DE RENTRÉE 2026/2027</h1>
     <div class="sous">Inspection de l'Éducation et de la Formation de KEUR MADIABEL</div>
   </div>
   <div class="spacer"></div>
-  <span class="sous" id="statut-brouillon"></span>
-  <a class="lien" href="apercu.html">Aperçu du PDF</a>
   <a class="lien" href="admin.html">Espace Inspection</a>
 </div>
 
 <div class="conteneur">
 
-  <div id="message" class="bandeau info">
-    <b>Remplissez le formulaire officiel puis cliquez sur « Soumettre ».</b>
-    Votre rapport PDF (6 pages, format paysage) sera téléchargé automatiquement.
+  <div class="bandeau info">
+    <b>Bienvenue.</b> Choisissez le rapport à remplir ci-dessous.
+    Chaque formulaire génère le fichier officiel PDF au moment de la soumission.
   </div>
 
-  <div id="alerte" class="bandeau erreur" style="display:none;"></div>
+  <!-- ===================== RAPPORTS SUCCINCTS ===================== -->
+  <h2 class="menu-titre">📋 Rapports succincts de rentrée</h2>
+  <div class="grille-menu">
 
-  <div id="formulaire"></div>
-
-  <div class="carte center" id="carte-soumission">
-    <button class="btn vert large" id="btn-soumettre">
-      ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL
-    </button>
-    <div class="petit mt">
-      <a href="#" id="lien-reset">Effacer la saisie en cours</a>
+    <div class="carte carte-menu avenir">
+      <span class="icone">🏫</span>
+      <span class="nom">Rapport succinct de rentrée <b>préscolaire</b></span>
+      <span class="desc">Relevé condensé de la rentrée en section préscolaire.</span>
+      <span class="badge avenir">Bientôt disponible</span>
+      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
     </div>
-  </div>
 
-</div>
-
-<!-- Aperçu du rapport : révélé uniquement après soumission -->
-<div class="conteneur" id="zone-apercu" style="display:none;">
-  <div class="carte">
-    <h2>Votre rapport officiel</h2>
-    <div id="etat-apercu" class="bandeau ok"></div>
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <button class="btn vert" id="btn-retel">⬇ Retélécharger le PDF</button>
-      <a class="btn gris" href="index.html">Nouvelle saisie</a>
+    <div class="carte carte-menu avenir">
+      <span class="icone">🏫</span>
+      <span class="nom">Rapport succinct de rentrée <b>élémentaire</b></span>
+      <span class="desc">Relevé condensé de la rentrée en école élémentaire.</span>
+      <span class="badge avenir">Bientôt disponible</span>
+      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
     </div>
+
+    <div class="carte carte-menu avenir">
+      <span class="icone">🏫</span>
+      <span class="nom">Rapport succinct de rentrée <b>moyen</b></span>
+      <span class="desc">Relevé condensé de la rentrée en collège.</span>
+      <span class="badge avenir">Bientôt disponible</span>
+      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+    </div>
+
   </div>
-  <div class="apercu-wrap" id="apercu"></div>
+
+  <!-- ===================== RAPPORTS GÉNÉRAUX ===================== -->
+  <h2 class="menu-titre">📑 Rapports généraux de rentrée</h2>
+  <div class="grille-menu">
+
+    <div class="carte carte-menu avenir">
+      <span class="icone">🏫</span>
+      <span class="nom">Rapport général de rentrée <b>préscolaire</b></span>
+      <span class="desc">Rapport complet de la rentrée en section préscolaire.</span>
+      <span class="badge avenir">Bientôt disponible</span>
+      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+    </div>
+
+    <a class="lien-menu" href="general-elementaire.html">
+      <div class="carte carte-menu">
+        <span class="icone">🏫</span>
+        <span class="nom">Rapport général de rentrée <b>élémentaire</b></span>
+        <span class="desc">Rapport complet (sections A → N) : classes, effectifs,
+          directeur, ouvrages, manuels, matériel, infrastructures.</span>
+        <span class="badge dispo">Disponible</span>
+        <span class="btn vert large btn-menu">Remplir le formulaire →</span>
+      </div>
+    </a>
+
+    <div class="carte carte-menu avenir">
+      <span class="icone">🏫</span>
+      <span class="nom">Rapport général de rentrée <b>moyen</b></span>
+      <span class="desc">Rapport complet de la rentrée en collège.</span>
+      <span class="badge avenir">Bientôt disponible</span>
+      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
+    </div>
+
+  </div>
+
+  <div class="espacement"></div>
+
+  <!-- ===================== ESPACE INSPECTION ===================== -->
+  <h2 class="menu-titre">🔐 Espace Inspection</h2>
+  <div class="grille-menu">
+    <a class="lien-menu" href="admin.html">
+      <div class="carte carte-menu">
+        <span class="icone">🛡️</span>
+        <span class="nom">Espace Inspection</span>
+        <span class="desc">Connexion réservée : consulter et modifier les rapports
+          soumis, gérer les listes d'écoles / CODEC / communes, suivre les
+          soumissions et ouvrir la page <b>Analyse</b>.</span>
+        <span class="badge dispo">Disponible</span>
+        <span class="btn large btn-menu">Ouvrir l'espace →</span>
+      </div>
+    </a>
+  </div>
+
 </div>
 
-<div class="progression" id="progression">
-  <div id="prog-texte">Traitement…</div>
-  <div class="barre-interne"><div id="prog-barre"></div></div>
-</div>
-
-<!-- jsPDF + html2canvas : chargés à la demande par assets/js/pdf.js -->
-<script src="assets/vendor/supabase.min.js"></script>
 <script src="assets/js/config.js"></script>
-<script src="assets/js/lib.js"></script>
-<script src="assets/js/rapport.js"></script>
-<script src="assets/js/pdf.js"></script>
-<script src="assets/js/db.js"></script>
-<script src="assets/js/ecoles.js"></script>
-<script src="assets/js/champs.js"></script>
-<script src="assets/js/form.js"></script>
 <script>
+/* Accès rapide : si une saisie est en cours (brouillon), le proposer. */
 (function () {
   "use strict";
-  var CFG = window.RR_CONFIG;
-  var zone = document.getElementById("formulaire");
-  var message = document.getElementById("message");
-  var alerte = document.getElementById("alerte");
-  var progression = document.getElementById("progression");
-  var ctxCourant = null;
-
-  function afficherAlerte(liste) {
-    alerte.style.display = "block";
-    alerte.innerHTML = "<b>Saisie incomplète :</b><br>• " +
-      liste.map(window.RR.esc).join("<br>• ");
-    alerte.scrollIntoView({ behavior: "smooth", block: "center" });
-  }
-
-  var page = {
-    erreur: afficherAlerte,
-    /* Soumission abandonnée par l'utilisateur (anti-doublon) :
-       on masque la progression et on affiche le motif, sans PDF. */
-    annule: function (texte) {
-      progression.classList.remove("visible");
-      document.getElementById("prog-barre").style.width = "0%";
-      alerte.style.display = "none";
-      message.className = "bandeau warn";
-      message.innerHTML = "<b>⛔ " + window.RR.esc(texte) + "</b>";
-      message.scrollIntoView({ behavior: "smooth", block: "center" });
-    },
-    apercu: document.getElementById("apercu"),
-    progres: function (texte, pct) {
-      progression.classList.add("visible");
-      document.getElementById("prog-texte").textContent = texte;
-      document.getElementById("prog-barre").style.width = (pct || 0) + "%";
-    },
-    apercuVisible: function () {
-      document.getElementById("zone-apercu").style.display = "block";
-    },
-    succes: function (res, nom, ctx) {
-      progression.classList.remove("visible");
-      document.getElementById("prog-barre").style.width = "0%";
-      alerte.style.display = "none";
-      var etat = document.getElementById("etat-apercu");
-      var texte;
-      if (res.envoye) {
-        texte = "<b>✅ Rapport enregistré et PDF téléchargé :</b> " +
-                window.RR.esc(nom);
-      } else {
-        texte = "<b>⚠ " + window.RR.esc(res.message) + "</b><br>" +
-                "Votre PDF est téléchargé : conservez-le, l'envoi se fera " +
-                "automatiquement au prochain accès réseau.";
-      }
-      etat.innerHTML = texte;
-      message.className = "bandeau ok";
-      message.innerHTML = "<b>Soumission terminée.</b> " +
-        "Fichier officiel généré : <b>" + window.RR.esc(nom) + "</b> — " +
-        "6 pages A4 paysage.";
-      document.getElementById("zone-apercu").scrollIntoView({
-        behavior: "smooth", block: "start"
-      });
-      ctxCourant = ctx;
-    }
-  };
-
-  /* --- Construction du formulaire --- */
-  window.RRform.construire(zone);
-
-  /* --- Reprise d'une modification lancée depuis l'espace Inspection ---
-     Le sessionStorage contient le rapport à corriger : on le charge dans
-     le formulaire, on l'efface de la session (une seule prise en charge)
-     et on le verse dans le brouillon pour survivre à un rechargement. */
-  var aModifier = null;
-  try { aModifier = JSON.parse(sessionStorage.getItem("RR_MODIF") || "null"); }
-  catch (e) { aModifier = null; }
-
-  if (aModifier && aModifier.donnees) {
-    try { sessionStorage.removeItem("RR_MODIF"); } catch (e) {}
-    window.RRform.remplir(aModifier.donnees);
-    try {
-      localStorage.setItem(CFG.LS_BROUILLON, JSON.stringify(aModifier.donnees));
-    } catch (e) {}
-    message.className = "bandeau warn";
-    message.innerHTML = "<b>✏ MODIFICATION D'UN RAPPORT ENREGISTRÉ — " +
-      window.RR.esc(aModifier.nom || aModifier.code) + ".</b><br>" +
-      "Les données du rapport sont chargées : corrigez ce qui doit l'être, " +
-      "puis cliquez sur « SOUMETTRE ». Le rapport existant sera remplacé et " +
-      "le nouveau PDF (6 pages) téléchargé." +
-      "<br><span class='petit'>Gardez le même <b>codec</b> et le même " +
-      "<b>nom d'école</b> : les modifier créerait un rapport distinct au lieu " +
-      "de remplacer celui-ci.</span>";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } else {
-    /* --- Reprise du brouillon --- */
-    var brouillon = window.RRform.chargerBrouillon();
-    if (brouillon && brouillon.identification && brouillon.identification.nom_ecole) {
-      window.RRform.remplir(brouillon);
-      message.className = "bandeau info";
-      message.innerHTML = "<b>Brouillon repris :</b> " +
-        window.RR.esc(brouillon.identification.nom_ecole) +
-        " — vous pouvez reprendre votre saisie là où vous l'aviez laissée.";
-    }
-  }
-
-  /* --- File d'attente hors-ligne --- */
-  (async function () {
-    if (!window.RRdb.actif()) { return; }
-    var avant = window.RRdb.attente();
-    var res = await window.RRdb.viderFile();
-    if (res.envoyes > 0) {
-      message.className = "bandeau ok";
-      message.innerHTML = "<b>" + res.envoyes + " soumission(s) en attente " +
-        "ont été envoyées au serveur.</b>";
-    } else if (avant > 0) {
-      message.className = "bandeau warn";
-      message.innerHTML = "<b>" + avant + " soumission(s) en attente d'envoi</b> " +
-        "(réseau indisponible). Elles partiront automatiquement.";
-    }
-  }());
-
-  /* --- Soumission --- */
-  document.getElementById("btn-soumettre").addEventListener("click", async function () {
-    var btn = this;
-    btn.disabled = true;
-    try {
-      await window.RRform.soumettre(page);
-    } catch (e) {
-      progression.classList.remove("visible");
-      afficherAlerte(["Erreur inattendue : " + e.message]);
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  /* --- Retéléchargement --- */
-  document.getElementById("btn-retel").addEventListener("click", async function () {
-    if (!ctxCourant) { return; }
-    var btn = this;
-    btn.disabled = true;
-    try {
-      page.progres("Chargement du module PDF…", 0);
-      await window.RR.pdf.precharger();
-      var pages = document.getElementById("apercu").querySelectorAll(".pdf-page");
-      await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
-        page.progres("Génération du PDF — page " + i + " / " + n + "…",
-                     Math.round(i / n * 100));
-      });
-      progression.classList.remove("visible");
-    } catch (e) {
-      progression.classList.remove("visible");
-      afficherAlerte(["Erreur : " + e.message]);
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  /* --- Remise à zéro de la saisie --- */
-  document.getElementById("lien-reset").addEventListener("click", function (ev) {
-    ev.preventDefault();
-    if (!confirm("Effacer toute la saisie en cours ?")) { return; }
-    try { localStorage.removeItem(CFG.LS_BROUILLON); } catch (e) {}
-    location.reload();
-  });
-
-  /* --- Listes des écoles / CODEC / communes : on interroge Supabase en
-         tâche de fond (non bloquant). Si le serveur ne répond pas, on
-         garde les listes embarquées de ecoles.js ; sinon les tableaux
-         RR_ECOLES / RR_CODECS / RR_COMMUNES sont mis à jour à la volée et
-         la liste ouverte, le cas échéant, est rafraîchie. --- */
-  if (window.RRdb && window.RRdb.chargerListes) {
-    window.RRdb.chargerListes()
-      .then(function (r) {
-        if (r && r.source === "serveur" && window.RRform) {
-          window.RRform.rafraichirCombos();
-        }
-      })
-      .catch(function () { /* hors-ligne : on garde ecoles.js */ });
-  }
-
-  window.addEventListener("resize", function () {
-    if (ctxCourant) { window.RR.fitPreview(document.getElementById("apercu")); }
-  });
+  var b = null;
+  try { b = localStorage.getItem(window.RR_CONFIG.LS_BROUILLON); } catch (e) {}
+  if (!b) { return; }
+  var bandeau = document.querySelector(".bandeau.info");
+  if (!bandeau) { return; }
+  var lien = document.createElement("div");
+  lien.className = "mt";
+  lien.innerHTML = "✏️ Une saisie est en cours sur cet appareil — " +
+    "<a href=\"general-elementaire.html\"><b>reprendre le brouillon →</b></a>";
+  bandeau.appendChild(lien);
 }());
 </script>
+
 </body>
 </html>

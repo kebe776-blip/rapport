@@ -17,7 +17,7 @@ d'école.
 
 | Étape | Ce qui se passe |
 |---|---|
-| **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
+| **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` (menu des rapports), choisit **Rapport général de rentrée élémentaire** et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. Ces deux bibliothèques (≈ 550 Ko) ne sont téléchargées qu'au 1er clic sur un bouton PDF, pas à l'ouverture de la page (gain important sur connexion lente, type 2G). |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et, pour chacune : **Voir / PDF**, **Modifier** (corrige le rapport puis régénère le PDF) ou **Supprimer**. |
@@ -81,8 +81,10 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 ## 2. Fichiers du projet
 
 ```
-index.html              Page d'accueil = formulaire du directeur (A → N) + soumission + PDF
-saisie.html             Redirection vers index.html (anciens liens conservés)
+index.html              Page d'accueil : menu des 6 rapports (succinct/général ×
+                        préscolaire/élémentaire/moyen) + Espace Inspection
+general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF
+saisie.html             Redirection vers general-elementaire.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (brouillon local ou rapport en base)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
 analyse.html            Exploitation des données (filtres, KPI, graphiques, synthèse, export XLSX)
@@ -182,7 +184,7 @@ directeurs (à raccourcir avec un lien type `bit.ly` pour les villages).
 
 ```bash
 python -m http.server 8099
-# puis http://localhost:8099/            (la saisie = page d'accueil)
+# puis http://localhost:8099/            (page d'accueil = menu des rapports)
 ```
 
 ---

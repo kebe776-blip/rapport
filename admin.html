@@ -18,7 +18,7 @@
   <a class="lien" href="index.html">Accueil</a>
   <!-- Visible uniquement après connexion (afficherAdmin) -->
   <a class="lien" id="lien-analyse" href="analyse.html" style="display:none;">📊 Analyse</a>
-  <a class="lien" href="index.html">Saisie directeur</a>
+  <a class="lien" href="general-elementaire.html">Saisie directeur</a>
 </div>
 
 <div class="conteneur">
@@ -448,7 +448,7 @@
     } catch (e) {
       throw new Error("Impossible de préparer la modification : " + e.message);
     }
-    location.href = "index.html";
+    location.href = "general-elementaire.html";
   }
 
   function ouvrirApercu(ligne) {

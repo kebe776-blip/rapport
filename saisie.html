@@ -4,11 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Saisie du rapport de rentrée — École élémentaire</title>
-<!-- Le formulaire est désormais la page d'accueil (index.html).
-     Cette page reste uniquement pour que les anciens liens continuent
-     de fonctionner. -->
-<meta http-equiv="refresh" content="0; url=index.html">
-<link rel="canonical" href="index.html">
+<!-- Ancien alias du formulaire : les liens historiques ouvrent directement
+     le formulaire (general-elementaire.html). -->
+<meta http-equiv="refresh" content="0; url=general-elementaire.html">
+<link rel="canonical" href="general-elementaire.html">
 <link rel="stylesheet" href="assets/css/rapport.css">
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
@@ -23,14 +22,15 @@
 
 <div class="conteneur">
   <div class="bandeau info">
-    Le formulaire est maintenant la <b>page d'accueil</b>.
+    Le formulaire a été déplacé.
     <br>
-    <a class="btn gris mt" href="index.html">Accéder au formulaire →</a>
+    <a class="btn gris mt" href="general-elementaire.html">Accéder au formulaire →</a>
+    <a class="btn gris mt" href="index.html">Page d'accueil →</a>
   </div>
 </div>
 
 <script>
-  location.replace("index.html" + location.search + location.hash);
+  location.replace("general-elementaire.html" + location.search + location.hash);
 </script>
 </body>
 </html>
