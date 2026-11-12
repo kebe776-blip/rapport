@@ -86,7 +86,7 @@
     }
 
     /* Récupération depuis Supabase (admin, ou autre appareil) */
-    if (p.ref && window.RRdb && window.RRdb.configue()) {
+    if (p.ref && window.RRdb && window.RRdb.actif()) {
       var ligne = await window.RRdb.obtenir(p.ref);
       if (ligne && ligne.donnees) {
         return { brut: ligne.donnees, source: "Supabase", id: ligne.id };

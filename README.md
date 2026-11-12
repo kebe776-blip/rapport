@@ -83,7 +83,7 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 ```
 index.html              Page d'accueil = formulaire du directeur (A → N) + soumission + PDF
 saisie.html             Redirection vers index.html (anciens liens conservés)
-apercu.html             Aperçu / régénération du rapport (démo ou brouillon)
+apercu.html             Aperçu / régénération du rapport (brouillon local ou rapport en base)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
 analyse.html            Exploitation des données (filtres, KPI, graphiques, synthèse, export XLSX)
 

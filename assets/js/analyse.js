@@ -1,7 +1,7 @@
 /* =========================================================================
    analyse.js — Exploitation des données (page analyse.html)
    -------------------------------------------------------------------------
-   Lecture des rapports (Supabase ou mode démo) → agrégation par école /
+   Lecture des rapports Supabase → agrégation par école /
    CODEC / commune / sexe → KPI, graphiques SVG faits main (aucun CDN),
    tableau « Taux par école », synthèse groupable et export XLSX.
    ========================================================================= */
@@ -19,7 +19,7 @@
   function esc(s) {
     return String(s === null || s === undefined ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
 
   function num(x) {

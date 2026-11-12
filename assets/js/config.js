@@ -12,7 +12,7 @@ window.RR_CONFIG = {
   INSPECTION: "INSPECTION D'ACADÉMIE DE KAOLACK",
   IEF: "INSPECTION DE L'ÉDUCATION ET DE LA FORMATION DE KEUR MADIABEL",
 
-  /* --- Supabase (laisser vide pour fonctionner hors-ligne / en démo) ---
+  /* --- Supabase (laisser vide pour fonctionner hors-ligne sans base) ---
      Projet "Planification" (organisation IEF-Planification)
      Clé anon = publique par design (protégée par les règles RLS) */
   SUPABASE_URL: "https://eiaktsyibkwigmdmfdms.supabase.co",
@@ -24,6 +24,5 @@ window.RR_CONFIG = {
 
   /* --- Clés de stockage local (brouillon hors-ligne + file d'attente) --- */
   LS_BROUILLON: "rr_brouillon_v1",
-  LS_FILE: "rr_file_attente_v1",
-  LS_SOUIS: "rr_soumissions_v1"
+  LS_FILE: "rr_file_attente_v1"
 };

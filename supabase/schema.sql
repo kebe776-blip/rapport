@@ -5,8 +5,8 @@
 
    Sécurité (RLS) :
      • anon (le directeur, sans compte)  → INSERT / UPDATE uniquement
-     • authenticated (l'Inspection)     → SELECT
-     • personne                         → DELETE (aucune suppression)
+     • authenticated (l'Inspection)     → SELECT / DELETE
+     • anon                             → ni SELECT ni DELETE
    ========================================================================= */
 
 create table if not exists public.rapports (

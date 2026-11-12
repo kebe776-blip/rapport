@@ -13,10 +13,13 @@
   /* -----------------------------------------------------------------------
      AIDE-MEMOIRE
      ----------------------------------------------------------------------- */
+  /* Échappe aussi l'apostrophe : elle sert de délimiteur d'attribut
+     (data-nom='…' dans admin.html) et ne doit jamais le rompre. */
   function esc(s) {
     return String(s === null || s === undefined ? "" : s)
       .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function p2(n) { return esc(R.pad2(n)); }
