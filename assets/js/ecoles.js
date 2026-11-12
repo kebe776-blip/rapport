@@ -2,9 +2,10 @@
    ecoles.js — Listes fermées de l'inspection
    -------------------------------------------------------------------------
    • RR_ECOLES : les écoles de l'IEF de KEUR MADIABEL (liste officielle).
+   • RR_ECOLES_PRESCOLAIRE : les écoles préscolaires (CPE/CPCE/CTP/EM).
    • RR_CODECS : les CODEC rattachés (facultatif, mais fermé s'il est saisi).
 
-   Ces tableaux alimentent les champs « combo » du formulaire (champs.js) :
+   Ces tableaux alimentent les champs « combo » du formulaire :
    la saisie hors liste est REFUSÉE à la validation. Pour rattacher une
    école ou un CODEC nouveau, ajoutez simplement l'entrée ici (et relisez
    l'orthographe : une faute bloquerait la soumission de cette école).
@@ -115,6 +116,37 @@
     "THIWALO",
     "TOUBA 2",
     "WACK NGOUNA"
+  ];
+
+  /* --- Écoles PRÉSCOLAIRES (24) — liste fermée du rapport succinct
+         préscolaire : CPE / CPCE / CTP / EM de l'inspection.
+         Alimente le champ « Nom de l'école » du formulaire
+         succinct-prescolaire.html (saisie hors liste REFUSÉE). --- */
+  global.RR_ECOLES_PRESCOLAIRE = [
+    "CPCE DJISSA ALIOU",
+    "CPCE EL HADJI OUSMANE DIALLO",
+    "CPCE KEUR AMATH SEYDOU",
+    "CPCE KEUR BIRANE NDOUY",
+    "CPCE KEUR DAME",
+    "CPCE KEUR MADIABEL 1",
+    "CPCE KEUR MADIABEL 2",
+    "CPCE KEUR MADIABEL 3",
+    "CPCE KEUR MADIABEL 4",
+    "CPCE KEUR MANDONGO",
+    "CPCE KEUR YORO KHODIA",
+    "CPCE MANDERA",
+    "CPCE NDIAGNE WALO",
+    "CPCE THILLA GRAND",
+    "CPCE WACK NGOUNA",
+    "CTP BOWE",
+    "CTP KEUR ASSANE DIASSE",
+    "CTP KEUR MABA DIAKHOU",
+    "CTP KEUR MADIABEL",
+    "CTP NDRAME ESCALE",
+    "CTP SABOYA",
+    "CTP WACK NGOUNA",
+    "EM KEUR MADIABEL",
+    "EM SABOYA"
   ];
 
   /* --- Communes de l'IEF (5) — liste officielle, fermée --- */

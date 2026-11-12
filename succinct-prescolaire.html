@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Saisie du rapport succinct de rentrée — École préscolaire</title>
+<link rel="stylesheet" href="assets/css/rapport.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>FORMULAIRE SUCCINCT DE RENTRÉE PRÉSCOLAIRE 2026/2027</h1>
+    <div class="sous">Inspection de l'Éducation et de la Formation de KEUR MADIABEL</div>
+  </div>
+  <div class="spacer"></div>
+  <span class="sous" id="statut-brouillon"></span>
+  <a class="lien" href="index.html">← Accueil</a>
+  <a class="lien" href="admin.html?type=succinct-prescolaire">Espace Inspection</a>
+</div>
+
+<div class="conteneur">
+
+  <div id="message" class="bandeau info">
+    <b>Remplissez le formulaire officiel puis cliquez sur « Soumettre ».</b>
+    Votre rapport PDF (2 pages : page 1 paysage, page 2 portrait) sera
+    téléchargé automatiquement.
+  </div>
+
+  <div id="alerte" class="bandeau erreur" style="display:none;"></div>
+
+  <div id="formulaire"></div>
+
+  <div class="carte center" id="carte-soumission">
+    <button class="btn vert large" id="btn-soumettre">
+      ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL
+    </button>
+    <div class="petit mt">
+      <a href="#" id="lien-reset">Effacer la saisie en cours</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- Aperçu du rapport : révélé uniquement après soumission -->
+<div class="conteneur" id="zone-apercu" style="display:none;">
+  <div class="carte">
+    <h2>Votre rapport officiel</h2>
+    <div id="etat-apercu" class="bandeau ok"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn vert" id="btn-retel">⬇ Retélécharger le PDF</button>
+      <a class="btn gris" href="succinct-prescolaire.html">Nouvelle saisie</a>
+    </div>
+    <div class="petit mt">
+      Deux pages strictes : <b>page 1 paysage</b> (en-tête, identification,
+      effectifs, personnel) et <b>page 2 portrait</b> (observations générales).
+    </div>
+  </div>
+  <div class="apercu-wrap" id="apercu"></div>
+</div>
+
+<div class="progression" id="progression">
+  <div id="prog-texte">Traitement…</div>
+  <div class="barre-interne"><div id="prog-barre"></div></div>
+</div>
+
+<!-- jsPDF + html2canvas : chargés à la demande par assets/js/pdf.js.
+     ATTENTION : cette page ne charge PAS form.js ni champs.js (rapport
+     élémentaire) — le moteur dédié est form-succinct.js. -->
+<script src="assets/vendor/supabase.min.js"></script>
+<script>window.RR_TYPE = "succinct-prescolaire";</script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/lib.js"></script>
+<script src="assets/js/rapport.js"></script>
+<script src="assets/js/pdf.js"></script>
+<script src="assets/js/db.js"></script>
+<script src="assets/js/ecoles.js"></script>
+<script src="assets/js/champs-succinct.js"></script>
+<script src="assets/js/form-succinct.js"></script>
+<script src="assets/js/rapport-succinct.js"></script>
+<script>
+(function () {
+  "use strict";
+  var CFG = window.RR_CONFIG;
+  var TYPE = window.RR_TYPE;
+  var zone = document.getElementById("formulaire");
+  var message = document.getElementById("message");
+  var alerte = document.getElementById("alerte");
+  var progression = document.getElementById("progression");
+  var ctxCourant = null;
+
+  /* Modèle du rapport (contexte + pages + aperçu) : registre RR_MODELES. */
+  function modele() {
+    var m = (window.RR_MODELES || {})[TYPE];
+    return m || { buildContext: window.RR.buildContext,
+                  renderPreview: window.RR.renderPreview,
+                  fitPreview: window.RR.fitPreview };
+  }
+
+  function afficherAlerte(liste) {
+    alerte.style.display = "block";
+    alerte.innerHTML = "<b>Saisie incomplète :</b><br>• " +
+      liste.map(window.RR.esc).join("<br>• ");
+    alerte.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  var page = {
+    erreur: afficherAlerte,
+    /* Soumission abandonnée par l'utilisateur (anti-doublon) :
+       on masque la progression et on affiche le motif, sans PDF. */
+    annule: function (texte) {
+      progression.classList.remove("visible");
+      document.getElementById("prog-barre").style.width = "0%";
+      alerte.style.display = "none";
+      message.className = "bandeau warn";
+      message.innerHTML = "<b>⛔ " + window.RR.esc(texte) + "</b>";
+      message.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+    apercu: document.getElementById("apercu"),
+    progres: function (texte, pct) {
+      progression.classList.add("visible");
+      document.getElementById("prog-texte").textContent = texte;
+      document.getElementById("prog-barre").style.width = (pct || 0) + "%";
+    },
+    apercuVisible: function () {
+      document.getElementById("zone-apercu").style.display = "block";
+    },
+    succes: function (res, nom, ctx) {
+      progression.classList.remove("visible");
+      document.getElementById("prog-barre").style.width = "0%";
+      alerte.style.display = "none";
+      var etat = document.getElementById("etat-apercu");
+      var texte;
+      if (res.envoye) {
+        texte = "<b>✅ Rapport enregistré et PDF téléchargé :</b> " +
+                window.RR.esc(nom);
+      } else {
+        texte = "<b>⚠ " + window.RR.esc(res.message) + "</b><br>" +
+                "Votre PDF est téléchargé : conservez-le, l'envoi se fera " +
+                "automatiquement au prochain accès réseau.";
+      }
+      etat.innerHTML = texte;
+      message.className = "bandeau ok";
+      message.innerHTML = "<b>Soumission terminée.</b> " +
+        "Fichier officiel généré : <b>" + window.RR.esc(nom) + "</b> — " +
+        "2 pages A4 (page 1 paysage, page 2 portrait).";
+      document.getElementById("zone-apercu").scrollIntoView({
+        behavior: "smooth", block: "start"
+      });
+      ctxCourant = ctx;
+    }
+  };
+
+  /* --- Construction du formulaire (moteur dédié) --- */
+  window.RRformSuccinct.construire(zone);
+
+  /* --- Reprise d'une modification lancée depuis l'espace Inspection ---
+      Clé DÉDIÉE à ce type (RR_MODIF_SUCCINCT) : aucune collision avec la
+      reprise élémentaire (RR_MODIF). */
+  var aModifier = null;
+  try {
+    aModifier = JSON.parse(sessionStorage.getItem("RR_MODIF_SUCCINCT") || "null");
+  } catch (e) { aModifier = null; }
+
+  if (aModifier && aModifier.donnees) {
+    try { sessionStorage.removeItem("RR_MODIF_SUCCINCT"); } catch (e) {}
+    window.RRformSuccinct.remplir(aModifier.donnees);
+    try {
+      localStorage.setItem(CFG.LS_BROUILLON_SUCCINCT_PRESCOLAIRE,
+                           JSON.stringify(aModifier.donnees));
+    } catch (e) {}
+    message.className = "bandeau warn";
+    message.innerHTML = "<b>✏ MODIFICATION D'UN RAPPORT ENREGISTRÉ — " +
+      window.RR.esc(aModifier.nom || aModifier.code) + ".</b><br>" +
+      "Les données du rapport sont chargées : corrigez ce qui doit l'être, " +
+      "puis cliquez sur « SOUMETTRE ». Le rapport existant sera remplacé et " +
+      "le nouveau PDF (2 pages) téléchargé." +
+      "<br><span class='petit'>Gardez le même <b>nom d'école</b> : le " +
+      "modifier créerait un rapport distinct au lieu de remplacer celui-ci.</span>";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    /* --- Reprise du brouillon (clé dédiée à ce type) --- */
+    var brouillon = window.RRformSuccinct.chargerBrouillon();
+    if (brouillon && brouillon.identification &&
+        brouillon.identification.nom_ecole) {
+      window.RRformSuccinct.remplir(brouillon);
+      message.className = "bandeau info";
+      message.innerHTML = "<b>Brouillon repris :</b> " +
+        window.RR.esc(brouillon.identification.nom_ecole) +
+        " — vous pouvez reprendre votre saisie là où vous l'aviez laissée.";
+    }
+  }
+
+  /* --- File d'attente hors-ligne --- */
+  (async function () {
+    if (!window.RRdb.actif()) { return; }
+    var avant = window.RRdb.attente();
+    var res = await window.RRdb.viderFile();
+    if (res.envoyes > 0) {
+      message.className = "bandeau ok";
+      message.innerHTML = "<b>" + res.envoyes + " soumission(s) en attente " +
+        "ont été envoyées au serveur.</b>";
+    } else if (avant > 0) {
+      message.className = "bandeau warn";
+      message.innerHTML = "<b>" + avant + " soumission(s) en attente d'envoi</b> " +
+        "(réseau indisponible). Elles partiront automatiquement.";
+    }
+  }());
+
+  /* --- Soumission --- */
+  document.getElementById("btn-soumettre").addEventListener("click", async function () {
+    var btn = this;
+    btn.disabled = true;
+    try {
+      await window.RRformSuccinct.soumettre(page);
+    } catch (e) {
+      progression.classList.remove("visible");
+      afficherAlerte(["Erreur inattendue : " + e.message]);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* --- Retéléchargement --- */
+  document.getElementById("btn-retel").addEventListener("click", async function () {
+    if (!ctxCourant) { return; }
+    var btn = this;
+    btn.disabled = true;
+    try {
+      page.progres("Chargement du module PDF…", 0);
+      await window.RR.pdf.precharger();
+      var pages = document.getElementById("apercu").querySelectorAll(".pdf-page");
+      if (pages.length !== 2) {
+        throw new Error("Le rapport doit tenir sur exactement 2 pages.");
+      }
+      await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
+        page.progres("Génération du PDF — page " + i + " / " + n + "…",
+                     Math.round(i / n * 100));
+      });
+      progression.classList.remove("visible");
+    } catch (e) {
+      progression.classList.remove("visible");
+      afficherAlerte(["Erreur : " + e.message]);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  /* --- Remise à zéro de la saisie (clé de brouillon dédiée) --- */
+  document.getElementById("lien-reset").addEventListener("click", function (ev) {
+    ev.preventDefault();
+    if (!confirm("Effacer toute la saisie en cours ?")) { return; }
+    try {
+      localStorage.removeItem(CFG.LS_BROUILLON_SUCCINCT_PRESCOLAIRE);
+    } catch (e) {}
+    location.reload();
+  });
+
+  /* --- Listes (écoles préscolaires / communes) : lecture Supabase en
+         tâche de fond ; repli sur ecoles.js hors-ligne. --- */
+  if (window.RRdb && window.RRdb.chargerListes) {
+    window.RRdb.chargerListes()
+      .then(function (r) {
+        if (r && r.source === "serveur" && window.RRformSuccinct) {
+          window.RRformSuccinct.rafraichirCombos();
+        }
+      })
+      .catch(function () { /* hors-ligne : on garde ecoles.js */ });
+  }
+
+  window.addEventListener("resize", function () {
+    if (ctxCourant) { modele().fitPreview(document.getElementById("apercu")); }
+  });
+}());
+</script>
+</body>
+</html>

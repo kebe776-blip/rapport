@@ -161,3 +161,79 @@ table.kv td.paire .val { font-weight: bold; color: #1F4E79;
   .apercu-wrap { padding: 0; }
   .apercu-page { box-shadow: none; transform: none; margin: 0; }
 }
+
+/* =====================================================================
+   RAPPORT SUCCINCT PRÉSCOLAIRE — EXACTEMENT 2 PAGES
+   page 1 : A4 PAYSAGE (275 x 194 mm) — page 2 : A4 PORTRAIT (188 x 281 mm)
+   ===================================================================== */
+
+/* --- Feuille PORTRAIT : zone utile 188 x 281 mm (marges 11 / 8 mm) --- */
+.pdf-page.portrait {
+  width: 188mm;
+  height: 281mm;
+}
+
+/* --- Aperçu mixte : légende SOUS chaque page.
+   La page transformée garde sa hauteur NON transformée dans le flux :
+   la légende est remontée de H × (échelle − 1) par fitPreview (margin-top
+   négatif). display:flex supprime les collapses de marges entre frères :
+   la compensation est donc exacte à toutes les échelles. --- */
+.apercu-slot {
+  display: flex;
+  flex-direction: column;
+}
+.apercu-slot .pdf-page { align-self: flex-start; }
+.apercu-legende { text-align: center; }
+
+/* ---------- PAGE 1 (paysage) : lignes du modèle ---------- */
+.rs-haut {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 9pt; font-weight: bold; margin: 1pt 0 2pt;
+}
+.rs-petite { font-style: italic; }
+.rs-annee { font-size: 8.5pt; letter-spacing: .3pt; }
+.rs-ligne { font-size: 9.3pt; margin: 3.5pt 0; line-height: 1.5; }
+.rs-ligne .lbl { font-weight: normal; }
+.rs-croix { font-weight: bold; letter-spacing: .5pt; }
+.rs-petit { font-size: 8pt; font-style: italic; }
+table.grid.rs-maitre th, table.grid.rs-maitre td {
+  font-size: 8.4pt; padding: 2pt 4pt;
+}
+table.grid.rs-maitre th { font-size: 8pt; }
+
+/* ---------- PAGE 2 (portrait) : observations générales ---------- */
+.rs-p2 { font-size: 8.6pt; }
+.rs-titre-page {
+  font-size: 10.5pt; font-weight: bold; text-align: center;
+  margin: 0 0 5pt 0; padding-bottom: 2pt;
+  border-bottom: 1pt solid #000; letter-spacing: .2pt;
+}
+.rs-h3 { font-size: 9pt; font-weight: bold; margin: 6pt 0 2pt 0; }
+.rs-h3.rs-mt { margin-top: 4pt; }
+.rs-note { font-size: 7.6pt; font-style: italic; }
+.rs-p2 .rs-ligne { font-size: 8.4pt; margin: 3pt 0; line-height: 1.45; }
+.rs-decale { padding-left: 26pt; }
+.rs-centre { text-align: center; }
+
+table.grid.rs-2col th, table.grid.rs-2col td {
+  font-size: 8pt; padding: 3pt 5pt; height: 15pt;
+}
+table.grid.rs-box td { font-size: 8pt; padding: 3pt 5pt; height: 13pt; }
+table.grid.rs-eq th, table.grid.rs-eq td { font-size: 7.8pt; padding: 1.6pt 4pt; }
+table.grid.rs-etat th, table.grid.rs-etat td { font-size: 7.8pt; padding: 1.6pt 4pt; }
+
+.rs-bloc {
+  border-bottom: 0.7pt solid #000; font-size: 8.2pt;
+  min-height: 12pt; margin: 3pt 0; padding-bottom: 2pt; overflow: hidden;
+}
+.rs-bloc-grand {
+  border: 0.6pt solid #000; min-height: 38pt; margin: 2pt 0;
+  padding: 3pt 4pt; line-height: 1.4; overflow: hidden;
+}
+.rs-bas {
+  display: flex; justify-content: space-between; align-items: flex-end;
+  margin-top: 5pt;
+}
+.rs-signature {
+  font-weight: bold; text-decoration: underline; font-size: 9pt;
+}

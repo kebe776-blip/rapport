@@ -1,7 +1,10 @@
 /* =========================================================================
-   pdf.js — Génération du PDF A4 PAYSAGE directement dans le navigateur
-   Une image par <div class="pdf-page"> (275 x 194 mm) → jsPDF (297 x 210 mm),
-   marges officielles 11 mm latérales / 8 mm verticales.
+   pdf.js — Génération du PDF A4 directement dans le navigateur
+   Une image par <div class="pdf-page"> → jsPDF (A4), marges officielles
+   11 mm latérales / 8 mm verticales.
+   Orientation PAR PAGE : paysage par défaut (275 x 194 mm) ; une page
+   portant data-orientation="portrait" est produite en portrait
+   (188 x 281 mm) — rapport succinct préscolaire (page 2).
    Aucun serveur requis : fonctionne aussi hors-ligne.
    ========================================================================= */
 (function (global) {
@@ -9,7 +12,8 @@
 
   var R = global.RR = global.RR || {};
 
-  var PAGE_W = 275, PAGE_H = 194;   /* mm — zone utile */
+  var PAGE_W = 275, PAGE_H = 194;   /* mm — zone utile PAYSAGE */
+  var PORT_W = 188, PORT_H = 281;   /* mm — zone utile PORTRAIT (page 2) */
   var MARGE_X = 11, MARGE_Y = 8;    /* mm — marges officielles */
 
   /* Bibliothèques lourdes (≈ 550 Ko) : téléchargées à la 1re génération,
@@ -37,7 +41,7 @@
   }
 
   /**
-   * Génère et retourne l'objet jsPDF des 6 pages.
+   * Génère et retourne l'objet jsPDF des pages (paysage et/ou portrait).
    * @param {NodeList|Array} pageEls  éléments .pdf-page affichés à l'écran
    * @param {Object} ctx              contexte (pour le nom de fichier)
    * @param {Function} onProgress     (i, total) => void
@@ -50,18 +54,32 @@
       throw new Error("html2canvas non chargé.");
     }
 
-    var doc = new jsPDF({
-      orientation: "landscape",
-      unit: "mm",
-      format: "a4",
-      compress: true
-    });
+    var doc = null;                   /* créé sur la page 1 (orientation) */
 
     var pages = Array.prototype.slice.call(pageEls);
     var total = pages.length;
 
     for (var i = 0; i < total; i++) {
       var el = pages[i];
+
+      /* Orientation PAR PAGE : data-orientation="portrait" (rapport succinct
+         préscolaire : page 2). Sans attribut → paysage : comportement
+         strictement identique à avant pour les 6 pages élémentaires. */
+      var portrait = el.getAttribute("data-orientation") === "portrait";
+      var orient = portrait ? "portrait" : "landscape";
+      var largeur = portrait ? PORT_W : PAGE_W;
+      var hauteur = portrait ? PORT_H : PAGE_H;
+
+      if (i === 0) {
+        doc = new jsPDF({
+          orientation: orient,
+          unit: "mm",
+          format: "a4",
+          compress: true
+        });
+      } else {
+        doc.addPage("a4", orient);
+      }
 
       /* On capture la page à taille réelle (l'échelle d'aperçu est neutralisée). */
       var transforme = el.style.transform;
@@ -89,9 +107,8 @@
         if (slot) { slot.style.overflow = overflowSlot; }
       }
 
-      if (i > 0) { doc.addPage("a4", "landscape"); }
       var data = canvas.toDataURL("image/jpeg", 0.92);
-      doc.addImage(data, "JPEG", MARGE_X, MARGE_Y, PAGE_W, PAGE_H,
+      doc.addImage(data, "JPEG", MARGE_X, MARGE_Y, largeur, hauteur,
                    undefined, "FAST");
 
       canvas.width = canvas.height = 0;   /* libère la mémoire */

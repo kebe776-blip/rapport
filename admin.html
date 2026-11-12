@@ -137,6 +137,22 @@
           </div>
           <ul class="liste-items" id="items-communes"></ul>
         </div>
+
+        <!-- 4ᵉ liste : écoles PRÉSCOLAIRES (rapport succinct préscolaire) -->
+        <div class="liste-colonne" data-type="ecole_prescolaire">
+          <div class="liste-entete">
+            <b id="nb-prescolaires">—</b> école(s) préscolaire(s)
+          </div>
+          <input type="search" class="liste-recherche" data-type="ecole_prescolaire"
+                 placeholder="Rechercher une école préscolaire…">
+          <div class="liste-ajout">
+            <input type="text" data-ajout="ecole_prescolaire" maxlength="90"
+                   placeholder="Ajouter une école préscolaire…"
+                   aria-label="Nouvelle école préscolaire">
+            <button class="btn vert petit" data-ajout-btn="ecole_prescolaire">＋ Ajouter</button>
+          </div>
+          <ul class="liste-items" id="items-prescolaires"></ul>
+        </div>
       </div>
     </div>
 
@@ -166,6 +182,9 @@
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
 <script src="assets/js/ecoles.js"></script>
+<!-- Le modèle dédié d'un type (assets/js/rapport-succinct.js) est chargé
+     À LA DEMANDE (voir chargerModele) : cet espace ne gagne aucun octet
+     tant qu'aucun rapport de ce type n'est affiché. -->
 <!-- SheetJS + en-têtes du modèle + export : chargés à la demande
      au clic sur « Export XLSX » (voir le handler btn-xlsx) -->
 <script>
@@ -189,9 +208,35 @@
     return { id: id, nom: id, form: "" };
   }
   var typeInfo = infoType(TYPE);
-  /* Le modèle (PDF, XLSX, formulaire) n'existe que pour le type
-     général-élémentaire : les actions concernées sont désactivées ailleurs. */
-  var modeleOk = (TYPE === "general-elementaire");
+  /* Capacités du type (config.js TYPES) : pdf / xlsx / analyse / pages /
+     form / modif — chaque espace Inspection n'affiche que ce que son
+     type sait faire. */
+  var modeleOk = typeInfo.pdf === true;      /* gabarit PDF (Voir / PDF) */
+  var xlsxOk = typeInfo.xlsx === true;       /* export XLSX du modèle */
+  var formOk = !!typeInfo.form;              /* formulaire de saisie */
+
+  /* Modèle du rapport : registre RR_MODELES[type] (rapport-succinct.js),
+     sinon le modèle élémentaire de rapport.js. */
+  function modeleDe() {
+    var m = (window.RR_MODELES || {})[TYPE];
+    return m || { buildContext: window.RR.buildContext,
+                  renderPreview: window.RR.renderPreview,
+                  fitPreview: window.RR.fitPreview };
+  }
+
+  /* Modèle DÉDIÉ chargé à la demande : seule une page dont le gabarit
+     n'est pas celui de rapport.js (typeInfo.modele) déclenche le
+     téléchargement. Espace élémentaire = aucun octet supplémentaire. */
+  async function modelePret() {
+    if (typeInfo.modele && !(window.RR_MODELES || {})[TYPE]) {
+      await window.RR.chargerScripts([typeInfo.modele]);
+    }
+    if (!(window.RR_MODELES || {})[TYPE] && typeInfo.modele) {
+      throw new Error("Modèle du rapport indisponible (" +
+                      typeInfo.modele + ").");
+    }
+    return modeleDe();
+  }
 
   (function initType() {
     document.title = "Espace Inspection — " + typeInfo.nom;
@@ -217,11 +262,15 @@
       saisie.textContent = "Formulaire à venir";
       saisie.title = "Le formulaire « " + typeInfo.nom + " » n'est pas encore disponible.";
     }
-    /* Export XLSX : classeur câblé sur le modèle général-élémentaire */
-    if (!modeleOk) {
+    /* Libellé du bouton PDF : nombre de pages du gabarit du type */
+    $("btn-pdf").textContent = "⬇ Télécharger le PDF (" +
+      (typeInfo.pages || 6) + " pages)";
+    /* Export XLSX : classeur câblé sur le modèle général élémentaire */
+    if (!xlsxOk) {
       var x = $("btn-xlsx");
       x.disabled = true;
-      x.title = "Export du modèle général élémentaire — à venir pour ce type.";
+      x.title = "Export XLSX indisponible pour « " + typeInfo.nom +
+                " » (modèle en préparation).";
     }
   }());
 
@@ -333,10 +382,17 @@
     return vues;
   }
 
+  /* Écoles du type courant : RR_ECOLES (élémentaire) ou la liste fermée
+     déclarée dans config.js TYPES (ex. RR_ECOLES_PRESCOLAIRE). */
+  function ecolesDuType() {
+    var cle = typeInfo.ecoles || "RR_ECOLES";
+    return window[cle] || window.RR_ECOLES || [];
+  }
+
   function afficherStats() {
     var norm = window.RRdb.normaliserListe;
     var vues = ecolesSoumises();
-    var ecoles = window.RR_ECOLES || [];
+    var ecoles = ecolesDuType();
     var restantes = 0;
     for (var i = 0; i < ecoles.length; i++) {
       if (!vues[norm(ecoles[i])]) { restantes++; }
@@ -380,16 +436,22 @@
       var d = l.maj_le ? new Date(l.maj_le).toLocaleString("fr-FR") : "—";
       var code = window.RR.esc(l.ecole_code);
       var nom = window.RR.esc(l.ecole_nom || l.ecole_code);
-      /* PDF / modification : modèle officiel uniquement (général
-         élémentaire) — les autres types n'ont pas encore de formulaire
-         ni de gabarit. */
-      var actions = modeleOk
-        ? "<button class='btn petit' data-act='voir' data-code='" + code + "'>" +
-            "Voir / PDF</button> " +
-          "<button class='btn petit' data-act='modifier' data-code='" + code + "' " +
-            "title='Modifier ce rapport puis régénérer le PDF'>✏ Modifier</button> "
-        : "<span class='petit' title='Gabarit à venir pour ce type de rapport'>" +
-            "PDF / modification à venir</span> ";
+      /* Actions selon les capacités du type (config.js TYPES) :
+         Voir / PDF → typeInfo.pdf ; Modifier → typeInfo.form. */
+      var actions = "";
+      if (modeleOk) {
+        actions += "<button class='btn petit' data-act='voir' data-code='" + code +
+            "'>Voir / PDF</button> ";
+      }
+      if (formOk) {
+        actions += "<button class='btn petit' data-act='modifier' data-code='" +
+            code + "' title='Modifier ce rapport puis régénérer le PDF'>" +
+            "✏ Modifier</button> ";
+      }
+      if (!modeleOk && !formOk) {
+        actions += "<span class='petit' title='Gabarit à venir pour ce type " +
+            "de rapport'>PDF / modification à venir</span> ";
+      }
       return "<tr>" +
         "<td><b>" + nom + "</b></td>" +
         "<td class='mono'>" + code + "</td>" +
@@ -461,7 +523,7 @@
       } else {
         var ligne = await window.RRdb.obtenir(code, TYPE);
         if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
-        ouvrirApercu(ligne);
+        await ouvrirApercu(ligne);
       }
     } catch (e) {
       msg("msg-admin", "erreur", window.RR.esc(e.message));
@@ -506,7 +568,9 @@
     var ligne = await window.RRdb.obtenir(code, TYPE);
     if (!ligne || !ligne.donnees) { throw new Error("Rapport introuvable."); }
     try {
-      sessionStorage.setItem("RR_MODIF", JSON.stringify({
+      /* Clé de reprise DÉDIÉE au type (RR_MODIF_SUCCINCT pour le
+         succinct préscolaire) : aucune collision entre formulaires. */
+      sessionStorage.setItem(typeInfo.modif || "RR_MODIF", JSON.stringify({
         code: ligne.ecole_code,
         nom: ligne.ecole_nom || ligne.ecole_code,
         donnees: ligne.donnees
@@ -514,16 +578,17 @@
     } catch (e) {
       throw new Error("Impossible de préparer la modification : " + e.message);
     }
-    location.href = "general-elementaire.html";
+    location.href = typeInfo.form;
   }
 
-  function ouvrirApercu(ligne) {
-    ctxCourant = window.RR.buildContext(ligne.donnees, { id: ligne.ecole_code });
+  async function ouvrirApercu(ligne) {
+    var M = await modelePret();
+    ctxCourant = M.buildContext(ligne.donnees, { id: ligne.ecole_code });
     codeApercu = ligne.ecole_code;
     $("titre-apercu").textContent = "Aperçu — " +
       (ligne.ecole_nom || ligne.ecole_code) + " (" + ligne.annee + ")";
     $("zone-apercu").style.display = "block";
-    window.RR.renderPreview($("apercu"), ctxCourant);
+    M.renderPreview($("apercu"), ctxCourant);
     $("zone-apercu").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -557,7 +622,8 @@
      La table `listes` est la source de vérité : lecture → mise à jour en
      place de RR_ECOLES / RR_CODECS / RR_COMMUNES (référencées par
      champs.js côté formulaire) → cache localStorage. */
-  var listesVides = { ecole: "", codec: "", commune: "" };
+  var listesVides = { ecole: "", codec: "", commune: "",
+                      ecole_prescolaire: "" };
   /* D'où vient la liste affichée : "" = en cours de chargement,
      puis "serveur" / "cache" / "fallback" (ecoles.js). */
   var listesSource = "";
@@ -571,7 +637,8 @@
         msg("msg-listes", "ok",
             "Listes synchronisées avec Supabase (" + r.ecoles +
             " écoles, " + r.codecs + " CODEC, " +
-            (r.communes || 0) + " communes).");
+            (r.communes || 0) + " communes, " +
+            (r.prescolaires || 0) + " écoles préscolaires).");
       } else if (r.source === "cache") {
         msg("msg-listes", "warn",
             "<b>Hors-ligne :</b> listes lues en cache local — " +
@@ -593,19 +660,32 @@
   function elementsDe(type) {
     if (type === "codec") { return window.RR_CODECS || []; }
     if (type === "commune") { return window.RR_COMMUNES || []; }
+    if (type === "ecole_prescolaire") {
+      return window.RR_ECOLES_PRESCOLAIRE || [];
+    }
     return window.RR_ECOLES || [];
   }
 
   function libelleDe(type) {
     if (type === "codec") { return "CODEC"; }
     if (type === "commune") { return "communes"; }
+    if (type === "ecole_prescolaire") { return "écoles préscolaires"; }
     return "écoles";
   }
+
+  /* Ids DOM par type de liste (4 colonnes gérées à l'identique). */
+  var IDS_LISTES = {
+    ecole: { ul: "items-ecoles", nb: "nb-ecoles" },
+    codec: { ul: "items-codecs", nb: "nb-codecs" },
+    commune: { ul: "items-communes", nb: "nb-communes" },
+    ecole_prescolaire: { ul: "items-prescolaires", nb: "nb-prescolaires" }
+  };
 
   function afficherListes() {
     afficherUneListe("ecole");
     afficherUneListe("codec");
     afficherUneListe("commune");
+    afficherUneListe("ecole_prescolaire");
     /* La liste a changé (chargement, ajout, suppression) : le compteur
        « En attente d'envoi » en dépend, on le recalcule. */
     afficherStats();
@@ -614,15 +694,13 @@
   function afficherUneListe(type) {
     var items = elementsDe(type);
     var f = (listesVides[type] || "").trim().toLowerCase();
-    var ul = $(type === "codec" ? "items-codecs" :
-               type === "commune" ? "items-communes" : "items-ecoles");
+    var ids = IDS_LISTES[type] || IDS_LISTES.ecole;
+    var ul = $(ids.ul);
     var vus = items.filter(function (v) {
       return !f || String(v).toLowerCase().indexOf(f) !== -1;
     });
 
-    $(type === "codec" ? "nb-codecs" :
-      type === "commune" ? "nb-communes" : "nb-ecoles").textContent =
-      items.length;
+    $(ids.nb).textContent = items.length;
 
     if (!items.length) {
       ul.innerHTML = '<li class="liste-vide">Liste vide.</li>';
@@ -694,10 +772,11 @@
      rapports, on l'avertit (les rapports sont conservés). */
   async function retirerDeLaListe(type, valeur) {
     var libelle = type === "codec" ? "CODEC" :
-                  type === "commune" ? "communes" : "écoles";
+                  type === "commune" ? "communes" :
+                  type === "ecole_prescolaire" ? "écoles préscolaires" : "écoles";
     var details = "Valeur : " + valeur + "\n";
 
-    if (type === "ecole") {
+    if (type === "ecole" || type === "ecole_prescolaire") {
       var norm = window.RRdb.normaliserListe;
       var nb = lignes.filter(function (l) {
         return norm(l.ecole_nom || l.ecole_code) === norm(valeur);
@@ -741,7 +820,7 @@
   $("btn-listes-rafraichir").addEventListener("click", chargerListesAdmin);
 
   window.addEventListener("resize", function () {
-    if (ctxCourant) { window.RR.fitPreview($("apercu")); }
+    if (ctxCourant) { modeleDe().fitPreview($("apercu")); }
   });
 
   demarrer();

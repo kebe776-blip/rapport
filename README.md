@@ -1,12 +1,18 @@
-# Rapport Général de Rentrée Élémentaire 2026/2027
+# Rapports de Rentrée 2026/2027
 
 **IEF de KEUR MADIABEL — Inspection d'Académie de Kaolack**
 
-Système de collecte du rapport de rentrée : chaque directeur remplit le
+Système de collecte des rapports de rentrée : chaque directeur remplit le
 formulaire officiel dans son navigateur, clique sur **Soumettre**, et le
-**PDF officiel (6 pages, A4 paysage) se télécharge automatiquement** —
-strictement identique au modèle administratif, sans compte, sans sélection
-d'école.
+**PDF officiel se télécharge automatiquement** — strictement identique au
+modèle administratif, sans compte, sans sélection d'école.
+
+Deux formulaires sont disponibles à ce jour :
+
+| Type | Formulaire | PDF |
+|---|---|---|
+| **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
+| **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
 
 > **Architecture : GitHub Pages + Supabase uniquement** — aucun serveur,
 > aucun compte, aucune dépendance externe.
@@ -40,6 +46,41 @@ d'école.
 Le nom de fichier généré est toujours :
 `Rapport_Rentree_NOM_ECOLE_2026-2027.pdf`
 
+### Le rapport succinct préscolaire — 2 pages strictement
+
+`succinct-prescolaire.html` applique le modèle officiel **« RAPPORT DE
+SUCCINCT DE RENTRÉE — Petite Enfance »**, relevé sur le papier
+administratif. Le PDF contient **exactement 2 pages** (aucune page 3) :
+
+| Page | Format | Contenu |
+|---|---|---|
+| **1** | **A4 PAYSAGE** (275 × 194 mm) | En-tête officiel (République du Sénégal, MEN, IA de Kaolack, IEF) + titre *RAPPORT DE SUCCINCT DE RENTRÉE* / *Petite Enfance* / ANNÉE SCOLAIRE · ligne `EM – CTP – CPE – CPCE : école : Commune : Arrondissement` · sections et bâtiments (nb sections, bâtiments 1/2/3 cl, abris, CMG, cours jumelés) · directeur (prénoms/nom/matricule/grade, Titulaire `[X]` / Intérimaire `[ ]`, diplômes, contacts Orange/Tigo/Expresso) · tableau **effectifs PS / MS / GS / TOTAL × G F T** + colonnes maître (nom, diplômes, date d'arrivée) · handicapés physiques · tableau du **personnel** (4 lignes fixes : suppléants, maître d'arabe, malade indéfinible, personnel de service) |
+| **2** | **A4 PORTRAIT** (188 × 281 mm) | *OBSERVATIONS GÉNÉRALES SUR LA SITUATION DE L'ÉCOLE* : 1. situation des locaux (dur / abris, réhabilitation, salles inoccupées, observations) · 2. eau (robinets, puits) · 3. électricité (réseau, plaques solaires `OUI [X] – NON [ ]`) · 4. équipement informatique · 5. mobilier scolaire (7 lignes : bon / à réparer / total / déficit) · 6. équipement et jeux (4 lignes) · 7. cantine / coop. scolaire / jardin / projet d'école · 8. observations du directeur + *Fait à …, le …* + *Déposer 1 rapport à l'IEF au plus tard le 15 Novembre 2026* + *Le Directeur* · tableau Équipements scolaires (vestiaires, magasins, régimes, toilettes « Nbre de boxes », cuisines, locaux, autres) |
+
+**Saisie minimale** (tout le reste est facultatif, le PDF met « — ») :
+nom d'école · commune · nom du directeur · **au moins un contact**
+(Orange / Tigo / Expresso) · **au moins un maître** renseigné sur PS, MS
+ou GS. Le champ **Nom de l'école** est une **liste fermée** de 24 écoles
+préscolaires (CPCE / CTP / EM) gérable depuis l'Espace Inspection.
+
+**Garantie « pas de page 3 »** : contenu borné (lignes fixes +
+`maxlength` sur les zones libres) + auto-ajustement (compression de
+−0,25 pt par palier, 3 paliers maximum, puis `overflow: hidden` +
+`transform: scale()`) + garde-fou logique : la soumission et le
+retéléchargement **refusent** tout gabarit qui ne tient pas sur
+exactement 2 pages.
+
+**Isolation du code** : le moteur est un fichier **dédié**
+(`assets/js/form-succinct.js` + `champs-succinct.js` +
+`rapport-succinct.js`). `form.js`, `champs.js`, `rapport.js` et `lib.js`
+ne sont **pas modifiés** : `succinct-prescolaire.html` ne charge ni
+`form.js` ni `champs.js`, et le rendu passe par le registre
+`RR_MODELES[type]` — le rapport élémentaire reste donc strictement
+identique. Le gabarit dédié (`rapport-succinct.js`) n'est téléchargé par
+l'Espace Inspection **qu'au moment d'afficher un rapport de ce type** :
+aucune page existante ne gagne le moindre octet, et jsPDF / html2canvas /
+SheetJS restent, eux, chargés uniquement au clic.
+
 ### Résistance au réseau 2G/3G
 
 * Saisie **entièrement hors-ligne** (brouillon local, restauration automatique)
@@ -50,30 +91,33 @@ Le nom de fichier généré est toujours :
 ### Passage à l'échelle : 500 écoles
 
 * Supabase (PostgreSQL) : un rapport pèse 10 à 50 Ko → **≈ 25 Mo pour 500 écoles** (l'offre gratuite en stocke 500 Mo)
-* Clé primaire `(ecole_code, annee)` où `ecole_code` = **slug du nom de l'école** : une école qui soumet deux fois **met à jour** sa ligne, pas de doublon. Le **CODEC ne sert jamais de clé** — plusieurs écoles peuvent partager le même CODEC (c'est leur regroupement) et déposent chacune leur propre rapport
+* Clé primaire `(type, ecole_code, annee)` où `ecole_code` = **slug du nom de l'école** : une école qui soumet deux fois **met à jour** sa ligne, pas de doublon — et l'anti-doublon s'applique **par type** (un rapport succinct n'en bloque pas un général). Le **CODEC ne sert jamais de clé** — plusieurs écoles peuvent partager le même CODEC (c'est leur regroupement) et déposent chacune leur propre rapport
 * Contrôle **avant** envoi (fonction SQL `rapport_existe`) : le directeur est prévenu dès la soumission si son école a déjà déposé — hors-ligne, ce contrôle est simplement ignoré et la file se synchronise plus tard
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût
 
-### Listes fermées : écoles, CODEC et communes
+### Listes fermées : écoles, CODEC, communes et écoles préscolaires
 
 Les champs **Nom de l'école**, **CODEC** et **Commune** (section A) sont des
 listes déroulantes **filtrables** : on tape quelques lettres, la liste réduit,
 on choisit. Le filtrage est **insensible aux accents et à la casse**
 (`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
 
-* **`assets/js/ecoles.js`** contient les trois tableaux de repli :
-  `RR_ECOLES` (**101 écoles**), `RR_CODECS` (**15 CODEC**) et
+* **`assets/js/ecoles.js`** contient les quatre tableaux de repli :
+  `RR_ECOLES` (**101 écoles**), `RR_CODECS` (**15 CODEC**),
   `RR_COMMUNES` (**5 communes** : KEUR MABA DIAKHOU, KEUR MADIABEL,
-  KEUR MANDONGO, NDRAMÉ ESCALE, WACK NGOUNA). La source de
+  KEUR MANDONGO, NDRAMÉ ESCALE, WACK NGOUNA) et
+  `RR_ECOLES_PRESCOLAIRE` (**24 écoles préscolaires** : CPCE / CTP / EM,
+  liste fermée du rapport succinct). La source de
   vérité est la table Supabase **`listes`** (voir `supabase/listes.sql`).
 * **Blocage** : une valeur absente de la liste est **refusée à la
   soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
 * **CODEC et Commune facultatifs** : le champ peut rester vide, mais s'il
   est saisi il doit figer dans la liste.
 * **Gestion depuis l'espace Inspection** : la carte *« Listes des écoles
-  et des CODEC »* donne les **trois colonnes** (écoles, CODEC, communes)
-  pour ajouter ou supprimer une valeur sans toucher au code (voir § 4).
+  et des CODEC »* donne les **quatre colonnes** (écoles, CODEC, communes,
+  écoles préscolaires) pour ajouter ou supprimer une valeur sans toucher au
+  code (voir § 4).
 * **Repli hors-ligne** : serveur → cache localStorage → `ecoles.js`.
 
 ---
@@ -84,7 +128,9 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 index.html              Page d'accueil : menu des 6 rapports (succinct/général ×
                         préscolaire/élémentaire/moyen) + Espace Inspection
                         (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
-general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF
+general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
+succinct-prescolaire.html Formulaire du « RAPPORT DE SUCCINCT DE RENTRÉE »
+                        préscolaire + soumission + PDF 2 pages (paysage + portrait)
 saisie.html             Redirection vers general-elementaire.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport (brouillon local ou rapport en base)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
@@ -93,16 +139,25 @@ analyse.html            Exploitation des données (filtres, KPI, graphiques, syn
                         — partagée entre les 6 types : analyse.html?type=<id>
 
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
+                        + styles du succinct (page 2 portrait, aperçu mixte)
 assets/css/app.css      Styles de l'interface et du formulaire
 assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-barres)
-assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire)
+assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire, TYPES
+                        avec capacités pdf/xlsx/analyse/pages/ecoles/form/modif/modele)
 assets/js/lib.js        Construction du contexte du rapport (portage de build_context)
-assets/js/rapport.js    Génération HTML des 6 pages officielles
-assets/js/pdf.js        Génération du PDF A4 paysage dans le navigateur
+assets/js/rapport.js    Génération HTML des 6 pages officielles (élémentaire)
+assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
+                        (paysage + portrait), registre RR_MODELES[type]
+assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
+                        PAR PAGE : paysage par défaut, portrait sur demande)
 assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
-assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes (combos du formulaire)
+assets/js/champs-succinct.js   ★ Définition du modèle succinct (sections + tableaux)
+assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes +
+                        24 écoles préscolaires (combos du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
-assets/js/db.js         Accès Supabase + file d'attente hors-ligne
+assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
+                        validation minimale, brouillon, soumission 2 pages
+assets/js/db.js         Accès Supabase + file d'attente hors-ligne + listes
 assets/js/analyse.js    Exploitation : agrégation, graphiques SVG maison, synthèse, export XLSX
 assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Inspection
 assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
@@ -113,6 +168,8 @@ assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rappor
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
 supabase/migration_types.sql  Colonne `type` + PK (type, ecole_code, annee) + RPC avec p_type
 supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
+supabase/migration_listes_prescolaire.sql  Contrainte CHECK à 4 types +
+                        amorçage idempotent des 24 écoles préscolaires
 ```
 
 ---
@@ -140,9 +197,16 @@ supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage 
    Les rapports déjà enregistrés deviennent `general-elementaire` automatiquement.
    ⚠️ À exécuter **avant** (ou en même temps que) la mise en ligne du code :
    l'ancien code n'appelle plus les nouvelles signatures.
-5. **Authentication → Users → Add user** : créez le compte de l'Inspection
+5. **Et pour le rapport succinct préscolaire** → collez le contenu de
+   `supabase/migration_listes_prescolaire.sql` → **Run** : la contrainte
+   `listes.type` accepte le 4ᵉ type `ecole_prescolaire` et les **24 écoles
+   préscolaires** sont amorcées (idempotent : le ré-exécuter ne duplique
+   rien et ne remet jamais une école retirée). Sans cette étape, l'ajout
+   d'une école préscolaire depuis l'Espace Inspection échoue sur
+   « check constraint ».
+6. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-6. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+7. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
 > ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
@@ -208,12 +272,13 @@ télécharger le PDF officiel** → remettre le fichier à l'Inspecteur (ou
 l'envoyer par WhatsApp dès que le réseau le permet).
 
 **Inspection** : ouvrir `admin.html` → se connecter → liste des écoles
-ayant soumis. Trois actions par école :
+ayant soumis. Trois actions par école (selon les capacités du type, voir
+`config.js` → `TYPES`) :
 
 | Action | Effet |
 |---|---|
-| **Voir / PDF** | aperçu des 6 pages + téléchargement du PDF officiel |
-| **✏ Modifier** | charge le rapport enregistré dans le formulaire de saisie ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé |
+| **Voir / PDF** | aperçu des pages du gabarit + téléchargement du PDF officiel (6 pages pour l'élémentaire, 2 pages pour le succinct préscolaire) |
+| **✏ Modifier** | charge le rapport enregistré dans le formulaire de **ce** type ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé (clé de reprise dédiée par type : `RR_MODIF`, `RR_MODIF_SUCCINCT`, …) |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
 ### Un espace et une Analyse PAR TYPE de rapport
@@ -240,9 +305,15 @@ admin.html?type=general-moyen           analyse.html?type=general-moyen
   type) et **la lecture des rapports** suivent le type choisi ;
 - l'**anti-doublon s'applique par type** : une école peut déposer un
   rapport succinct ET un rapport général sans se bloquer ;
-- garde-fous : **Voir / PDF**, **✏ Modifier** et **⬇ Export XLSX** ne sont
-  actifs que pour `general-elementaire` (seul type disposant à ce jour du
-  modèle et d'un formulaire) — les autres affichent « à venir ».
+- les **capacités sont déclarées par type** dans `config.js` → `TYPES` :
+  `pdf`, `xlsx`, `analyse`, `pages`, `ecoles`, `form`, `modif`.
+  À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
+  `general-elementaire` **et** `succinct-prescolaire` (2 pages) ;
+  **⬇ Export XLSX** et la page **📊 Analyse** restent réservés à
+  `general-elementaire`. Pour un type sans capacité, l'Espace affiche
+  « à venir », le bouton XLSX est **désactivé** et la page Analyse
+  affiche **« Analyse en préparation pour ce type »** avec un lien de
+  retour (aucune donnée lue).
 
 **Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
 `Rapport_Rentree_2026-2027.xlsx` — un classeur de **8 feuilles**
@@ -301,11 +372,11 @@ liste vient alors du cache ou de `ecoles.js`.
 > L'ancien libellé « En attente d'envoi » affichait la file locale ; ce
 > compteur a été renommé **« File locale »** pour lever l'ambiguïté.
 
-### Gérer les listes des écoles, des CODEC et des communes
+### Gérer les listes des écoles, des CODEC, des communes et des écoles préscolaires
 
 Dans `admin.html`, la carte **« Listes des écoles et des CODEC »** (sous le
-tableau de bord) donne les **trois colonnes** (écoles, CODEC, communes),
-avec recherche, ajout et suppression :
+tableau de bord) donne les **quatre colonnes** (écoles, CODEC, communes,
+écoles préscolaires), avec recherche, ajout et suppression :
 
 | Action | Effet |
 |---|---|

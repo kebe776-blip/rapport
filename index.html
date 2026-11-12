@@ -83,13 +83,21 @@
   <h2 class="menu-titre">📋 Rapports succincts de rentrée</h2>
   <div class="grille-menu">
 
-    <div class="carte carte-menu avenir">
-      <span class="icone">🏫</span>
-      <span class="nom">Rapport succinct de rentrée <b>préscolaire</b></span>
-      <span class="desc">Relevé condensé de la rentrée en section préscolaire.</span>
-      <span class="badge avenir">Bientôt disponible</span>
-      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
-      <div class="liens-rapide">
+    <!-- Carte active : le lien principal ne peut pas englober les liens
+         rapides (lien dans lien = invalide) → conteneur commun. -->
+    <div class="lien-groupe">
+      <a class="lien-menu" href="succinct-prescolaire.html">
+        <div class="carte carte-menu">
+          <span class="icone">🏫</span>
+          <span class="nom">Rapport succinct de rentrée <b>préscolaire</b></span>
+          <span class="desc">Relevé condensé de la rentrée en section
+            préscolaire — PDF officiel de 2 pages (page 1 paysage,
+            page 2 portrait).</span>
+          <span class="badge dispo">Disponible</span>
+          <span class="btn vert large btn-menu">Remplir le formulaire →</span>
+        </div>
+      </a>
+      <div class="liens-rapide" style="margin-top:8px;">
         <a href="admin.html?type=succinct-prescolaire" title="Espace Inspection de ce type">🔒 Espace</a>
         <a href="analyse.html?type=succinct-prescolaire" title="Analyse de ce type">📊 Analyse</a>
       </div>

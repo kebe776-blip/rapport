@@ -26,18 +26,35 @@ window.RR_CONFIG = {
   IEF: "INSPECTION DE L'ÉDUCATION ET DE LA FORMATION DE KEUR MADIABEL",
 
   /* --- Types de rapport (Espace Inspection + Analyse par type) ---
-     id    : valeur stockée dans la colonne `rapports.type`
-     nom   : libellé complet affiché dans les titres
-     form  : page du formulaire, "" = formulaire à venir
+     id     : valeur stockée dans la colonne `rapports.type`
+     nom    : libellé complet affiché dans les titres
+     form   : page du formulaire, "" = formulaire à venir
+     pdf    : un gabarit PDF existe pour ce type (Voir / PDF + Modifier)
+     xlsx   : l'export XLSX du modèle officiel existe pour ce type
+     analyse: la page Analyse sait lire ce type (sinon « en préparation »)
+     pages  : nombre de pages du gabarit (libellé du bouton PDF)
+     ecoles : tableau des écoles fermées du type (cf. ecoles.js)
+     modif  : clé sessionStorage de la reprise « Modifier » (défaut RR_MODIF)
+      modele : JS du gabarit DÉDIÉ, chargé à la demande par l'Espace
+               Inspection ("" = gabarit de rapport.js, rien à charger)
      La page active choisit son type avec ?type=<id> (défaut : le 1er). */
   TYPES: [
-    { id: "succinct-prescolaire",  nom: "Rapport succinct de rentrée préscolaire",  form: "" },
-    { id: "succinct-elementaire",  nom: "Rapport succinct de rentrée élémentaire",  form: "" },
-    { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",        form: "" },
-    { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",   form: "" },
+    { id: "succinct-prescolaire",  nom: "Rapport succinct de rentrée préscolaire",
+      form: "succinct-prescolaire.html", pdf: true, xlsx: false, analyse: false,
+      pages: 2, ecoles: "RR_ECOLES_PRESCOLAIRE",
+      modif: "RR_MODIF_SUCCINCT",
+      modele: "assets/js/rapport-succinct.js" },
+    { id: "succinct-elementaire",  nom: "Rapport succinct de rentrée élémentaire",
+      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
+    { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",
+      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
+    { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",
+      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
     { id: "general-elementaire",   nom: "Rapport général de rentrée élémentaire",
-      form: "general-elementaire.html" },
-    { id: "general-moyen",         nom: "Rapport général de rentrée moyen",         form: "" }
+      form: "general-elementaire.html", pdf: true, xlsx: true, analyse: true,
+      pages: 6, ecoles: "RR_ECOLES", modif: "RR_MODIF" },
+    { id: "general-moyen",         nom: "Rapport général de rentrée moyen",
+      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 }
   ],
   TYPE_DEFAUT: "general-elementaire",
 
@@ -51,7 +68,10 @@ window.RR_CONFIG = {
   DRAPEAU: "assets/drapeau.png",      // "" = drapeau dessiné en CSS
   LOGO: "assets/logo_men.png",        // "" = bloc « LOGO MEN »
 
-  /* --- Clés de stockage local (brouillon hors-ligne + file d'attente) --- */
+  /* --- Clés de stockage local (brouillon hors-ligne + file d'attente) ---
+     Un brouillon PAR TYPE : la saisie élémentaire et la saisie préscolaire
+     ne se marchent jamais dessus. */
   LS_BROUILLON: "rr_brouillon_v1",
+  LS_BROUILLON_SUCCINCT_PRESCOLAIRE: "rr_brouillon_succinct_prescolaire_v1",
   LS_FILE: "rr_file_attente_v1"
 };

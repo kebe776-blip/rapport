@@ -1031,6 +1031,15 @@
      ======================================================================= */
   async function demarrer() {
     try {
+      /* Certains types n'ont pas encore d'analyse (succinct préscolaire) :
+         on l'annonce AVANT toute lecture de données, avec un lien retour. */
+      if (typeInfo.analyse === false) {
+        msg("info", "<b>Analyse en préparation pour ce type.</b><br>" +
+          "La page Analyse du « " + esc(typeInfo.nom) + " » sera disponible " +
+          "prochainement. " +
+          "<a href=\"index.html\"><b>← Retour à l'accueil</b></a>");
+        return;
+      }
       if (!window.RRdb.actif()) {
         msg("warn", "<b>Supabase non configuré.</b> Ouvrez cette page depuis " +
           "l'<a href=\"admin.html\">Espace Inspection</a> après avoir renseigné " +
