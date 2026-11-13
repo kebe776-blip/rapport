@@ -37,13 +37,20 @@ window.RR_CONFIG = {
      modif  : clé sessionStorage de la reprise « Modifier » (défaut RR_MODIF)
       modele : JS du gabarit DÉDIÉ, chargé à la demande par l'Espace
                Inspection ("" = gabarit de rapport.js, rien à charger)
+      analyse_js : JS du module d'analyse DÉDIÉ au type, chargé à la
+               demande par analyse.js ("" = moteur élémentaire, inchangé)
+      xlsx_js : JS du classeur du modèle officiel du type, chargé à la
+               demande par l'Espace Inspection au clic sur « Export
+               XLSX » ("" = classeur élémentaire 8 feuilles)
      La page active choisit son type avec ?type=<id> (défaut : le 1er). */
   TYPES: [
     { id: "succinct-prescolaire",  nom: "Rapport succinct de rentrée préscolaire",
-      form: "succinct-prescolaire.html", pdf: true, xlsx: false, analyse: false,
+      form: "succinct-prescolaire.html", pdf: true, xlsx: true, analyse: true,
       pages: 2, ecoles: "RR_ECOLES_PRESCOLAIRE",
       modif: "RR_MODIF_SUCCINCT",
-      modele: "assets/js/rapport-succinct.js" },
+      modele: "assets/js/rapport-succinct.js",
+      analyse_js: "assets/js/analyse-succinct.js",
+      xlsx_js: "assets/js/xlsx-succinct.js" },
     { id: "succinct-elementaire",  nom: "Rapport succinct de rentrée élémentaire",
       form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
     { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",

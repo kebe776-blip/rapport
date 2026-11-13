@@ -159,8 +159,13 @@ assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
                         validation minimale, brouillon, soumission 2 pages
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne + listes
 assets/js/analyse.js    Exploitation : agrégation, graphiques SVG maison, synthèse, export XLSX
+                         — moteur partagé + registre RR_ANALYSE[type] des modules dédiés
+assets/js/analyse-succinct.js  ★ Module d'analyse du succinct préscolaire (KPI, graphiques,
+                         taux, synthèse, titres) chargé à la demande après la session
 assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Inspection
 assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
+assets/js/xlsx-succinct.js ★ Classeur du modèle officiel 3 feuilles (succinct préscolaire),
+                         en-têtes copiés du modèle, chargé à la demande au clic
 assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne ;
                         jsPDF + html2canvas et SheetJS sont chargés à la demande, au clic)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
@@ -306,28 +311,42 @@ admin.html?type=general-moyen           analyse.html?type=general-moyen
 - l'**anti-doublon s'applique par type** : une école peut déposer un
   rapport succinct ET un rapport général sans se bloquer ;
 - les **capacités sont déclarées par type** dans `config.js` → `TYPES` :
-  `pdf`, `xlsx`, `analyse`, `pages`, `ecoles`, `form`, `modif`.
+  `pdf`, `xlsx`, `analyse`, `pages`, `ecoles`, `form`, `modif`,
+  `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
   `general-elementaire` **et** `succinct-prescolaire` (2 pages) ;
-  **⬇ Export XLSX** et la page **📊 Analyse** restent réservés à
-  `general-elementaire`. Pour un type sans capacité, l'Espace affiche
+  **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
+  `general-elementaire` **et** `succinct-prescolaire` (modules dédiés
+  chargés à la demande). Pour un type sans capacité, l'Espace affiche
   « à venir », le bouton XLSX est **désactivé** et la page Analyse
   affiche **« Analyse en préparation pour ce type »** avec un lien de
   retour (aucune donnée lue).
 
 **Export Excel** : le bouton **⬇ Export XLSX** (barre d'outils) télécharge
-`Rapport_Rentree_2026-2027.xlsx` — un classeur de **8 feuilles**
-(1. Identification · 2. Effectifs et cours · puis les 6 feuilles du
-modèle officiel « Structures et effectifs élémentaires » : Type de
-classe, Personnel enseignant, Liste du personnel, Ouvrages annexes,
-Mobilier et équipements, Manuels et matériel didactique) avec tous les
-rapports soumis, triés par commune puis école, sous-totaux
-« Total COM. … » + TOTAL GÉNÉRAL, nombres somables et dates en
-jj/mm/aaaa. La feuille *Effectifs et cours* suit le
-modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2 avec
-Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL) puis
-**TOTAL ÉTABLISSEMENT**. Si aucun rapport n'est déposé, un message
-s'affiche sans fichier.
+le classeur du type, chargé à la demande :
+
+- **`general-elementaire`** → `Rapport_Rentree_2026-2027.xlsx`, un
+  classeur de **8 feuilles** (1. Identification · 2. Effectifs et cours ·
+  puis les 6 feuilles du modèle officiel « Structures et effectifs
+  élémentaires » : Type de classe, Personnel enseignant, Liste du
+  personnel, Ouvrages annexes, Mobilier et équipements, Manuels et
+  matériel didactique) avec tous les rapports soumis, triés par commune
+  puis école, sous-totaux « Total COM. … » + TOTAL GÉNÉRAL, nombres
+  somables et dates en jj/mm/aaaa. La feuille *Effectifs et cours* suit
+  le modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2
+  avec Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL)
+  puis **TOTAL ÉTABLISSEMENT** ;
+- **`succinct-prescolaire`** → `Rapport_Succinct_Prescolaire_2026-2027.xlsx`,
+  le **modèle officiel 3 feuilles** (`assets/js/xlsx-succinct.js`) :
+  *COURS ET EFFECTIFS* (78 colonnes), *OUVRAGES ET ACTIVITES ANNEXES*
+  (22), *MOBILIERS ET EQUIPEMENTS* (66) — en-têtes, titres et fusions
+  **copiés verbatim** du fichier modèle, effectifs/personnel en nombres,
+  rubriques non collectées à 0, sous-colonnes non distinguées laissées
+  vides, statut Pu/COM par préfixe d'école, N° **recommençant par
+  commune**, mêmes sous-totaux « Total COM. … » + TOTAL GÉNÉRAL, **aucune
+  ligne PU/COM/ARRDT** du modèle.
+
+Si aucun rapport n'est déposé, un message s'affiche sans fichier.
 
 ### Exploitation des données — la page « 📊 Analyse »
 
@@ -340,17 +359,28 @@ donnée n'est lue sans session).
 
 **Filtres combinables** (recalcul instantané) : **Commune → CODEC → École**
 (en cascade) et **Sexe** (Garçons / Filles / les deux — appliqué aux
-effectifs et au personnel ; les tableaux restent complets).
+KPI et aux graphiques ; les tableaux restent complets). Le filtre
+**CODEC** (et l'option de groupement « CODEC ») est **masqué** pour les
+types qui n'en ont pas (`succinct-prescolaire`).
+
+**Moteur partagé + module dédié par type** : `analyse.js` est identique
+pour les 6 types ; un type peut fournir son module
+`analyse_js` (`assets/js/analyse-succinct.js` → registre
+`RR_ANALYSE[type]`, chargé à la demande **après la session**) qui pilote
+ses **titres de graphiques**, son sous-titre, sa note *Sexe*, ses
+colonnes du tableau **Taux** et de la **Synthèse**, ainsi que son titre
+d'export. Sans module (`mod = null`), le rendu élémentaire reste
+strictement inchangé.
 
 **Contenu :**
 
 | Bloc | Détail |
 |---|---|
-| **Cartes KPI** | écoles analysées · élèves G/F + % filles · cours/classes (simples/CMG/CDF) · taux de redoublants · handicapés & sans état civil · personnel H/F |
-| **Graphiques SVG** (faits main, aucun CDN) | effectifs par niveau **CI → CM2** en barres groupées G/F · types de classes empilés · personnel **H/F** (français + arabe) · **mobilier** bon / à réparer / déficit · **infrastructures** en % d'écoles · **couverture des manuels** en % d'écoles |
-| **Taux par école** | % filles, % redoublants, % handicapés, % sans état civil, élèves/classe — **triable** (clic sur un en-tête) avec mini-barres |
-| **Synthèse** | regroupement au choix **Commune / CODEC / École**, sous-totaux « Total COM. … » / « Total CODEC … » puis **TOTAL GÉNÉRAL** (même convention que l'export XLSX) |
-| **⬇ Export XLSX** | classeur `Analyse_Rentree_2026-2027.xlsx`, feuille unique **« Synthèse »**, tableau exactement tel qu'affiché, **nombres restant des nombres** (somables). SheetJS (930 Ko) n'est téléchargé **qu'au clic**, comme les autres pages |
+| **Cartes KPI** | écoles analysées · élèves G/F + % filles · cours/classes (simples/CMG/CDF) · taux de redoublants · handicapés & sans état civil · personnel H/F — *succinct : enfants PS/MS/GS · sections · salles d'activités · maîtres renseignés · handicapés déclarés* |
+| **Graphiques SVG** (faits main, aucun CDN) | effectifs par niveau **CI → CM2** en barres groupées G/F · types de classes empilés · personnel **H/F** (français + arabe) · **mobilier** bon / à réparer / déficit · **infrastructures** en % d'écoles · **couverture des manuels** en % d'écoles — *succinct : effectifs PS/MS/GS · salles d'activités · eau & électricité · mobilier & jeux · équipements scolaires · structure de l'école* |
+| **Taux par école** | % filles, % redoublants, % handicapés, % sans état civil, élèves/classe — **triable** (clic sur un en-tête) avec mini-barres — *succinct : enfants, % filles, sections, salles, maîtres, enfants/section* |
+| **Synthèse** | regroupement au choix **Commune / CODEC / École**, sous-totaux « Total COM. … » / « Total CODEC … » puis **TOTAL GÉNÉRAL** (même convention que l'export XLSX) — *succinct : regroupement Commune / École, colonnes PS · MS · GS · Total · Maîtres · Sections · Handicap.* |
+| **⬇ Export XLSX** | classeur `Analyse_Rentree_2026-2027.xlsx`, feuille unique **« Synthèse »**, tableau exactement tel qu'affiché, **nombres restant des nombres** (somables), titre du type. SheetJS (930 Ko) n'est téléchargé **qu'au clic**, comme les autres pages |
 
 Poids au chargement : **≈ 312 Ko** (dont 215 Ko de supabase-js) — les
 autres pages ne changent pas.

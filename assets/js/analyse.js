@@ -30,6 +30,14 @@
   }
   var typeInfo = infoType(TYPE);
 
+  /* -----------------------------------------------------------------------
+     MODULE D'ANALYSE DÉDIÉ AU TYPE — registre RR_ANALYSE[type] (voir
+     analyse-succinct.js). mod = null → moteur élémentaire, strictement
+     inchangé. Le module est chargé à la demande dans demarrer(), APRÈS
+     la session : ni script ni donnée sans connexion.
+     ----------------------------------------------------------------------- */
+  var mod = null;
+
   function initType() {
     document.title = "Analyse — " + typeInfo.nom;
     $("sous-type").textContent = typeInfo.nom +
@@ -149,6 +157,60 @@
     frH: "#1f4e79", frF: "#7fb3e0", arH: "#1e7a3c", arF: "#8ecda6",
     barre: "#1f4e79", piste: "#e6eaf0"
   };
+
+  /* =======================================================================
+     MODULE D'ANALYSE DÉDIÉ (registre RR_ANALYSE[type])
+     ======================================================================= */
+
+  /** API exposée au module : utilitaires, rendu SVG et moteur partagés. */
+  function apiModule() {
+    return {
+      $: $, esc: esc, num: num, fmt: fmt, fmt1: fmt1, pct: pct, norm: norm,
+      tot: tot, cleCommune: cleCommune, cleCodec: cleCodec,
+      trier: trier, distinct: distinct, peupler: peupler,
+      svgVerticaux: svgVerticaux, svgEmpile: svgEmpile, svgPourcent: svgPourcent,
+      miniBar: miniBar, carte: carte, msg: msg, msgAnalyse: msgAnalyse,
+      progres: progres, finProgres: finProgres,
+      C: C, state: state, cfg: CFG, type: TYPE, typeInfo: typeInfo,
+      LIB_SEXE: LIB_SEXE, chargerScripts: window.RR.chargerScripts,
+      construireSynthese: construireSynthese, libelleTotal: libelleTotal,
+      descriptionFiltres: descriptionFiltres, selection: selection,
+      colsSyn: colsSyn, colsTaux: colsTaux, chiffres: chiffres
+    };
+  }
+
+  /** Le type exige-t-il le filtre CODEC ? (succinct : non → champ masqué). */
+  function avecCodec() {
+    return !(mod && mod.filtres && mod.filtres.codec === false);
+  }
+
+  /** Applique au DOM ce que le module pilote : titres, note, filtres. */
+  function appliquerModule() {
+    if (!mod) { return; }
+    /* Titres des 6 graphiques (divs existants, titre = frère précédent) */
+    if (mod.titres) {
+      Object.keys(mod.titres).forEach(function (id) {
+        var el = $(id);
+        if (el && el.previousElementSibling) {
+          el.previousElementSibling.textContent = mod.titres[id];
+        }
+      });
+    }
+    if (mod.sousTitre) { $("sous-type").textContent = mod.sousTitre; }
+    if (mod.noteSexe) {
+      var note = $("note-sexe");
+      if (note) { note.innerHTML = mod.noteSexe; }
+    }
+    /* Filtre CODEC absent du type : champ masqué + option retirée */
+    if (!avecCodec()) {
+      var champ = $("f-codec");
+      if (champ && champ.parentNode) { champ.parentNode.style.display = "none"; }
+      var grp = $("groupement");
+      var opt = grp.querySelector('option[value="codec"]');
+      if (opt) { opt.parentNode.removeChild(opt); }
+      if (grp.value === "codec") { grp.value = "commune"; }
+    }
+  }
 
   /* =======================================================================
      MESSAGES / PROGRESSION
@@ -377,6 +439,7 @@
   ];
 
   function agreger(sel) {
+    if (mod && mod.agreger) { return mod.agreger(sel, apiModule()); }
     var A = {
       n: sel.length,
       eff: { g: 0, f: 0, t: 0, red: 0, hand: 0, sec: 0 },
@@ -520,7 +583,7 @@
     var codec = $("f-codec").value;
     var ecole = $("f-ecole").value;
     p.push(commune ? "Commune : " + commune : "Toutes communes");
-    if (codec) { p.push("CODEC : " + codec); }
+    if (avecCodec() && codec) { p.push("CODEC : " + codec); }
     if (ecole) {
       var opt = $("f-ecole").options[$("f-ecole").selectedIndex];
       p.push("École : " + (opt ? opt.textContent : ecole));
@@ -539,6 +602,7 @@
   }
 
   function rendreKpi(A) {
+    if (mod && mod.rendreKpi) { return mod.rendreKpi(A, apiModule()); }
     var s = $("f-sexe").value;
     var effBase = s === "g" ? A.eff.g : s === "f" ? A.eff.f : A.eff.t;
     var inscrits = A.eff.g + A.eff.f;
@@ -683,10 +747,25 @@
       "de chaque titre majeur.</div>";
   }
 
+  /** Rendu des 6 graphiques (dispatch vers le module du type si présent). */
+  function rendreCharts(A) {
+    if (mod && mod.rendreCharts) {
+      mod.rendreCharts(A, $("f-sexe").value, apiModule());
+      return;
+    }
+    rendreChartEffectifs(A);
+    rendreChartClasses(A);
+    rendreChartPersonnel(A);
+    rendreChartMobilier(A);
+    rendreChartInfra(A);
+    rendreChartManuels(A);
+  }
+
   /* =======================================================================
      RENDU — TAUX PAR ÉCOLE
      ======================================================================= */
   function tauxDe(l) {
+    if (mod && mod.tauxDe) { return mod.tauxDe(l, apiModule()); }
     var c = l.ctx;
     var et = c.effectifs_total;
     var g = num(et.eff_g), f = num(et.eff_f);
@@ -716,6 +795,22 @@
     { cle: "parClasse", titre: "Élèves/classe", type: "dec" }
   ];
 
+  function colsTaux() { return (mod && mod.colsTaux) || COLS_TAUX; }
+
+  /** Cellule générique du tableau « Taux » (colonnes choisies par le type). */
+  function celluleTaux(col, t) {
+    var v = t[col.cle];
+    if (col.type === "pct") {
+      return '<td class="num">' + miniBar(v, col.couleur || C.barre) + "</td>";
+    }
+    if (col.type === "num") { return '<td class="num">' + fmt(v) + "</td>"; }
+    if (col.type === "dec") {
+      return '<td class="num">' + (num(v) > 0 ? fmt1(v) : "—") + "</td>";
+    }
+    return "<td" + (col.cle === "nom" ? "><b>" + esc(v) + "</b>" : ">" + esc(v)) +
+           "</td>";
+  }
+
   function rendreTaux(sel) {
     state.taux = trier(sel).map(tauxDe);
     rendreTauxEntete();
@@ -723,7 +818,7 @@
   }
 
   function rendreTauxEntete() {
-    $("taux-entete").innerHTML = COLS_TAUX.map(function (col) {
+    $("taux-entete").innerHTML = colsTaux().map(function (col) {
       var actif = triTaux.cle === col.cle;
       var fleche = actif ? (triTaux.sens === 1 ? " ▲" : " ▼") : " ▲";
       return '<th class="tri' + (actif ? " actif" : "") + '" data-cle="' + col.cle +
@@ -733,12 +828,13 @@
   }
 
   function rendreTauxCorps() {
+    var cols = colsTaux();
     var lignes = state.taux.slice().sort(function (a, b) {
       var col = null;
-      for (var i = 0; i < COLS_TAUX.length; i++) {
-        if (COLS_TAUX[i].cle === triTaux.cle) { col = COLS_TAUX[i]; break; }
+      for (var i = 0; i < cols.length; i++) {
+        if (cols[i].cle === triTaux.cle) { col = cols[i]; break; }
       }
-      if (!col) { col = COLS_TAUX[0]; }
+      if (!col) { col = cols[0]; }
       var va = a[col.cle], vb = b[col.cle];
       var r;
       if (col.type === "txt") { r = String(va).localeCompare(String(vb), "fr"); }
@@ -749,23 +845,14 @@
 
     var corps = $("table-taux").querySelector("tbody");
     if (!lignes.length) {
-      corps.innerHTML = '<tr><td colspan="' + COLS_TAUX.length +
+      corps.innerHTML = '<tr><td colspan="' + cols.length +
         '" style="text-align:center;color:#777;">Aucune école pour ces filtres.</td></tr>';
       return;
     }
     corps.innerHTML = lignes.map(function (t) {
-      return "<tr>" +
-        "<td><b>" + esc(t.nom) + "</b></td>" +
-        "<td>" + esc(t.commune) + "</td>" +
-        "<td>" + esc(t.codec) + "</td>" +
-        '<td class="num">' + fmt(t.eleves) + "</td>" +
-        '<td class="num">' + miniBar(t.pfilles, C.garcons) + "</td>" +
-        '<td class="num">' + miniBar(t.pred, "#e07b00") + "</td>" +
-        '<td class="num">' + miniBar(t.phand, "#6b7280") + "</td>" +
-        '<td class="num">' + miniBar(t.psec, "#6b7280") + "</td>" +
-        '<td class="num">' + fmt(t.classes) + "</td>" +
-        '<td class="num">' + (t.parClasse > 0 ? fmt1(t.parClasse) : "—") + "</td>" +
-        "</tr>";
+      return "<tr>" + cols.map(function (col) {
+        return celluleTaux(col, t);
+      }).join("") + "</tr>";
     }).join("");
   }
 
@@ -773,20 +860,30 @@
      RENDU — SYNTHÈSE (tableau + export XLSX)
      ======================================================================= */
   var COLS_SYN = [
-    { titre: "École", cle: "ecole" },
-    { titre: "Commune", cle: "commune" },
-    { titre: "CODEC", cle: "codec" },
-    { titre: "Élèves G", cle: "g", num: true },
-    { titre: "Élèves F", cle: "f", num: true },
-    { titre: "Élèves T", cle: "t", num: true },
-    { titre: "Classes", cle: "classes", num: true },
-    { titre: "Pers. H", cle: "ph", num: true },
-    { titre: "Pers. F", cle: "pf", num: true },
-    { titre: "Redoubl.", cle: "red", num: true },
-    { titre: "Handicap.", cle: "hand", num: true }
+    { titre: "École", cle: "ecole", w: 42 },
+    { titre: "Commune", cle: "commune", w: 20 },
+    { titre: "CODEC", cle: "codec", w: 20 },
+    { titre: "Élèves G", cle: "g", num: true, w: 10 },
+    { titre: "Élèves F", cle: "f", num: true, w: 10 },
+    { titre: "Élèves T", cle: "t", num: true, w: 10 },
+    { titre: "Classes", cle: "classes", num: true, w: 9 },
+    { titre: "Pers. H", cle: "ph", num: true, w: 9 },
+    { titre: "Pers. F", cle: "pf", num: true, w: 9 },
+    { titre: "Redoubl.", cle: "red", num: true, w: 11 },
+    { titre: "Handicap.", cle: "hand", num: true, w: 11 }
   ];
 
+  function colsSyn() { return (mod && mod.colsSyn) || COLS_SYN; }
+
+  /** Colonnes de texte en tête (libellés) : largeur du colspan des totaux. */
+  function nbTextes(cols) {
+    var n = 0;
+    while (n < cols.length && !cols[n].num) { n++; }
+    return n;
+  }
+
   function chiffres(l) {
+    if (mod && mod.chiffres) { return mod.chiffres(l, apiModule()); }
     var c = l.ctx;
     var et = c.effectifs_total;
     var g = num(et.eff_g), f = num(et.eff_f);
@@ -825,13 +922,14 @@
     });
 
     var totaux = {};
-    COLS_SYN.forEach(function (col) {
+    var cols = colsSyn();
+    cols.forEach(function (col) {
       if (col.num) { totaux[col.cle] = 0; }
     });
 
     groupes.forEach(function (g) {
       var t = {};
-      COLS_SYN.forEach(function (col) {
+      cols.forEach(function (col) {
         if (col.num) { t[col.cle] = somme(g.lignes, col.cle); }
       });
       g.total = t;
@@ -849,15 +947,17 @@
 
   function rendreSynthese() {
     var syn = construireSynthese();
+    var cols = colsSyn();
+    var nt = nbTextes(cols);
     var thead = $("table-synthese").querySelector("thead");
     var tbody = $("table-synthese").querySelector("tbody");
 
-    thead.innerHTML = "<tr>" + COLS_SYN.map(function (c) {
+    thead.innerHTML = "<tr>" + cols.map(function (c) {
       return '<th' + (c.num ? ' style="text-align:right;"' : "") + ">" + esc(c.titre) + "</th>";
     }).join("") + "</tr>";
 
     if (!syn.groupes.length) {
-      tbody.innerHTML = '<tr><td colspan="' + COLS_SYN.length +
+      tbody.innerHTML = '<tr><td colspan="' + cols.length +
         '" style="text-align:center;color:#777;">Aucune école pour ces filtres.</td></tr>';
       return;
     }
@@ -866,7 +966,7 @@
     syn.groupes.forEach(function (g) {
       g.lignes.forEach(function (l) {
         var c = chiffres(l);
-        html.push("<tr>" + COLS_SYN.map(function (col) {
+        html.push("<tr>" + cols.map(function (col) {
           var v = c[col.cle];
           if (col.num) { return '<td class="num">' + fmt(v) + "</td>"; }
           return "<td" + (col.cle === "ecole" ? "><b>" + esc(v) + "</b>" : ">" + esc(v)) + "</td>";
@@ -874,14 +974,16 @@
       });
       if (syn.grp !== "ecole") {
         html.push('<tr class="total-groupe"><td>' + esc(libelleTotal(syn.grp, g.cle)) +
-          '</td><td colspan="2"></td>' + COLS_SYN.slice(3).map(function (col) {
+          "</td>" + (nt > 1 ? '<td colspan="' + (nt - 1) + '"></td>' : "") +
+          cols.slice(nt).map(function (col) {
             return '<td class="num">' + fmt(g.total[col.cle]) + "</td>";
           }).join("") + "</tr>");
       }
     });
 
-    html.push('<tr class="total-general"><td>TOTAL GÉNÉRAL</td><td colspan="2"></td>' +
-      COLS_SYN.slice(3).map(function (col) {
+    html.push('<tr class="total-general"><td>TOTAL GÉNÉRAL</td>' +
+      (nt > 1 ? '<td colspan="' + (nt - 1) + '"></td>' : "") +
+      cols.slice(nt).map(function (col) {
         return '<td class="num">' + fmt(syn.total[col.cle]) + "</td>";
       }).join("") + "</tr>");
 
@@ -897,7 +999,7 @@
     var codec = $("f-codec").value;
     var ecole = $("f-ecole").value;
     p.push(commune ? "Commune : " + commune : "Toutes communes");
-    p.push(codec ? "CODEC : " + codec : "Tous les CODEC");
+    if (avecCodec()) { p.push(codec ? "CODEC : " + codec : "Tous les CODEC"); }
     if (ecole) {
       var opt = $("f-ecole").options[$("f-ecole").selectedIndex];
       p.push("École : " + (opt ? opt.textContent : ecole));
@@ -916,46 +1018,45 @@
       await window.RR.chargerScripts(["assets/vendor/xlsx.full.min.js"]);
       progres("Construction du classeur…", 55);
 
+      var cols = colsSyn();
+      var nt = nbTextes(cols);
       var aoa = [];
-      aoa.push(["ANALYSE DES DONNÉES — RAPPORT DE RENTRÉE ÉLÉMENTAIRE"]);
+      aoa.push([mod && mod.xlsxTitre ? mod.xlsxTitre :
+                "ANALYSE DES DONNÉES — RAPPORT DE RENTRÉE ÉLÉMENTAIRE"]);
       aoa.push([CFG.INSPECTION || "", CFG.IEF || ""]);
       aoa.push(["Année scolaire " + (CFG.ANNEE || "") + " — " + syn.n + " école(s) — " +
                 descriptionFiltres()]);
       aoa.push([]);
-      aoa.push(COLS_SYN.map(function (c) { return c.titre; }));
+      aoa.push(cols.map(function (c) { return c.titre; }));
 
       syn.groupes.forEach(function (g) {
         g.lignes.forEach(function (l) {
           var c = chiffres(l);
-          aoa.push(COLS_SYN.map(function (col) { return c[col.cle]; }));
+          aoa.push(cols.map(function (col) { return c[col.cle]; }));
         });
         if (syn.grp !== "ecole") {
-          var ligne = ["", "", ""];
-          COLS_SYN.forEach(function (col, i) {
-            if (i < 3) { return; }
-            ligne[i] = g.total[col.cle];
+          var ligne = [];
+          cols.forEach(function (col, i) {
+            ligne[i] = i < nt ? "" : g.total[col.cle];
           });
           ligne[0] = libelleTotal(syn.grp, g.cle);
           aoa.push(ligne);
         }
       });
 
-      var ligneTot = ["TOTAL GÉNÉRAL", "", ""];
-      COLS_SYN.forEach(function (col, i) {
-        if (i < 3) { return; }
-        ligneTot[i] = syn.total[col.cle];
+      var ligneTot = [];
+      cols.forEach(function (col, i) {
+        ligneTot[i] = i < nt ? "" : syn.total[col.cle];
       });
+      ligneTot[0] = "TOTAL GÉNÉRAL";
       aoa.push(ligneTot);
 
       var ws = window.XLSX.utils.aoa_to_sheet(aoa);
-      ws["!cols"] = [
-        { wch: 42 }, { wch: 20 }, { wch: 20 }, { wch: 10 }, { wch: 10 },
-        { wch: 10 }, { wch: 9 }, { wch: 9 }, { wch: 9 }, { wch: 11 }, { wch: 11 }
-      ];
+      ws["!cols"] = cols.map(function (c) { return { wch: c.w || 10 }; });
       ws["!merges"] = [
-        { s: { r: 0, c: 0 }, e: { r: 0, c: COLS_SYN.length - 1 } },
-        { s: { r: 1, c: 0 }, e: { r: 1, c: COLS_SYN.length - 1 } },
-        { s: { r: 2, c: 0 }, e: { r: 2, c: COLS_SYN.length - 1 } }
+        { s: { r: 0, c: 0 }, e: { r: 0, c: cols.length - 1 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: cols.length - 1 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: cols.length - 1 } }
       ];
 
       var wb = window.XLSX.utils.book_new();
@@ -997,12 +1098,7 @@
     msgAnalyse(null);
     var A = agreger(sel);
     rendreKpi(A);
-    rendreChartEffectifs(A);
-    rendreChartClasses(A);
-    rendreChartPersonnel(A);
-    rendreChartMobilier(A);
-    rendreChartInfra(A);
-    rendreChartManuels(A);
+    rendreCharts(A);
     rendreTaux(sel);
     rendreSynthese();
   }
@@ -1011,6 +1107,7 @@
      DONNÉES
      ======================================================================= */
   function construireLignes(bruts) {
+    if (mod && mod.construireLignes) { return mod.construireLignes(bruts, apiModule()); }
     return bruts.map(function (r) {
       var donnees = r.donnees || {};
       var ctx = window.RR.buildContext(donnees, { id: r.ecole_code });
@@ -1075,6 +1172,20 @@
         return;
       }
 
+      /* Module d'analyse DÉDIÉ au type : chargé à la demande, APRÈS la
+         session (aucun script ni donnée sans connexion). */
+      if (typeInfo.analyse_js) {
+        progres("Chargement du module d'analyse…", 15);
+        await window.RR.chargerScripts([typeInfo.analyse_js]);
+        mod = (window.RR_ANALYSE || {})[TYPE] || null;
+        if (!mod) {
+          throw new Error("Module d'analyse introuvable : " + typeInfo.analyse_js);
+        }
+        if (mod.init) { mod.init(apiModule()); }
+        appliquerModule();
+        finProgres();
+      }
+
       progres("Lecture des rapports…", 25);
       var bruts = await window.RRdb.listerComplets(TYPE);
       finProgres();
@@ -1136,8 +1247,9 @@
         triTaux.sens = -triTaux.sens;
       } else {
         var col = null;
-        for (var i = 0; i < COLS_TAUX.length; i++) {
-          if (COLS_TAUX[i].cle === cle) { col = COLS_TAUX[i]; break; }
+        var cols = colsTaux();
+        for (var i = 0; i < cols.length; i++) {
+          if (cols[i].cle === cle) { col = cols[i]; break; }
         }
         triTaux.cle = cle;
         triTaux.sens = col && col.type !== "txt" ? -1 : 1;

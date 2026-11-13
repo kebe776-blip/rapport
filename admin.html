@@ -472,10 +472,13 @@
   $("btn-rafraichir").addEventListener("click", chargerListe);
 
   /* ---------------- EXPORT XLSX ----------------
-     Classeur de 8 feuilles (voir assets/js/xlsx-export.js) : nos feuilles
-     Identification et Effectifs et cours, plus les 6 feuilles du modèle
-     officiel (assets/js/xlsx-modele.js). Construit à partir des rapports
-     complets lus en base, sous la session Inspection déjà connectée. */
+     Deux classeurs selon le type (config.js TYPES) :
+       - xlsx_js renseigné → modèle OFFICIEL du type, chargé à la demande
+         (succinct préscolaire : 3 feuilles, assets/js/xlsx-succinct.js) ;
+       - sinon → classeur élémentaire de 8 feuilles (xlsx-modele.js +
+         xlsx-export.js).
+     Construit à partir des rapports complets lus en base, sous la session
+     Inspection déjà connectée. */
   $("btn-xlsx").addEventListener("click", async function () {
     var btn = this;
     btn.disabled = true;
@@ -485,11 +488,13 @@
         return;
       }
       progres("Chargement du module XLSX…", 10);
-      await window.RR.chargerScripts([
-        "assets/vendor/xlsx.full.min.js",
-        "assets/js/xlsx-modele.js",
-        "assets/js/xlsx-export.js"
-      ]);
+      var scripts = ["assets/vendor/xlsx.full.min.js"];
+      if (typeInfo.xlsx_js) {
+        scripts.push(typeInfo.xlsx_js);
+      } else {
+        scripts.push("assets/js/xlsx-modele.js", "assets/js/xlsx-export.js");
+      }
+      await window.RR.chargerScripts(scripts);
       progres("Lecture des rapports…", 25);
       var complets = await window.RRdb.listerComplets(TYPE);
       if (!complets.length) {
@@ -497,10 +502,14 @@
         return;
       }
       progres("Création du classeur XLSX…", 70);
-      var nom = window.RR.xlsx.creer(complets);
+      var res = typeInfo.xlsx_js
+        ? window.RR.xlsxPrescolaire.creer(complets)
+        : window.RR.xlsx.creer(complets);
+      var nom = typeof res === "string" ? res : res.nom;
+      var nbFeuilles = typeof res === "string" ? 8 : (res.feuilles || 3);
       msg("msg-admin", "ok", "Export téléchargé : <b>" +
           window.RR.esc(nom) + "</b> (" + complets.length +
-          " rapport(s), 8 feuilles).");
+          " rapport(s), " + nbFeuilles + " feuilles).");
     } catch (e) {
       msg("msg-admin", "erreur", window.RR.esc(e.message));
     } finally {
