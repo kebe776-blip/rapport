@@ -126,9 +126,15 @@
       if (c.t === "date") { attrs += ' placeholder="JJ/MM/AAAA"'; }
       if (c.t === "num") { attrs += ' min="0"'; }
 
-      /* Titre imprimé par le modèle officiel (K, M) : non modifiable */
+      /* Titre imprimé par le modèle officiel (K, M) : non modifiable.
+         On verse aussi la valeur dans l'objet de saisie : le champ est
+         readonly, il n'écrirait jamais `donnees` lui-même, et le brouillon
+         (donc l'aperçu PDF) partirait sans libellé. */
       var estValeurFixe = valeurFixe !== undefined && n === (cleTitre || "titre");
-      if (estValeurFixe) { attrs += ' readonly class="fixe"'; }
+      if (estValeurFixe) {
+        attrs += ' readonly class="fixe"';
+        setPath(donnees, path, valeurFixe);
+      }
 
       html += "<td" + style + ">";
       if (c.t === "select") {
@@ -753,6 +759,7 @@
     /* effectifs / mobilier / récap */
     Array.prototype.forEach.call(
       conteneur.querySelectorAll('table [data-path][data-n]'), function (el) {
+        if (el.readOnly) { return; }   /* titres officiels (K, M) : ne pas effacer */
         var v = getPath(donnees, el.getAttribute("data-path"));
         if (v === undefined || v === null) { v = el.type === "number" ? 0 : ""; }
         el.value = v;
@@ -782,6 +789,18 @@
         v = v === "" ? 0 : (isNaN(parseFloat(v)) ? 0 : parseFloat(v));
       }
       setPath(out, el.getAttribute("data-path"), v);
+    });
+    /* Lignes fixes du modèle (K : titres, M : désignations) : le libellé
+       officiel est garanti, même si un DOM antérieur l'avait vidé. */
+    D.LISTES.forEach(function (def) {
+      if (!def.valeurs || !Array.isArray(out[def.cle])) { return; }
+      var cleTitre = def.cle_titre || "titre";
+      out[def.cle].forEach(function (row, i) {
+        if (row && (row[cleTitre] === undefined || row[cleTitre] === "") &&
+            def.valeurs[i] !== undefined) {
+          row[cleTitre] = def.valeurs[i];
+        }
+      });
     });
     /* Les lignes entièrement vides des tableaux fixes sont écartées :
        le PDF renumérote lui-même les lignes de saisie restantes. */

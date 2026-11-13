@@ -342,6 +342,33 @@
     { n: "observations", l: "Observations", t: "text", w: "25%" }
   ];
 
+  /* -----------------------------------------------------------------------
+     COMPLÉMENT DES LIGNES FIXES (aperçu / rapports déjà enregistrés)
+     Les titres K et désignations M vivent dans le DOM du formulaire sous
+     forme de champs readonly : un rapport enregistré AVANT cette correction
+     partait sans libellé (brouillon ou Supabase), d'où des pages 5 et 6
+     sans titres. On injecte ici le libellé officiel manquant — et on crée
+     les lignes absentes pour que l'aperçu affiche la liste complète.
+     ----------------------------------------------------------------------- */
+  function completerTitresFixes(raw) {
+    if (!raw || typeof raw !== "object") { return raw; }
+    LISTES.forEach(function (def) {
+      if (!def.valeurs) { return; }          /* L et N : lignes libres */
+      var cleTitre = def.cle_titre || "titre";
+      var lignes = Array.isArray(raw[def.cle]) ? raw[def.cle] : [];
+      for (var i = 0; i < def.valeurs.length; i++) {
+        var ligne = lignes[i];
+        if (!ligne || typeof ligne !== "object") { ligne = lignes[i] = {}; }
+        var v = ligne[cleTitre];
+        if (v === undefined || v === null || v === "") {
+          ligne[cleTitre] = def.valeurs[i];
+        }
+      }
+      raw[def.cle] = lignes;
+    });
+    return raw;
+  }
+
   global.RR_CHAMPS = {
     SECTIONS: SECTIONS,
     PERSONNEL: PERSONNEL,
@@ -352,6 +379,7 @@
     COLONNES_LISTE: COLONNES_LISTE,
     TITRES_MANUELS: TITRES_MANUELS,
     DESIGNATIONS_MATERIEL: DESIGNATIONS_MATERIEL,
+    completerTitresFixes: completerTitresFixes,
     OPTIONS: {
       OUI_NON: OUI_NON, STATUT: STATUT, LANGUE: LANGUE, ETAT: ETAT,
       ELECTRICITE: ELECTRICITE, STATUT_DIR: STATUT_DIR,

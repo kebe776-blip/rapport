@@ -182,6 +182,7 @@
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
 <script src="assets/js/ecoles.js"></script>
+<script src="assets/js/champs.js"></script>
 <!-- Le modèle dédié d'un type (assets/js/rapport-succinct.js) est chargé
      À LA DEMANDE (voir chargerModele) : cet espace ne gagne aucun octet
      tant qu'aucun rapport de ce type n'est affiché. -->
@@ -592,6 +593,13 @@
 
   async function ouvrirApercu(ligne) {
     var M = await modelePret();
+    /* Rapports généraux enregistrés avant la correction des titres fixes
+       (K / M) : on complete les libellés officiels avant le rendu.
+       Les types à gabarit dédié (succinct) ont leurs propres listes. */
+    if (!typeInfo.modele && window.RR_CHAMPS &&
+        window.RR_CHAMPS.completerTitresFixes) {
+      window.RR_CHAMPS.completerTitresFixes(ligne.donnees);
+    }
     ctxCourant = M.buildContext(ligne.donnees, { id: ligne.ecole_code });
     codeApercu = ligne.ecole_code;
     $("titre-apercu").textContent = "Aperçu — " +

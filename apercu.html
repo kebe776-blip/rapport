@@ -52,6 +52,7 @@
 <script src="assets/js/rapport.js"></script>
 <script src="assets/js/pdf.js"></script>
 <script src="assets/js/db.js"></script>
+<script src="assets/js/champs.js"></script>
 <script>
 (function () {
   "use strict";
@@ -103,6 +104,11 @@
       var p = params();
       var id = charge.id || p.ref || (charge.brut && charge.brut._id) || "—";
 
+      /* Titres fixes K / M absents des rapports enregistrés avant la
+         correction : on complete la liste officielle avant le rendu. */
+      if (window.RR_CHAMPS && window.RR_CHAMPS.completerTitresFixes) {
+        window.RR_CHAMPS.completerTitresFixes(charge.brut);
+      }
       ctxCourant = window.RR.buildContext(charge.brut, { id: id });
       document.getElementById("sous-titre").textContent =
         "École : " + (ctxCourant.meta.ecole || "—") +
