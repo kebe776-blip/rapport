@@ -133,13 +133,21 @@
   <h2 class="menu-titre">📑 Rapports généraux de rentrée</h2>
   <div class="grille-menu">
 
-    <div class="carte carte-menu avenir">
-      <span class="icone">🏫</span>
-      <span class="nom">Rapport général de rentrée <b>préscolaire</b></span>
-      <span class="desc">Rapport complet de la rentrée en section préscolaire.</span>
-      <span class="badge avenir">Bientôt disponible</span>
-      <button class="btn gris large btn-menu" disabled>Bientôt disponible</button>
-      <div class="liens-rapide">
+    <!-- Carte active : le lien principal ne peut pas englober les liens
+         rapides (lien dans lien = invalide) → conteneur commun. -->
+    <div class="lien-groupe">
+      <a class="lien-menu" href="general-prescolaire.html">
+        <div class="carte carte-menu">
+          <span class="icone">🏫</span>
+          <span class="nom">Rapport général de rentrée <b>préscolaire</b></span>
+          <span class="desc">Rapport complet (sections A → J) : classes,
+            salles, directeur, ouvrages, activités, personnel, effectifs,
+            mobiliers — PDF officiel de 4 pages paysage.</span>
+          <span class="badge dispo">Disponible</span>
+          <span class="btn vert large btn-menu">Remplir le formulaire →</span>
+        </div>
+      </a>
+      <div class="liens-rapide" style="margin-top:8px;">
         <a href="admin.html?type=general-prescolaire" title="Espace Inspection de ce type">🔒 Espace</a>
         <a href="analyse.html?type=general-prescolaire" title="Analyse de ce type">📊 Analyse</a>
       </div>

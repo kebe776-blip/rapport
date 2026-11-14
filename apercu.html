@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Aperçu du rapport — Rentrée élémentaire 2026/2027</title>
+<title>Aperçu du rapport — Rentrée 2026/2027</title>
 <link rel="stylesheet" href="assets/css/rapport.css">
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
@@ -11,12 +11,12 @@
 
 <div class="topbar">
   <div>
-    <h1>RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE</h1>
+    <h1 id="titre-type">RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE</h1>
     <div class="sous" id="sous-titre">Aperçu du document officiel</div>
   </div>
   <div class="spacer"></div>
-  <a class="lien" href="general-elementaire.html">← Nouvelle saisie</a>
-  <a class="lien" href="admin.html">Espace Inspection</a>
+  <a class="lien" id="lien-saisie" href="general-elementaire.html">← Nouvelle saisie</a>
+  <a class="lien" id="lien-espace" href="admin.html">Espace Inspection</a>
 </div>
 
 <div class="conteneur">
@@ -28,9 +28,9 @@
       <button class="btn vert" id="btn-pdf" disabled>⬇ Télécharger le PDF officiel (6 pages)</button>
       <span class="petit" id="info-fichier"></span>
       <span class="spacer" style="flex:1"></span>
-      <a class="btn gris petit" href="general-elementaire.html">Modifier la saisie</a>
+      <a class="btn gris petit" id="lien-modifier" href="general-elementaire.html">Modifier la saisie</a>
     </div>
-    <div class="petit mt">
+    <div class="petit mt" id="note-pages">
       Le fichier est généré <b>dans votre navigateur</b> (aucun envoi vers un serveur) :
       format A4 <b>paysage</b>, 6 pages strictement conformes au modèle administratif.
     </div>
@@ -75,20 +75,63 @@
     return p;
   }
 
-  /** Récupère les données : brouillon local, ou ?ref= (Supabase). */
+  /* --- Type de rapport (?type=<id>, défaut = élémentaire) --------------
+     Chaque type a son gabarit (typeInfo.modele), sa page de saisie
+     (typeInfo.form), son nombre de pages (typeInfo.pages) et sa clé de
+     brouillon local (typeInfo.brouillon). L'élémentaire reste le défaut :
+     sans ?type=, le comportement est strictement celui d'origine. */
+  var p0 = params();
+  var typeInfo = (CFG.TYPES || []).filter(function (t) {
+    return t.id === p0.type;
+  })[0] || (CFG.TYPES || []).filter(function (t) {
+    return t.id === CFG.TYPE_DEFAUT;
+  })[0] || {};
+  var TYPE = typeInfo.id || CFG.TYPE_DEFAUT || "general-elementaire";
+  var NB_PAGES = typeInfo.pages || 6;
+
+  function modele() {
+    var m = (window.RR_MODELES || {})[TYPE];
+    return m || { buildContext: window.RR.buildContext,
+                  renderPreview: window.RR.renderPreview,
+                  fitPreview: window.RR.fitPreview };
+  }
+
+  /* --- Textes et liens selon le type --- */
+  (function habiller() {
+    var nom = (typeInfo.nom || "Rapport général de rentrée élémentaire")
+      .toUpperCase();
+    document.getElementById("titre-type").textContent = nom;
+    document.title = "Aperçu — " + (typeInfo.nom || "Rapport") + " 2026/2027";
+
+    var form = typeInfo.form || "general-elementaire.html";
+    var qs = "?type=" + encodeURIComponent(TYPE);
+    document.getElementById("lien-saisie").href = form;
+    document.getElementById("lien-modifier").href = form;
+    document.getElementById("lien-espace").href = "admin.html" + qs;
+
+    document.getElementById("btn-pdf").textContent =
+      "⬇ Télécharger le PDF officiel (" + NB_PAGES + " pages)";
+    document.getElementById("note-pages").innerHTML =
+      "Le fichier est généré <b>dans votre navigateur</b> (aucun envoi " +
+      "vers un serveur) : format A4 <b>paysage</b>, " + NB_PAGES +
+      " pages strictement conformes au modèle administratif.";
+  }());
+
+  /** Récupère les données : brouillon local du type, ou ?ref= (Supabase). */
   async function charger() {
     var p = params();
 
-    /* Dernière saisie enregistrée sur cet appareil */
+    /* Dernière saisie enregistrée sur cet appareil (clé PROPRE au type) */
+    var cle = typeInfo.brouillon || CFG.LS_BROUILLON;
     var brut = null;
-    try { brut = JSON.parse(localStorage.getItem(CFG.LS_BROUILLON) || "null"); } catch (e) {}
+    try { brut = JSON.parse(localStorage.getItem(cle) || "null"); } catch (e) {}
     if (brut && p.ref === undefined) {
       return { brut: brut, source: "saisie locale" };
     }
 
     /* Récupération depuis Supabase (admin, ou autre appareil) */
     if (p.ref && window.RRdb && window.RRdb.actif()) {
-      var ligne = await window.RRdb.obtenir(p.ref, p.type);
+      var ligne = await window.RRdb.obtenir(p.ref, p.type || TYPE);
       if (ligne && ligne.donnees) {
         return { brut: ligne.donnees, source: "Supabase", id: ligne.id };
       }
@@ -100,28 +143,42 @@
 
   async function demarrer() {
     try {
+      /* Gabarit DÉDIÉ du type (rapport-succinct.js, rapport-general-
+         prescolaire.js…) : chargé à la demande, une seule fois. */
+      if (typeInfo.modele && !(window.RR_MODELES || {})[TYPE]) {
+        await window.RR.chargerScripts([typeInfo.modele]);
+      }
+      if (!(window.RR_MODELES || {})[TYPE] && typeInfo.modele) {
+        throw new Error("Gabarit du type introuvable : " + typeInfo.modele);
+      }
+      var M = modele();
+
       var charge = await charger();
       var p = params();
       var id = charge.id || p.ref || (charge.brut && charge.brut._id) || "—";
 
-      /* Titres fixes K / M absents des rapports enregistrés avant la
-         correction : on complete la liste officielle avant le rendu. */
-      if (window.RR_CHAMPS && window.RR_CHAMPS.completerTitresFixes) {
+      /* Titres fixes K / M absents des rapports élémentaires enregistrés
+         avant la correction : on complete la liste officielle avant le
+         rendu. Les types à gabarit dédié ont leurs propres listes. */
+      if (!typeInfo.modele && window.RR_CHAMPS &&
+          window.RR_CHAMPS.completerTitresFixes) {
         window.RR_CHAMPS.completerTitresFixes(charge.brut);
       }
-      ctxCourant = window.RR.buildContext(charge.brut, { id: id });
+      ctxCourant = M.buildContext(charge.brut, { id: id });
       document.getElementById("sous-titre").textContent =
         "École : " + (ctxCourant.meta.ecole || "—") +
         " — " + ctxCourant.meta.annee + " — source : " + charge.source;
 
-      window.RR.renderPreview(apertu, ctxCourant);
+      M.renderPreview(apertu, ctxCourant);
       btn.disabled = false;
       document.getElementById("info-fichier").textContent =
         "Fichier : " + window.RR.pdf.nomFichier(ctxCourant);
 
       msg("ok",
-        "<b>Rapport prêt.</b> 6 pages A4 paysage — " +
-        "en-tête officiel + A-D / E-G / H / I-J / K / L-N et signature.");
+        "<b>Rapport prêt.</b> " + NB_PAGES + " pages A4 paysage — " +
+        (typeInfo.modele
+          ? "gabarit officiel du type « " + window.RR.esc(TYPE) + " »."
+          : "en-tête officiel + A-D / E-G / H / I-J / K / L-N et signature."));
 
       /* Téléchargement automatique si ?auto=1 (après une soumission) */
       if (p.auto === "1") { telecharger(); }
@@ -143,12 +200,16 @@
     try {
       await window.RR.pdf.precharger();
       var pages = apertu.querySelectorAll(".pdf-page");
+      if (pages.length !== NB_PAGES) {
+        throw new Error("Le rapport doit tenir sur exactement " + NB_PAGES +
+                        " pages (" + pages.length + " détectées).");
+      }
       var nom = await window.RR.pdf.download(pages, ctxCourant, function (i, n) {
         texte.textContent = "Génération du PDF — page " + i + " / " + n + "…";
         barre.style.width = Math.round(i / n * 100) + "%";
       });
       msg("ok", "<b>PDF téléchargé :</b> " + window.RR.esc(nom) +
-          " — 6 pages A4 paysage.");
+          " — " + NB_PAGES + " pages A4 paysage.");
     } catch (e) {
       msg("erreur", "<b>Échec de la génération du PDF.</b> " +
           window.RR.esc(e.message) + " Réessayez.");
@@ -161,7 +222,7 @@
 
   btn.addEventListener("click", telecharger);
   window.addEventListener("resize", function () {
-    if (ctxCourant) { window.RR.fitPreview(apertu); }
+    if (ctxCourant) { modele().fitPreview(apertu); }
   });
 
   demarrer();

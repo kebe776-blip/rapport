@@ -35,6 +35,8 @@ window.RR_CONFIG = {
      pages  : nombre de pages du gabarit (libellé du bouton PDF)
      ecoles : tableau des écoles fermées du type (cf. ecoles.js)
      modif  : clé sessionStorage de la reprise « Modifier » (défaut RR_MODIF)
+     brouillon : clé localStorage du brouillon de saisie du type
+                 (défaut : LS_BROUILLON, la clé élémentaire)
       modele : JS du gabarit DÉDIÉ, chargé à la demande par l'Espace
                Inspection ("" = gabarit de rapport.js, rien à charger)
       analyse_js : JS du module d'analyse DÉDIÉ au type, chargé à la
@@ -48,6 +50,7 @@ window.RR_CONFIG = {
       form: "succinct-prescolaire.html", pdf: true, xlsx: true, analyse: true,
       pages: 2, ecoles: "RR_ECOLES_PRESCOLAIRE",
       modif: "RR_MODIF_SUCCINCT",
+      brouillon: "rr_brouillon_succinct_prescolaire_v1",
       modele: "assets/js/rapport-succinct.js",
       analyse_js: "assets/js/analyse-succinct.js",
       xlsx_js: "assets/js/xlsx-succinct.js" },
@@ -56,10 +59,15 @@ window.RR_CONFIG = {
     { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",
       form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
     { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",
-      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
+      form: "general-prescolaire.html", pdf: true, xlsx: false, analyse: false,
+      pages: 4, ecoles: "RR_ECOLES_PRESCOLAIRE",
+      modif: "RR_MODIF_GENERAL_PRESCOLAIRE",
+      brouillon: "rr_brouillon_general_prescolaire_v1",
+      modele: "assets/js/rapport-general-prescolaire.js" },
     { id: "general-elementaire",   nom: "Rapport général de rentrée élémentaire",
       form: "general-elementaire.html", pdf: true, xlsx: true, analyse: true,
-      pages: 6, ecoles: "RR_ECOLES", modif: "RR_MODIF" },
+      pages: 6, ecoles: "RR_ECOLES", modif: "RR_MODIF",
+      brouillon: "rr_brouillon_v1" },
     { id: "general-moyen",         nom: "Rapport général de rentrée moyen",
       form: "", pdf: false, xlsx: false, analyse: false, pages: 0 }
   ],
@@ -80,5 +88,6 @@ window.RR_CONFIG = {
      ne se marchent jamais dessus. */
   LS_BROUILLON: "rr_brouillon_v1",
   LS_BROUILLON_SUCCINCT_PRESCOLAIRE: "rr_brouillon_succinct_prescolaire_v1",
+  LS_BROUILLON_GENERAL_PRESCOLAIRE: "rr_brouillon_general_prescolaire_v1",
   LS_FILE: "rr_file_attente_v1"
 };
