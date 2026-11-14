@@ -1,10 +1,11 @@
 /* =========================================================================
    form-general-prescolaire.js — Moteur de saisie DÉDIÉ du « RAPPORT
    GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (general-prescolaire.html).
-   • Rendu des sections A → J, combos filtrables, tableaux officiels
+   • Rendu des sections A → L, combos filtrables, tableaux officiels
      (personnel 10/2/5, effectifs à sections libres + TOTAL, mobiliers
-     16 lignes), validation minimale, brouillon hors-ligne dédié et
-     soumission (enregistrement typé + PDF 4 pages via RR_MODELES).
+     16 lignes, recensements K 10 / L 14 lignes), validation minimale,
+     brouillon hors-ligne dédié et
+     soumission (enregistrement typé + PDF 5 pages via RR_MODELES).
    • Copie autonome adaptée de form.js : form.js et champs.js ne sont ni
      modifiés ni chargés par cette page (zéro risque pour l'élémentaire).
    ========================================================================= */
@@ -21,7 +22,7 @@
            "rr_brouillon_general_prescolaire_v1";
 
   var conteneur = null;   /* élément qui reçoit le HTML du formulaire */
-  var donnees = {};       /* objet en cours de saisie (sections A → J) */
+  var donnees = {};       /* objet en cours de saisie (sections A → L) */
   var minuteur = null;
 
   /* -----------------------------------------------------------------------
@@ -147,8 +148,9 @@
              '<div class="corps">' + note + corps + "</div></details>";
   }
 
-  /* --- Tableau officiel à lignes fixes (personnel / service) --- */
+  /* --- Tableau officiel à lignes fixes (personnel / service / recensements) --- */
   function tableauRepeatHTML(def) {
+    var sansNum = !!def.sansNum;   /* K / L : le modèle n'a pas de colonne N° */
     var html =
       '<details class="section-form" open>' +
         "<summary>" + (def.lettre ? def.lettre + ". " : "") + esc(def.titre) +
@@ -158,14 +160,15 @@
           '<div class="petit mb">' + esc(def.soustitre || "") + "</div>" +
           '<div class="table-defilement">' +
           '<table class="table-saisie" data-repeat="' + def.cle + '">' +
-            '<thead><tr><th style="width:44px;">N°</th>';
+            "<thead><tr>" +
+            (sansNum ? "" : '<th style="width:44px;">N°</th>');
     for (var j = 0; j < def.colonnes.length; j++) {
       html += "<th" + (def.colonnes[j].w ? ' style="width:' + def.colonnes[j].w + '"' : "") +
               ">" + esc(def.colonnes[j].l) + "</th>";
     }
     html += "</tr></thead><tbody>";
     for (var i = 0; i < def.min; i++) {
-      html += '<tr><td class="num">' + (i + 1) + "</td>";
+      html += "<tr>" + (sansNum ? "" : '<td class="num">' + (i + 1) + "</td>");
       for (var k = 0; k < def.colonnes.length; k++) {
         html += celluleRepeat(def.colonnes[k], def.cle, i);
       }
@@ -317,15 +320,15 @@
   }
 
   /* -----------------------------------------------------------------------
-     CONSTRUCTION GLOBALE (ordre du modèle : A → J, 4 pages)
+     CONSTRUCTION GLOBALE (ordre du modèle : A → L, 5 pages)
      ----------------------------------------------------------------------- */
   function construire(el) {
     conteneur = el;
     var html = "";
 
-    /* Navigation rapide A → J */
+    /* Navigation rapide A → L */
     html += '<div class="carte"><div style="display:flex; gap:6px; flex-wrap:wrap;">';
-    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"].forEach(function (l) {
+    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"].forEach(function (l) {
       html += '<a class="btn gris petit" href="#sec_' + l + '" ' +
               'data-aller="' + l + '">' + l + "</a>";
     });
@@ -348,6 +351,10 @@
     /* I — Effectifs, J — Mobiliers */
     html += '<div id="sec_I">' + effectifsHTML() + "</div>";
     html += '<div id="sec_J">' + mobilierHTML() + "</div>";
+
+    /* K / L — Recensements (page 5) */
+    html += '<div id="sec_K">' + tableauRepeatHTML(D.RECENSEMENTS[0]) + "</div>";
+    html += '<div id="sec_L">' + tableauRepeatHTML(D.RECENSEMENTS[1]) + "</div>";
 
     conteneur.innerHTML = html;
     attacherEvenements();
@@ -763,7 +770,8 @@
     });
     /* Lignes entièrement vides écartées : le PDF renumérote lui-même les
        lignes de saisie restantes (et complète le tableau officiel). */
-    ["enseignant", "malade", "service", "effectifs"].forEach(function (cle) {
+    ["enseignant", "malade", "service", "effectifs",
+     "manuels", "materiel"].forEach(function (cle) {
       if (!Array.isArray(out[cle])) { return; }
       out[cle] = out[cle].filter(function (row) {
         return row && Object.keys(row).some(function (k) {
@@ -888,7 +896,7 @@
   }
 
   /* -----------------------------------------------------------------------
-     SOUMISSION : enregistrement typé + PDF 4 pages
+     SOUMISSION : enregistrement typé + PDF 5 pages
      ----------------------------------------------------------------------- */
   async function soumettre(page) {
     var erreurs = valider();
@@ -939,16 +947,16 @@
     page.progres("Enregistrement de la soumission…", 5);
     var res = await global.RRdb.enregistrer(donneesSaisies);
 
-    /* 3. PDF officiel 4 pages (paysage) dans le navigateur */
+    /* 3. PDF officiel 5 pages (paysage) dans le navigateur */
     var M = modele();
     var ctx = M.buildContext(donneesSaisies, { id: res.ref });
     page.apercuVisible();
     M.renderPreview(page.apercu, ctx);
 
-    /* Garde-fou : le gabarit doit tenir sur exactement 4 pages. */
+    /* Garde-fou : le gabarit doit tenir sur exactement 5 pages. */
     var pages = page.apercu.querySelectorAll(".pdf-page");
-    if (pages.length !== 4) {
-      throw new Error("Le rapport doit tenir sur exactement 4 pages (" +
+    if (pages.length !== 5) {
+      throw new Error("Le rapport doit tenir sur exactement 5 pages (" +
                       pages.length + " détectées).");
     }
 

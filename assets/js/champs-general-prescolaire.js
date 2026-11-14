@@ -1,10 +1,10 @@
 /* =========================================================================
    champs-general-prescolaire.js — Définition déclarative du « RAPPORT
-   GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (sections A → J, 4 pages A4 paysage).
+   GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (sections A → L, 5 pages A4 paysage).
    Libellés relevés verbatim sur le .docx officiel 2024/2025 et confrontés
    aux captures du modèle 2026/2027 (RG 1-5 prescolaire.PNG) :
-     • sections K et L (manuels / matériel) ABSENTES du modèle 2026/2027 :
-       le rapport s'arrête à la section J (4 pages strictes) ;
+     • sections K et L (manuels / matériel) : page 5 ajoutée sur demande
+       (ancien périmètre A → J, 4 pages) ;
      • colonne « N°Maître » de I : absente des captures → non reprise ;
      • ligne « 2 » de F : artefact de liste Word → rendue sans le numéro.
    Les noms de champs (n) correspondent à l'objet brut enregistré dans la
@@ -328,6 +328,42 @@
   };
 
   /* -----------------------------------------------------------------------
+     K / L — RECENSEMENTS (page 5) : tableaux à lignes libres, sans colonne
+     N° (absente du modèle). Libellés verbatim du .docx :
+       K « RECENSEMENT DES MANUELS »  → Provenances (pluriel)
+       L « RECENSEMENT DU MATERIEL »   → Provenance (singulier)
+     ----------------------------------------------------------------------- */
+  var COLONNES_RECENSEMENT = [
+    { n: "designation", l: "Désignation", t: "text", w: "28%" },
+    { n: "quantite", l: "Quantité", t: "num", w: "11%" },
+    { n: "provenance", l: "Provenance", t: "text", w: "16%" },
+    { n: "besoins", l: "Besoins", t: "text", w: "16%" },
+    { n: "observations", l: "Observations", t: "text", w: "29%" }
+  ];
+
+  /** Colonnes du recensement — libellé de la colonne 3 repris verbatim
+   *  du .docx : « Provenances » (K, manuels) / « Provenance » (L, matériel). */
+  function colonnesRecensement(libelleProvenance) {
+    return COLONNES_RECENSEMENT.map(function (c) {
+      if (c.n !== "provenance") { return c; }
+      return { n: c.n, l: libelleProvenance, t: c.t, w: c.w };
+    });
+  }
+
+  var RECENSEMENTS = [
+    { cle: "manuels", lettre: "K", sansNum: true,
+      titre: "RECENSEMENT DES MANUELS",
+      soustitre: "10 lignes — laisser vide s'il n'y en a pas",
+      colonnes: colonnesRecensement("Provenances"),
+      min: 10, fixe: true },
+    { cle: "materiel", lettre: "L", sansNum: true,
+      titre: "RECENSEMENT DU MATERIEL",
+      soustitre: "14 lignes — laisser vide s'il n'y en a pas",
+      colonnes: colonnesRecensement("Provenance"),
+      min: 14, fixe: true }
+  ];
+
+  /* -----------------------------------------------------------------------
      VALIDATION — saisie minimale
      ----------------------------------------------------------------------- */
   var OBLIGATOIRES = [
@@ -343,6 +379,7 @@
     RECAP: RECAP,
     EFFECTIFS: EFFECTIFS,
     MOBILIER: MOBILIER,
+    RECENSEMENTS: RECENSEMENTS,
     OBLIGATOIRES: OBLIGATOIRES,
     OPTIONS: {
       OUI_NON: OUI_NON, STATUT: STATUT, ETAT: ETAT,

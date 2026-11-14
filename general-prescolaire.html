@@ -25,7 +25,7 @@
 
   <div id="message" class="bandeau info">
     <b>Remplissez le formulaire officiel puis cliquez sur « Soumettre ».</b>
-    Votre rapport PDF (4 pages, format paysage) sera téléchargé automatiquement.
+    Votre rapport PDF (5 pages, format paysage) sera téléchargé automatiquement.
   </div>
 
   <div id="alerte" class="bandeau erreur" style="display:none;"></div>
@@ -138,7 +138,7 @@
       message.className = "bandeau ok";
       message.innerHTML = "<b>Soumission terminée.</b> " +
         "Fichier officiel généré : <b>" + window.RR.esc(nom) + "</b> — " +
-        "4 pages A4 paysage.";
+        "5 pages A4 paysage.";
       document.getElementById("zone-apercu").scrollIntoView({
         behavior: "smooth", block: "start"
       });
@@ -171,7 +171,7 @@
       window.RR.esc(aModifier.nom || aModifier.code) + ".</b><br>" +
       "Les données du rapport sont chargées : corrigez ce qui doit l'être, " +
       "puis cliquez sur « SOUMETTRE ». Le rapport existant sera remplacé et " +
-      "le nouveau PDF (4 pages) téléchargé." +
+      "le nouveau PDF (5 pages) téléchargé." +
       "<br><span class='petit'>Gardez le même <b>nom d'école</b> : le " +
       "modifier créerait un rapport distinct au lieu de remplacer celui-ci.</span>";
     window.scrollTo({ top: 0, behavior: "smooth" });

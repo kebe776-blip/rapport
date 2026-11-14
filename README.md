@@ -12,7 +12,7 @@ Deux formulaires sont disponibles à ce jour :
 | Type | Formulaire | PDF |
 |---|---|---|
 | **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
-| **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → J) | **4 pages A4 paysage** |
+| **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → L) | **5 pages A4 paysage** |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
 
 > **Architecture : GitHub Pages + Supabase uniquement** — aucun serveur,
@@ -82,31 +82,32 @@ l'Espace Inspection **qu'au moment d'afficher un rapport de ce type** :
 aucune page existante ne gagne le moindre octet, et jsPDF / html2canvas /
 SheetJS restent, eux, chargés uniquement au clic.
 
-### Le rapport général préscolaire — 4 pages strictes
+### Le rapport général préscolaire — 5 pages strictes
 
 `general-prescolaire.html` applique le modèle officiel **« RAPPORT GÉNÉRAL
 DE RENTRÉE PRÉSCOLAIRE »**, relevé verbatim sur le `.docx` 2024/2025 et
 confronté aux captures du modèle 2026/2027 (`RG 1-5 prescolaire.PNG`).
-Le PDF contient **exactement 4 pages A4 paysage** (sections **A → J**
-uniquement) :
+Le PDF contient **exactement 5 pages A4 paysage** (sections **A → L**) :
 
 | Page | Contenu |
 |---|---|
 | **1** | En-tête officiel + **A** Identification (sans le CODEC) + **B** Classes pédagogiques (3 colonnes) + **C** Classes physiques (ETAT/ANCTP/COM./PLAN/PRIVE/APE + Total auto + abris + à réhabiliter + note *« Ne mettez pas de croix… »*) + **D** Directeur (avec WhatsApp) |
 | **2** | **E** Ouvrages annexes (cabines adaptées/non adaptées, *Bloc administratif*, Senelec + plaques solaires seuls, robinet/puits Oui-Non + État + Bailleur) + **F** Activités (ligne « 2 » du modèle Word non reproduite) + **G** Observations + *LE DIRECTEUR (signature et cachet)* |
 | **3** | **H** Personnel enseignant **10 lignes** (colonne *Section tenue*) + **MALADES 2 lignes** + récapitulation FR/AR + **SERVICE 5 lignes** |
-| **4** | **I** Effectifs **10 lignes libres** (EFFECTIF / HANDICAPÉ / SANS ÉTAT CIVIL × G F T + *Type : Simple/  /CMG* + ligne **TOTAL** calculée, sans colonne N°Maître) + **J** **MOBLIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) + pied de page |
+| **4** | **I** Effectifs **10 lignes libres** (EFFECTIF / HANDICAPÉ / SANS ÉTAT CIVIL × G F T + *Type : Simple/  /CMG* + ligne **TOTAL** calculée, sans colonne N°Maître) + **J** **MOBLIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) |
+| **5** | **K** **RECENSEMENT DES MANUELS 10 lignes** (*Désignation / Quantité / Provenances / Besoins / Observations*) + **L** **RECENSEMENT DU MATÉRIEL 14 lignes** (*Désignation / Quantité / Provenance / Besoins / Observations*) — tableaux sans colonne N° + pied de page |
 
-Décisions de conformité (modèle 2026/2027) : **sections K et L absentes**
-(les captures s'arrêtent à J → 4 pages strictes), **CODEC facultatif non
+Décisions de conformité (modèle 2026/2027) : **page 5 = K + L** ajoutée
+sur demande (libellés verbatim du `.docx` : « Provenances » au pluriel pour
+K, « Provenance » au singulier pour L), **CODEC facultatif non
 imprimé** sur le PDF (il sert uniquement au groupement de l'Analyse),
 colonne **« N°Maître » non reprise**.
 
-**Garantie « 4 pages »** : lignes fixes + auto-ajustement (compression de
+**Garantie « 5 pages »** : lignes fixes + auto-ajustement (compression de
 −0,25 pt par palier, 3 paliers maximum, puis `overflow: hidden` +
 `transform: scale()`) + garde-fou logique : la soumission et le
 retéléchargement **refusent** tout gabarit qui ne tient pas sur
-exactement 4 pages (`pages.length !== 4`).
+exactement 5 pages (`pages.length !== 5`).
 
 **Isolation du code** : moteur 100 % dédié (`champs-general-prescolaire.js`
 + `form-general-prescolaire.js` + `rapport-general-prescolaire.js` +
@@ -166,7 +167,7 @@ index.html              Page d'accueil : menu des rapports (succinct/général �
                         (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
 general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
-                        PRÉSCOLAIRE » (A → J) + soumission + PDF 4 pages paysage
+                        PRÉSCOLAIRE » (A → L) + soumission + PDF 5 pages paysage
 succinct-prescolaire.html Formulaire du « RAPPORT DE SUCCINCT DE RENTRÉE »
                         préscolaire + soumission + PDF 2 pages (paysage + portrait)
 saisie.html             Redirection vers general-elementaire.html (anciens liens conservés)
@@ -189,22 +190,23 @@ assets/js/rapport.js    Génération HTML des 6 pages officielles (élémentaire
 assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
                         (paysage + portrait), registre RR_MODELES[type]
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
-                        4 pages paysage (A → J), registre RR_MODELES[type]
+                        5 pages paysage (A → L), registre RR_MODELES[type]
 assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
                         PAR PAGE : paysage par défaut, portrait sur demande)
 assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
 assets/js/champs-succinct.js   ★ Définition du modèle succinct (sections + tableaux)
 assets/js/champs-general-prescolaire.js  ★ Définition du général préscolaire
-                        (sections A → G, personnel 10/2/5, effectifs 10,
-                        mobiliers 16, CODEC facultatif non imprimé)
+                        (sections A → L, personnel 10/2/5, effectifs 10,
+                        mobiliers 16, recensements K 10 / L 14 lignes,
+                        CODEC facultatif non imprimé)
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes +
                         24 écoles préscolaires (combos du formulaire)
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
                         validation minimale, brouillon, soumission 2 pages
 assets/js/form-general-prescolaire.js  ★ Moteur DÉDIÉ du général préscolaire :
-                        rendu A → J, calculs (T=G+F, totaux I, Total mobilier),
-                        brouillon dédié, soumission 4 pages + anti-doublon
+                        rendu A → L, calculs (T=G+F, totaux I, Total mobilier),
+                        brouillon dédié, soumission 5 pages + anti-doublon
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne + listes
 assets/js/analyse.js    Exploitation : agrégation, graphiques SVG maison, synthèse, export XLSX
                          — moteur partagé + registre RR_ANALYSE[type] des modules dédiés
@@ -364,11 +366,11 @@ admin.html?type=general-moyen           analyse.html?type=general-moyen
   `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
   `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages) **et**
-  `general-prescolaire` (4 pages) ; **⬇ Export XLSX** et la page
+  `general-prescolaire` (5 pages) ; **⬇ Export XLSX** et la page
   **📊 Analyse** sont actifs pour `general-elementaire` **et**
   `succinct-prescolaire` (modules dédiés chargés à la demande).
   `general-prescolaire` a `xlsx: false` et `analyse: false` : son Espace
-  Inspection affiche « 4 pages » et ouvre le bon gabarit, mais l'Export
+  Inspection affiche « 5 pages » et ouvre le bon gabarit, mais l'Export
   XLSX est **désactivé** et la page Analyse affiche **« Analyse en
   préparation pour ce type »** avec un lien de retour (aucune donnée lue).
   Pour un type sans capacité, l'Espace affiche

@@ -60,7 +60,7 @@ window.RR_CONFIG = {
       form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
     { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",
       form: "general-prescolaire.html", pdf: true, xlsx: false, analyse: false,
-      pages: 4, ecoles: "RR_ECOLES_PRESCOLAIRE",
+      pages: 5, ecoles: "RR_ECOLES_PRESCOLAIRE",
       modif: "RR_MODIF_GENERAL_PRESCOLAIRE",
       brouillon: "rr_brouillon_general_prescolaire_v1",
       modele: "assets/js/rapport-general-prescolaire.js" },

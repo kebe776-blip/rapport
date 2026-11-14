@@ -1,16 +1,15 @@
 /* =========================================================================
    rapport-general-prescolaire.js — Générateur HTML du « RAPPORT GÉNÉRAL
-   DE RENTRÉE PRÉSCOLAIRE » : EXACTEMENT 4 PAGES A4 PAYSAGE
+   DE RENTRÉE PRÉSCOLAIRE » : EXACTEMENT 5 PAGES A4 PAYSAGE
      • page 1 → en-tête + A identification + B classes + C physique + D directeur
      • page 2 → E ouvrages annexes + F activités + G observations + signature
      • page 3 → H personnel (enseignants + malades) + récapitulation + service
      • page 4 → I effectifs + J mobiliers
+     • page 5 → K recensement des manuels + L recensement du matériel
    Se register dans le registre RR_MODELES[type] : les appelants
    (admin.html, general-prescolaire.html, apercu.html) dispatchent vers ce
    modèle ; rapport.js / lib.js restent intacts (défaut = élémentaire).
-   Libellés relevés verbatim sur le .docx officiel 2024/2025 (sections A → J
-   uniquement : K et L absentes du modèle 2026/2027) ; « N°Maître » de I non
-   reprise (absente des captures) ; ligne « 2 » de F rendue sans le numéro.
+   Libellés relevés verbatim sur le .docx officiel 2024/2025 (page 5 = K + L) ;
    ========================================================================= */
 (function (global) {
   "use strict";
@@ -26,7 +25,8 @@
     "En-tête + A identification + B classes pédagogiques + C classes physiques + D directeur",
     "E ouvrages annexes + F activités péri et para scolaires + G observations + signature",
     "H personnel enseignant + malades + récapitulation + personnel de service",
-    "I situation des effectifs + J mobiliers"
+    "I situation des effectifs + J mobiliers",
+    "K recensement des manuels + L recensement du matériel"
   ];
 
   /* -----------------------------------------------------------------------
@@ -348,6 +348,19 @@
       };
     });
 
+    /* --- K / L. Recensements (page 5) : lignes saisies, sans N° --- */
+    function rec(item) {
+      return {
+        designation: txt(item.designation),
+        quantite: num(item.quantite),
+        provenance: txt(item.provenance),
+        besoins: txt(item.besoins),
+        observations: txt(item.observations)
+      };
+    }
+    var manuels = rows(f, "manuels").filter(nonVide).map(rec);
+    var materiel = rows(f, "materiel").filter(nonVide).map(rec);
+
     /* --- Méta --- */
     var soumission = opts.soumission || raw._submission_time || "";
     var parsed = new Date(String(soumission).replace("Z", "+00:00"));
@@ -381,7 +394,9 @@
       recap_ar: recap_ar,
       effectifs: effectifs,
       effectifs_total: effectifs_total,
-      mobilier: mobilier
+      mobilier: mobilier,
+      manuels: manuels,
+      materiel: materiel
     };
   }
 
@@ -722,7 +737,7 @@ persTable(ctx.malades, 2) +
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 4 : I (effectifs, sans colonne N°Maître) + J (mobiliers) + pied
+     PAGE 4 : I (effectifs, sans colonne N°Maître) + J (mobiliers)
      ----------------------------------------------------------------------- */
   function typeEff(v) {
     var s = String(v === null || v === undefined ? "" : v).trim().toLowerCase();
@@ -819,6 +834,52 @@ persTable(ctx.malades, 2) +
     });
     html += "</table>";
 
+    return html;
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 5 : K (recensement des manuels, 10 lignes) +
+              L (recensement du matériel, 14 lignes)
+     Tableaux sans colonne N°, en-têtes en italique — verbatim du .docx :
+     K « Provenances » (pluriel), L « Provenance » (singulier).
+     ----------------------------------------------------------------------- */
+  function page5(ctx) {
+    function recTable(titre, enTeteProvenance, list, min) {
+      var html =
+'<h2 class="section">' + titre + "</h2>" +
+'<table class="grid">' +
+  "<tr>" +
+    '<th style="width:34%; font-style:italic;">Désignation</th>' +
+    '<th style="width:10%; font-style:italic;">Quantité</th>' +
+    '<th style="width:14%; font-style:italic;">' + enTeteProvenance + "</th>" +
+    '<th style="width:10%; font-style:italic;">Besoins</th>' +
+    '<th style="width:32%; font-style:italic;">Observations</th>' +
+  "</tr>";
+
+      for (var i = 0; i < min; i++) {
+        var r = list[i];
+        html += "<tr>";
+        if (!r) {
+          html += '<td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>' +
+                  '<td>&nbsp;</td><td>&nbsp;</td>';
+        } else {
+          html += "<td>" + u(r.designation) + "</td>" +
+            '<td class="n">' + (r.quantite ? r.quantite : "") + "</td>" +
+            '<td class="c">' + u(r.provenance) + "</td>" +
+            "<td>" + u(r.besoins) + "</td>" +
+            "<td>" + u(r.observations) + "</td>";
+        }
+        html += "</tr>";
+      }
+      return html + "</table>";
+    }
+
+    var html =
+      recTable("K. &nbsp; RECENSEMENT DES MANUELS", "Provenances",
+               ctx.manuels, 10) +
+      recTable("L. &nbsp; RECENSEMENT DU MATERIEL", "Provenance",
+               ctx.materiel, 14);
+
     html += '<div class="pied">Généré le ' + u(ctx.meta.soumission) +
             " — Soumission n° " + u(ctx.meta.id) + "</div>";
 
@@ -826,18 +887,19 @@ persTable(ctx.malades, 2) +
   }
 
   /* -----------------------------------------------------------------------
-     ASSEMBLAGE — 4 PAGES PAYSAGE STRICTES (garde-fou)
+     ASSEMBLAGE — 5 PAGES PAYSAGE STRICTES (garde-fou)
      ----------------------------------------------------------------------- */
   function pageContents(ctx) {
-    var contenus = [page1(ctx), page2(ctx), page3(ctx), page4(ctx)];
-    if (contenus.length !== 4 || TITRES.length !== 4) {
+    var contenus = [page1(ctx), page2(ctx), page3(ctx), page4(ctx),
+                    page5(ctx)];
+    if (contenus.length !== 5 || TITRES.length !== 5) {
       throw new Error("Le rapport général préscolaire doit comporter " +
-                      "exactement 4 pages.");
+                      "exactement 5 pages.");
     }
     return contenus;
   }
 
-  /** HTML complet : 4 <div class="pdf-page"> A4 PAYSAGE (275 x 194 mm). */
+  /** HTML complet : 5 <div class="pdf-page"> A4 PAYSAGE (275 x 194 mm). */
   function buildPages(ctx) {
     return pageContents(ctx).map(function (content, i) {
       return '<div class="apercu-slot">' +
@@ -882,7 +944,7 @@ persTable(ctx.malades, 2) +
     }
   }
 
-  /** Injecte les 4 pages, auto-ajuste puis ajuste l'échelle d'affichage. */
+  /** Injecte les 5 pages, auto-ajuste puis ajuste l'échelle d'affichage. */
   function renderPreview(container, ctx) {
     container.innerHTML = buildPages(ctx);
     var pages = container.querySelectorAll(".pdf-page");
@@ -892,7 +954,7 @@ persTable(ctx.malades, 2) +
   }
 
   /* -----------------------------------------------------------------------
-     FIT APERÇU — échelle PAYSAGE (275 x 194 mm), identique pour les 4 pages.
+     FIT APERÇU — échelle PAYSAGE (275 x 194 mm), identique pour les 5 pages.
      La page garde sa hauteur non transformée dans le flux : la légende
      est remontée de H × (échelle − 1), valeur négative.
      ----------------------------------------------------------------------- */
