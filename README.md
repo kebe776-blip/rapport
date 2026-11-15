@@ -125,6 +125,13 @@ l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 * Le PDF est **généré localement** : son téléchargement ne consomme aucune donnée mobile
 * Bibliothèques embarquées dans le dépôt (aucun CDN externe) → le site se met en cache après la première visite
 
+### Lisibilité des tableaux sur mobile (≤ 700 px)
+
+* Les tableaux de saisie (sections **H → N** : personnel, effectifs, mobilier, recensements…) affichent des **cases à la largeur du contenu** : titres de colonne sur une ligne entière, nombres et dates jamais coupés
+* Correctif **CSS uniquement** dans `assets/css/app.css` (media query `max-width: 700px`) : `width: max-content` + `!important` pour neutraliser les largeurs fixes émises par `form.js` — **aucun fichier JS modifié**, le PDF officiel et le rendu desktop sont strictement inchangés
+* Si une ligne dépasse la largeur de l'écran, le défilement horizontal `.table-defilement` fait voir le reste (jamais de cellule perdue)
+* Le même style profite aux formulaires général-préscolaire et succinct (classes communes)
+
 ### Passage à l'échelle : 500 écoles
 
 * Supabase (PostgreSQL) : un rapport pèse 10 à 50 Ko → **≈ 25 Mo pour 500 écoles** (l'offre gratuite en stocke 500 Mo)

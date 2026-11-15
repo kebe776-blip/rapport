@@ -395,4 +395,23 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .conteneur { padding: 12px; }
   .topbar h1 { font-size: 14px; }
   .champs { grid-template-columns: 1fr; }
+
+  /* ---------- Tableaux de saisie : cases à la largeur du contenu ----------
+     Les sections H → N (personnel, effectifs, mobilier, recensements…)
+     posent des largeurs fixes (38 %, 11 %, 44 px…) dimensionnées pour un
+     écran large : sur téléphone, chaque cellule rétrécit au point de
+     couper les titres et les nombres (les inputs sont à 100 % de la
+     cellule). On laisse chaque case s'étirer à son contenu — titre de
+     colonne sur une ligne, inputs à leur largeur naturelle — et le
+     défilement horizontal de .table-defilement fait voir le reste.
+     `!important` bat les style="width:…" inline émis par form.js :
+     AUCUN fichier JS n'est modifié (intouchables), le PDF est intact. */
+  .table-saisie { width: max-content; min-width: 100%; }
+  .table-saisie th, .table-saisie td { width: auto !important; }
+  .table-saisie th, .table-saisie td { white-space: nowrap; }
+  .table-saisie input { width: auto; }
+  .table-saisie input[data-type="num"] { width: 84px; }
+  .table-saisie input[placeholder="JJ/MM/AAAA"] { width: 116px; }
+  .table-saisie input.fixe { width: 240px; }
+  .table-saisie select { width: auto; max-width: 180px; }
 }
