@@ -85,7 +85,7 @@
 
     <!-- Carte active : le lien principal ne peut pas englober les liens
          rapides (lien dans lien = invalide) → conteneur commun. -->
-    <div class="lien-groupe">
+    <div class="lien-groupe" data-type="succinct-prescolaire">
       <a class="lien-menu" href="succinct-prescolaire.html">
         <div class="carte carte-menu">
           <span class="icone">🏫</span>
@@ -103,7 +103,7 @@
       </div>
     </div>
 
-    <div class="carte carte-menu avenir">
+    <div class="carte carte-menu avenir" data-type="succinct-elementaire">
       <span class="icone">🏫</span>
       <span class="nom">Rapport succinct de rentrée <b>élémentaire</b></span>
       <span class="desc">Relevé condensé de la rentrée en école élémentaire.</span>
@@ -115,7 +115,7 @@
       </div>
     </div>
 
-    <div class="carte carte-menu avenir">
+    <div class="carte carte-menu avenir" data-type="succinct-moyen">
       <span class="icone">🏫</span>
       <span class="nom">Rapport succinct de rentrée <b>moyen</b></span>
       <span class="desc">Relevé condensé de la rentrée en collège.</span>
@@ -135,7 +135,7 @@
 
     <!-- Carte active : le lien principal ne peut pas englober les liens
          rapides (lien dans lien = invalide) → conteneur commun. -->
-    <div class="lien-groupe">
+    <div class="lien-groupe" data-type="general-prescolaire">
       <a class="lien-menu" href="general-prescolaire.html">
         <div class="carte carte-menu">
           <span class="icone">🏫</span>
@@ -155,7 +155,7 @@
 
     <!-- Carte active : le lien principal ne peut pas englober les liens
          rapides (lien dans lien = invalide) → conteneur commun. -->
-    <div class="lien-groupe">
+    <div class="lien-groupe" data-type="general-elementaire">
       <a class="lien-menu" href="general-elementaire.html">
         <div class="carte carte-menu">
           <span class="icone">🏫</span>
@@ -172,7 +172,7 @@
       </div>
     </div>
 
-    <div class="carte carte-menu avenir">
+    <div class="carte carte-menu avenir" data-type="general-moyen">
       <span class="icone">🏫</span>
       <span class="nom">Rapport général de rentrée <b>moyen</b></span>
       <span class="desc">Rapport complet de la rentrée en collège.</span>
@@ -221,6 +221,69 @@
   lien.innerHTML = "✏️ Une saisie est en cours sur cet appareil — " +
     "<a href=\"general-elementaire.html\"><b>reprendre le brouillon →</b></a>";
   bandeau.appendChild(lien);
+}());
+</script>
+
+<script>
+/* --- Visibilité des cartes sur l'accueil --------------------------------
+   La table Supabase `type_visibilite` liste les types que l'Espace
+   Inspection a masqués (bouton « Masquer de l'accueil »). Lecture
+   anonyme via l'API REST : ni client Supabase, ni script ajouté.
+   Un type absent de la table est ACTIF (défaut) et l'échec quelconque
+   (réseau, table non migrée, timeout) laisse tout affiché : une base
+   indisponible ne vide ni ne bloque jamais la page d'accueil. */
+(function () {
+  "use strict";
+  var CFG = window.RR_CONFIG || {};
+  if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) { return; }
+  var cartes = document.querySelectorAll("[data-type]");
+  if (!cartes.length) { return; }
+
+  function appliquer(off) {
+    var i, j, g, titre, etat;
+    for (i = 0; i < cartes.length; i++) {
+      if (off[cartes[i].getAttribute("data-type")]) {
+        cartes[i].style.display = "none";
+      }
+    }
+    /* Section entièrement masquée : son titre disparaît aussi. */
+    var grilles = document.querySelectorAll(".grille-menu");
+    for (i = 0; i < grilles.length; i++) {
+      g = grilles[i];
+      if (!g.querySelector("[data-type]")) { continue; }
+      etat = g.querySelectorAll("[data-type]");
+      for (j = 0; j < etat.length; j++) {
+        if (etat[j].style.display !== "none") { break; }
+      }
+      if (j === etat.length) {
+        g.style.display = "none";
+        titre = g.previousElementSibling;
+        if (titre && titre.classList.contains("menu-titre")) {
+          titre.style.display = "none";
+        }
+      }
+    }
+  }
+
+  var controle = (typeof AbortController !== "undefined")
+    ? new AbortController() : null;
+  if (controle) {
+    setTimeout(function () { controle.abort(); }, 5000);
+  }
+  fetch(CFG.SUPABASE_URL + "/rest/v1/type_visibilite?select=type,actif", {
+    headers: { apikey: CFG.SUPABASE_ANON_KEY,
+               Authorization: "Bearer " + CFG.SUPABASE_ANON_KEY },
+    signal: controle ? controle.signal : undefined
+  })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (lignes) {
+      var off = {};
+      (lignes || []).forEach(function (l) {
+        if (l && l.actif === false) { off[l.type] = true; }
+      });
+      appliquer(off);
+    })
+    .catch(function () { /* fail-open : l'accueil reste complet */ });
 }());
 </script>
 

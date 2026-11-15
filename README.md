@@ -225,6 +225,8 @@ supabase/migration_types.sql  Colonne `type` + PK (type, ecole_code, annee) + RP
 supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
 supabase/migration_listes_prescolaire.sql  Contrainte CHECK à 4 types +
                         amorçage idempotent des 24 écoles préscolaires
+supabase/migration_visibilite.sql  Table `type_visibilite` : activer / désactiver
+                        l'affichage des rapports sur la page d'accueil
 ```
 
 ---
@@ -259,16 +261,24 @@ supabase/migration_listes_prescolaire.sql  Contrainte CHECK à 4 types +
    rien et ne remet jamais une école retirée). Sans cette étape, l'ajout
    d'une école préscolaire depuis l'Espace Inspection échoue sur
    « check constraint ».
-6. **Authentication → Users → Add user** : créez le compte de l'Inspection
+6. **Et pour l'activation / désactivation des rapports sur l'accueil** →
+   collez le contenu de `supabase/migration_visibilite.sql` → **Run** : la
+   table `type_visibilite` mémorise les types masqués depuis l'Espace
+   Inspection. Un type **absent de la table est actif** (aucune ligne
+   d'amorçage) ; sans cette étape, l'accueil reste complet (fail-open)
+   et la bascule de l'Espace affiche le message invitant à exécuter ce
+   fichier.
+7. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-7. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+8. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
 > ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
 > passent par la fonction SQL `sauver_rapport` (SECURITY DEFINER). N'ajoutez pas
 > de policy SELECT pour `anon` **sur `rapports`**, sinon n'importe qui pourrait
-> télécharger tous les rapports avec la clé publique. Seule la table `listes`
-> (noms d'écoles / CODEC, sans aucune donnée de rapport) est lisible par `anon`.
+> télécharger tous les rapports avec la clé publique. Seules les tables `listes`
+> (noms d'écoles / CODEC) et `type_visibilite` (visibilité des cartes de
+> l'accueil), sans aucune donnée de rapport, sont lisibles par `anon`.
 
 ### 3.2 Configuration du site
 
@@ -401,6 +411,28 @@ le classeur du type, chargé à la demande :
   ligne PU/COM/ARRDT** du modèle.
 
 Si aucun rapport n'est déposé, un message s'affiche sans fichier.
+
+### Activer / désactiver un rapport depuis l'accueil
+
+Le bouton **👁 Masquer de l'accueil** de la barre supérieure de l'Espace
+Inspection (visible une fois connecté) retire la carte du type courant de
+la page d'accueil — **pour tous les visiteurs** :
+
+- état stocké dans la table Supabase **`type_visibilite`**
+  (`supabase/migration_visibilite.sql`, exécutée dans le SQL Editor) :
+  un type **absent de la table est actif** — aucune ligne d'amorçage ;
+- bascule **👁 Masquer de l'accueil** ⇄ **👁 Afficher sur l'accueil**,
+  confirmation demandée avant le masquage, état affiché dès l'ouverture
+  de l'espace ;
+- seul l'accueil change : l'Espace Inspection, l'URL directe du
+  formulaire et la page Analyse restent accessibles ; la carte masquée
+  emporte ses liens 🔒 Espace / 📊 Analyse, et si une section entière
+  est masquée son titre l'est aussi ;
+- l'accueil lit la table en **API REST anonyme** (aucun script
+  supplémentaire) et reste **fail-open** : réseau absent, timeout (5 s)
+  ou table non migrée → toutes les cartes restent affichées ;
+- les **6 types** de `config.js` → `TYPES` sont masquables (cartes
+  « Disponible » **et** « Bientôt disponible »).
 
 ### Exploitation des données — la page « 📊 Analyse »
 

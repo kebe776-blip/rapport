@@ -20,6 +20,10 @@
   <select id="select-type" title="Choisir le type de rapport"
           style="padding:5px 8px; border-radius:5px; border:1px solid #9fb4cc;
                  font-size:13px; max-width:330px;"></select>
+  <!-- Visibilité du type courant sur la page d'accueil (table
+       type_visibilite) — visible uniquement après connexion -->
+  <button class="btn gris petit" id="btn-visibilite"
+          style="display:none;">👁 Masquer de l'accueil</button>
   <a class="lien" href="index.html">Accueil</a>
   <!-- Visible uniquement après connexion (afficherAdmin) -->
   <a class="lien" id="lien-analyse" href="analyse.html" style="display:none;">📊 Analyse</a>
@@ -343,6 +347,7 @@
     /* La page d'analyse n'est accessible qu'une fois la session ouverte. */
     $("lien-analyse").style.display = "";
     $("zone-admin").style.display = "block";
+    chargerVisibilite();
     await chargerListe();
     chargerListesAdmin();
     var attente = window.RRdb.attente();
@@ -352,6 +357,61 @@
       window.RRdb.viderFile().then(function () { chargerListe(); });
     }
   }
+
+  /* ---------------- VISIBILITÉ SUR L'ACCUEIL ----------------
+     Table `type_visibilite` : masquer le type courant ne touche ni à
+     l'Espace Inspection, ni aux URLs directes (formulaire / Analyse) —
+     seule sa carte disparaît de la page d'accueil, pour tous les
+     visiteurs. Un type absent de la table est actif (défaut). */
+  function majBoutonVisibilite(estActif) {
+    var b = $("btn-visibilite");
+    b.style.display = "";
+    b.textContent = estActif ? "👁 Masquer de l'accueil"
+                             : "👁 Afficher sur l'accueil";
+    b.title = estActif
+      ? "Retirer la carte « " + typeInfo.nom + " » de la page d'accueil."
+      : "Réafficher la carte « " + typeInfo.nom + " » sur la page d'accueil.";
+    b.setAttribute("data-actif", estActif ? "1" : "0");
+  }
+
+  async function chargerVisibilite() {
+    try {
+      var etats = await window.RRdb.visibilite();
+      majBoutonVisibilite(etats[TYPE] !== false);
+    } catch (e) {
+      /* Table non migrée ou base injoignable : état par défaut (actif).
+         La bascule affichera alors le message invitant à exécuter
+         supabase/migration_visibilite.sql. */
+      majBoutonVisibilite(true);
+    }
+  }
+
+  $("btn-visibilite").addEventListener("click", async function () {
+    var b = this;
+    var cible = b.getAttribute("data-actif") !== "1";
+    if (!cible && !window.confirm(
+        "Masquer « " + typeInfo.nom + " » de la page d'accueil ?\n" +
+        "Les visiteurs ne verront plus cette carte tant que vous ne la " +
+        "réafficherez pas.")) {
+      return;
+    }
+    b.disabled = true;
+    try {
+      await window.RRdb.basculerVisibilite(TYPE, cible);
+      majBoutonVisibilite(cible);
+      msg("msg-admin", cible ? "ok" : "info",
+          cible ? "👁 <b>" + window.RR.esc(typeInfo.nom) +
+                   "</b> est de nouveau visible sur la page d'accueil."
+                : "👁 <b>" + window.RR.esc(typeInfo.nom) +
+                   "</b> n'apparaît plus sur la page d'accueil.");
+    } catch (e) {
+      msg("msg-admin", "erreur",
+          "<b>Impossible de modifier la visibilité :</b> " +
+          window.RR.esc(e.message));
+    } finally {
+      b.disabled = false;
+    }
+  });
 
   async function chargerListe() {
     msg("msg-admin", "info", "Chargement…");

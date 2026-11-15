@@ -417,6 +417,42 @@
     return true;
   }
 
+  /* ---------- Visibilité des rapports sur l'accueil ----------
+      Table `type_visibilite` : un type ABSENT est actif (défaut) — la
+      page d'accueil ne masque que les types explicitement désactivés
+      depuis l'Espace Inspection. Lecture anon (RLS), écriture auth. */
+  async function visibilite() {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("type_visibilite").select("type, actif");
+    if (res.error) { throw new Error(res.error.message); }
+    var etats = {};
+    (res.data || []).forEach(function (r) { etats[r.type] = !!r.actif; });
+    return etats;
+  }
+
+  async function basculerVisibilite(type, estActif) {
+    var c = sb();
+    if (!c) { throw new Error("Supabase non configuré"); }
+    var res = await c.from("type_visibilite")
+      .upsert({ type: typeCourant(type), actif: !!estActif,
+                maj_le: new Date().toISOString() })
+      .select("type, actif");
+    if (res.error) {
+      /* Table non migrée : message lisible (comme ajouterListe). */
+      if (/does not exist|schema cache/i.test(res.error.message)) {
+        throw new Error("La base Supabase ne connaît pas encore la table " +
+          "`type_visibilite` : exécutez " +
+          "`supabase/migration_visibilite.sql` dans le SQL Editor.");
+      }
+      throw new Error(res.error.message);
+    }
+    if (!res.data || !res.data.length) {
+      throw new Error("Modification refusée : droits administrateur requis.");
+    }
+    return !!estActif;
+  }
+
   /* ---------- Authentification administrateur ---------- */
   async function connexion(email, mdp) {
     var c = sb();
@@ -470,6 +506,8 @@
     chargerListes: chargerListes,
     ajouterListe: ajouterListe,
     supprimerListe: supprimerListe,
+    visibilite: visibilite,
+    basculerVisibilite: basculerVisibilite,
     normaliserListe: normaliserListe,
     connexion: connexion,
     deconnexion: deconnexion,
