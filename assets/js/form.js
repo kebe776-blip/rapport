@@ -91,7 +91,7 @@
     if (c.t === "date") { attr += ' inputmode="numeric" placeholder="JJ/MM/AAAA"'; }
     if (c.tel) { attr += ' inputmode="tel"'; }
     if (c.maj === "upper") { attr += ' data-maj="upper"'; }
-    if (c.t === "num") { attr += ' min="0"'; }
+    if (c.t === "num") { attr += ' min="0" inputmode="numeric"'; }
     return ouverture +
       '<input type="' + type + '"' + attr + ' value="">' + aide + "</div>";
   }
@@ -124,7 +124,7 @@
       if (c.maj === "upper") { attrs += ' data-maj="upper"'; }
       if (c.tel) { attrs += ' inputmode="tel"'; }
       if (c.t === "date") { attrs += ' placeholder="JJ/MM/AAAA"'; }
-      if (c.t === "num") { attrs += ' min="0"'; }
+      if (c.t === "num") { attrs += ' min="0" inputmode="numeric"'; }
 
       /* Titre imprimé par le modèle officiel (K, M) : non modifiable.
          On verse aussi la valeur dans l'objet de saisie : le champ est

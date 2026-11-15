@@ -26,7 +26,11 @@
     provenance: {
       etat: "ÉTAT", cge: "CGE", caritas: "CARITAS",
       plan_international: "PLAN INTERNATIONAL", relit: "RELIT",
-      pame: "PAME", onu: "ONU", bailleur: "BAILLEUR", autre: "AUTRE"
+      pame: "PAME", mairie: "MAIRIE", ape: "APE", nebeday: "NEBEDAY",
+      autre: "AUTRE",
+      /* legacy : codes retirés de la liste déroulante mais encore
+         présents dans les rapports déjà enregistrés */
+      onu: "ONU", bailleur: "BAILLEUR"
     },
     etat: {
       bon: "BON", acceptable: "ACCEPTABLE",

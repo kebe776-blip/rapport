@@ -337,7 +337,7 @@
     { n: "designation", l: "Désignation", t: "text", w: "28%" },
     { n: "quantite", l: "Quantité", t: "num", w: "11%" },
     { n: "provenance", l: "Provenance", t: "text", w: "16%" },
-    { n: "besoins", l: "Besoins", t: "text", w: "16%" },
+    { n: "besoins", l: "Besoins", t: "num", w: "16%" },
     { n: "observations", l: "Observations", t: "text", w: "29%" }
   ];
 

@@ -441,6 +441,23 @@ la page d'accueil — **pour tous les visiteurs** :
 - les **6 types** de `config.js` → `TYPES` sont masquables (cartes
   « Disponible » **et** « Bientôt disponible »).
 
+### Valeurs saisies : nombres et provenance
+
+- **Quantité** et **Besoins** sont des **champs numériques** :
+  sur mobile, le **pavé numérique** s'ouvre automatiquement
+  (`inputmode="numeric"` + `min="0"`) et la valeur est stockée comme un
+  nombre — sections K/L/M/N du général élémentaire comme recensements du
+  général préscolaire ;
+- la liste déroulante **Provenance** propose désormais **MAIRIE, APE,
+  NEBEDAY** ; **ONU** et **BAILLEUR** ont été retirés de la liste
+  (`champs.js`) ;
+- les rapports déjà enregistrés avec ONU / BAILLEUR restent lisibles :
+  leurs libellés sont conservés en legacy (`lib.js`) — seuls les *choix
+  proposés* à la saisie ont changé ;
+- le **PDF officiel est inchangé** : `rapport.js` non modifié, aperçu
+  toujours à **6 pages**, l'intitulé imprimé vient de
+  `LABELS.provenance` (MAIRIE / APE / NEBEDAY ajoutés).
+
 ### Exploitation des données — la page « 📊 Analyse »
 
 `analyse.html` est la page d'**analyse et d'exploitation** des rapports

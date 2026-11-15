@@ -122,7 +122,7 @@
     }
     attr += ' data-type="' + (c.t === "num" ? "num" : "text") + '"';
     if (c.t === "date") { attr += ' inputmode="numeric" placeholder="JJ/MM/AAAA"'; }
-    if (c.t === "num") { attr += ' min="0"'; }
+    if (c.t === "num") { attr += ' min="0" inputmode="numeric"'; }
     return ouverture +
       '<input type="' + (c.t === "num" ? "number" : "text") + '"' + attr +
       ' value="">' + aide + "</div>";
@@ -152,7 +152,7 @@
     if (c.maj === "upper") { attrs += ' data-maj="upper"'; }
     if (c.tel) { attrs += ' inputmode="tel"'; }
     if (c.t === "date") { attrs += ' placeholder="JJ/MM/AAAA"'; }
-    if (c.t === "num") { attrs += ' min="0"'; }
+    if (c.t === "num") { attrs += ' min="0" inputmode="numeric"'; }
     if (c.auto) { attrs += ' data-auto="1"'; }
     var style = c.w ? ' style="width:' + c.w + '"' : "";
     if (c.t === "select") {

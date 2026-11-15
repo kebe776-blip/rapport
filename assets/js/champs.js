@@ -27,8 +27,9 @@
                     ["anglais", "ANGLAIS"]];
   var PROVENANCE = [["", "—"], ["etat", "ÉTAT"], ["cge", "CGE"],
                     ["caritas", "CARITAS"], ["plan_international", "PLAN INTERNATIONAL"],
-                    ["relit", "RELIT"], ["pame", "PAME"], ["onu", "ONU"],
-                    ["bailleur", "BAILLEUR"], ["autre", "AUTRE"]];
+                    ["relit", "RELIT"], ["pame", "PAME"],
+                    ["mairie", "MAIRIE"], ["ape", "APE"], ["nebeday", "NEBEDAY"],
+                    ["autre", "AUTRE"]];
   var TYPE_CLASSE = [["", "—"], ["simple", "SIMPLE"], ["cmg", "CMG"],
                      ["cdf", "CDF"]];
 
@@ -338,7 +339,7 @@
     { n: "titre", l: "Titre", t: "text", w: "38%" },
     { n: "quantite", l: "Quantité", t: "num", w: "11%" },
     { n: "provenance", l: "Provenance", t: "select", opts: PROVENANCE, w: "15%" },
-    { n: "besoins", l: "Besoins", t: "text", w: "11%" },
+    { n: "besoins", l: "Besoins", t: "num", w: "11%" },
     { n: "observations", l: "Observations", t: "text", w: "25%" }
   ];
 

@@ -125,7 +125,7 @@
     }
     attr += ' data-type="' + (c.t === "num" ? "num" : "text") + '"';
     if (c.t === "date") { attr += ' inputmode="numeric" placeholder="JJ/MM/AAAA"'; }
-    if (c.t === "num") { attr += ' min="0"'; }
+    if (c.t === "num") { attr += ' min="0" inputmode="numeric"'; }
     if (c.somme) { attr += ' data-somme="' + c.somme + '"'; }
     if (c.auto) { attr += ' data-auto="1"'; }
     return ouverture +
@@ -187,7 +187,7 @@
     if (c.maj === "upper") { attrs += ' data-maj="upper"'; }
     if (c.tel) { attrs += ' inputmode="tel"'; }
     if (c.t === "date") { attrs += ' placeholder="JJ/MM/AAAA"'; }
-    if (c.t === "num") { attrs += ' min="0"'; }
+    if (c.t === "num") { attrs += ' min="0" inputmode="numeric"'; }
     if (c.t === "select") {
       return "<td" + style + "><select" + attrs + ">" +
              optionsHTML(c.opts, "") + "</select></td>";
