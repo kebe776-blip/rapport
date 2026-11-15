@@ -129,7 +129,7 @@ l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 
 * Les tableaux de saisie (sections **H → N** : personnel, effectifs, mobilier, recensements…) affichent des **cases à la largeur du contenu** : titres de colonne sur une ligne entière, nombres et dates jamais coupés — et les **titres officiels de K** (jusqu'à « Cahier d'exercices mathematiques (PAAME) CM1 ») s'affichent **en entier** (champ porté à 320 px)
 * Correctif **CSS uniquement** dans `assets/css/app.css` (media query `max-width: 700px`) : `width: max-content` + `!important` pour neutraliser les largeurs fixes émises par `form.js` — **aucun fichier JS modifié**, le PDF officiel et le rendu desktop sont strictement inchangés
-* Si une ligne dépasse la largeur de l'écran, le défilement horizontal `.table-defilement` fait voir le reste (jamais de cellule perdue)
+* Si une ligne dépasse la largeur de l'écran, le défilement horizontal `.table-defilement` fait voir le reste (jamais de cellule perdue) — cas typique : la section **I. SITUATION DES EFFECTIFS du préscolaire**, dont la ligne TOTAL chiffrée garde la largeur d'un nombre (84 px) au lieu d'élargir toutes les colonnes à 240 px
 * Le même style profite aux formulaires général-préscolaire et succinct (classes communes)
 
 ### Passage à l'échelle : 500 écoles

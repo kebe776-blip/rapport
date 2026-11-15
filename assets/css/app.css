@@ -413,6 +413,11 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .table-saisie input[data-type="num"] { width: 84px; }
   .table-saisie input[placeholder="JJ/MM/AAAA"] { width: 116px; }
   .table-saisie input.fixe { width: 240px; }
+  /* Chiffres en classe .fixe (ligne TOTAL des effectifs du préscolaire) :
+     ce sont des NOMBRES, pas des titres — même largeur que les autres
+     cellules numériques, sinon la ligne TOTAL élargit toutes les
+     colonnes à 240 px et le tableau devient gigantesque sur mobile. */
+  .table-saisie input.fixe[data-type="num"] { width: 84px; }
   /* K — titres officiels : le plus long (« Cahier d'exercices
      mathematiques (PAAME) CM1 ») mesure 314 px à 14 px — largeur portée
      à 320 px pour qu'il s'affiche en entier (M reste à 240 px : ses
