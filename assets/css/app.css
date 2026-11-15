@@ -413,5 +413,10 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .table-saisie input[data-type="num"] { width: 84px; }
   .table-saisie input[placeholder="JJ/MM/AAAA"] { width: 116px; }
   .table-saisie input.fixe { width: 240px; }
+  /* K — titres officiels : le plus long (« Cahier d'exercices
+     mathematiques (PAAME) CM1 ») mesure 314 px à 14 px — largeur portée
+     à 320 px pour qu'il s'affiche en entier (M reste à 240 px : ses
+     désignations sont courtes). */
+  .table-saisie[data-repeat="manuels"] input.fixe { width: 320px; }
   .table-saisie select { width: auto; max-width: 180px; }
 }
