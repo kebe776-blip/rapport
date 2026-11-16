@@ -69,7 +69,14 @@ window.RR_CONFIG = {
       pages: 6, ecoles: "RR_ECOLES", modif: "RR_MODIF",
       brouillon: "rr_brouillon_v1" },
     { id: "general-moyen",         nom: "Rapport général de rentrée moyen",
-      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 }
+      form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
+    { id: "evaluations",           nom: "Rapport des évaluations",
+      form: "evaluations.html", pdf: true, xlsx: false, analyse: false,
+      pages: 2, ecoles: "RR_ECOLES",
+      modif: "RR_MODIF_EVALUATIONS",
+      brouillon: "rr_brouillon_evaluations_v1",
+      modele: "assets/js/rapport-evaluations.js",
+      portrait: true }
   ],
   TYPE_DEFAUT: "general-elementaire",
 
@@ -89,5 +96,6 @@ window.RR_CONFIG = {
   LS_BROUILLON: "rr_brouillon_v1",
   LS_BROUILLON_SUCCINCT_PRESCOLAIRE: "rr_brouillon_succinct_prescolaire_v1",
   LS_BROUILLON_GENERAL_PRESCOLAIRE: "rr_brouillon_general_prescolaire_v1",
+  LS_BROUILLON_EVALUATIONS: "rr_brouillon_evaluations_v1",
   LS_FILE: "rr_file_attente_v1"
 };

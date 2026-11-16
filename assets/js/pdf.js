@@ -5,6 +5,11 @@
    Orientation PAR PAGE : paysage par défaut (275 x 194 mm) ; une page
    portant data-orientation="portrait" est produite en portrait
    (188 x 281 mm) — rapport succinct préscolaire (page 2).
+   Dimensions / marges SURCHARGEABLES par page (mm) : data-mm-largeur,
+   data-mm-hauteur, data-marge-x, data-marge-y — le rapport des
+   évaluations utilise une page pleine 210 x 297 mm à marge 0 pour
+   reproduire le modèle à la maille près. SANS ces attributs, le
+   comportement est strictement identique à avant.
    Aucun serveur requis : fonctionne aussi hors-ligne.
    ========================================================================= */
 (function (global) {
@@ -40,6 +45,14 @@
       : "ECOLE";
   }
 
+  /** Attribut mm optionnel d'une page (data-mm-* et data-marge-*) : valeur
+   *  par défaut si absent, vide ou invalide — aucun effet rétroactif. */
+  function attrMM(el, nom, defaut) {
+    var v = el.getAttribute(nom);
+    if (v === null || v === "" || isNaN(parseFloat(v))) { return defaut; }
+    return parseFloat(v);
+  }
+
   /**
    * Génère et retourne l'objet jsPDF des pages (paysage et/ou portrait).
    * @param {NodeList|Array} pageEls  éléments .pdf-page affichés à l'écran
@@ -67,8 +80,15 @@
          strictement identique à avant pour les 6 pages élémentaires. */
       var portrait = el.getAttribute("data-orientation") === "portrait";
       var orient = portrait ? "portrait" : "landscape";
-      var largeur = portrait ? PORT_W : PAGE_W;
-      var hauteur = portrait ? PORT_H : PAGE_H;
+
+      /* Dimensions et marges de dépôt (mm) : surchargeables par page via
+         data-mm-largeur / data-mm-hauteur / data-marge-x / data-marge-y.
+         Sans ces attribut : constantes officielles (275x194 / 188x281,
+         marges 11/8) — comportement inchangé pour tous les types. */
+      var largeur = attrMM(el, "data-mm-largeur", portrait ? PORT_W : PAGE_W);
+      var hauteur = attrMM(el, "data-mm-hauteur", portrait ? PORT_H : PAGE_H);
+      var margeX = attrMM(el, "data-marge-x", MARGE_X);
+      var margeY = attrMM(el, "data-marge-y", MARGE_Y);
 
       if (i === 0) {
         doc = new jsPDF({
@@ -108,7 +128,7 @@
       }
 
       var data = canvas.toDataURL("image/jpeg", 0.92);
-      doc.addImage(data, "JPEG", MARGE_X, MARGE_Y, largeur, hauteur,
+      doc.addImage(data, "JPEG", margeX, margeY, largeur, hauteur,
                    undefined, "FAST");
 
       canvas.width = canvas.height = 0;   /* libère la mémoire */
@@ -119,14 +139,18 @@
     return doc;
   }
 
-  /** Nom officiel : Rapport_Rentree_NOM_ECOLE_2026-2027.pdf */
+  /** Nom officiel : Rapport_Rentree_NOM_ECOLE_2026-2027.pdf
+      (préfixe surchargeable via ctx.meta.fichier_prefixe — ex. le
+      rapport des évaluations : Rapport_Evaluations_T1_…). */
   function nomFichier(ctx) {
     var ecole = ((ctx && ctx.meta && ctx.meta.ecole) || "ECOLE")
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
     var annee = ((ctx && ctx.meta && ctx.meta.annee) || "0000-0000")
       .replace("/", "-");
-    return "Rapport_Rentree_" + (ecole || "ECOLE") + "_" + annee + ".pdf";
+    var prefixe = (ctx && ctx.meta && ctx.meta.fichier_prefixe) ||
+                  "Rapport_Rentree_";
+    return prefixe + (ecole || "ECOLE") + "_" + annee + ".pdf";
   }
 
   /** Génère puis déclenche le téléchargement automatique. */

@@ -32,7 +32,7 @@
     </div>
     <div class="petit mt" id="note-pages">
       Le fichier est généré <b>dans votre navigateur</b> (aucun envoi vers un serveur) :
-      format A4 <b>paysage</b>, 6 pages strictement conformes au modèle administratif.
+      format A4, pages strictement conformes au modèle administratif.
     </div>
   </div>
 
@@ -88,6 +88,9 @@
   })[0] || {};
   var TYPE = typeInfo.id || CFG.TYPE_DEFAUT || "general-elementaire";
   var NB_PAGES = typeInfo.pages || 6;
+  /* Orientation du gabarit du type : portrait (rapport des évaluations)
+     ou paysage (types historiques). */
+  var ORIENTATION = typeInfo.portrait ? "portrait" : "paysage";
 
   function modele() {
     var m = (window.RR_MODELES || {})[TYPE];
@@ -113,7 +116,7 @@
       "⬇ Télécharger le PDF officiel (" + NB_PAGES + " pages)";
     document.getElementById("note-pages").innerHTML =
       "Le fichier est généré <b>dans votre navigateur</b> (aucun envoi " +
-      "vers un serveur) : format A4 <b>paysage</b>, " + NB_PAGES +
+      "vers un serveur) : format A4 <b>" + ORIENTATION + "</b>, " + NB_PAGES +
       " pages strictement conformes au modèle administratif.";
   }());
 
@@ -175,7 +178,7 @@
         "Fichier : " + window.RR.pdf.nomFichier(ctxCourant);
 
       msg("ok",
-        "<b>Rapport prêt.</b> " + NB_PAGES + " pages A4 paysage — " +
+        "<b>Rapport prêt.</b> " + NB_PAGES + " pages A4 " + ORIENTATION + " — " +
         (typeInfo.modele
           ? "gabarit officiel du type « " + window.RR.esc(TYPE) + " »."
           : "en-tête officiel + A-D / E-G / H / I-J / K / L-N et signature."));
@@ -209,7 +212,7 @@
         barre.style.width = Math.round(i / n * 100) + "%";
       });
       msg("ok", "<b>PDF téléchargé :</b> " + window.RR.esc(nom) +
-          " — " + NB_PAGES + " pages A4 paysage.");
+          " — " + NB_PAGES + " pages A4 " + ORIENTATION + ".");
     } catch (e) {
       msg("erreur", "<b>Échec de la génération du PDF.</b> " +
           window.RR.esc(e.message) + " Réessayez.");

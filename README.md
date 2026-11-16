@@ -7,13 +7,15 @@ formulaire officiel dans son navigateur, clique sur **Soumettre**, et le
 **PDF officiel se télécharge automatiquement** — strictement identique au
 modèle administratif, sans compte, sans sélection d'école.
 
-Deux formulaires sont disponibles à ce jour :
+Trois types de rapports sont disponibles à ce jour (plus les types
+« bientôt disponibles ») :
 
 | Type | Formulaire | PDF |
 |---|---|---|
 | **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
 | **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → L) | **5 pages A4 paysage** |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
+| **Rapport des évaluations (T1 / T2 / T3)** | `evaluations.html` (sections A → G) | **2 pages A4 portrait** (210 × 297 mm, marges 0) |
 
 > **Architecture : GitHub Pages + Supabase uniquement** — aucun serveur,
 > aucun compte, aucune dépendance externe.
@@ -118,6 +120,50 @@ demande (registre `RR_MODELES[type]`), comme pour le succinct.
 l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 (`analyse: false`, `xlsx: false` dans `config.js`).
 
+### Le rapport des évaluations — 2 pages A4 portrait strictes
+
+`evaluations.html` applique le modèle officiel **« RAPPORT DES ÉVALUATIONS
+DU 1er / 2e / 3e TRIMESTRE »** (relevé verbatim sur
+`rapport_evaluations_T1_modele_1.pdf`) : **exactement 2 pages A4 PORTRAIT**
+(210 × 297 mm, marges 0 — le gabarit dépose son image à 0/0, géométrie
+identique au modèle).
+
+| Page | Contenu |
+|---|---|
+| **1** | En-tête souligné (IA / IEF / DISTRICT / CODEC / ECOLE / ANNEE SCOLAIRE, valeurs à x = 73 et x = 139) + logo officiel (78 × 36 pt) + titre **« RAPPORT DES ÉVALUATIONS DU … TRIMESTRE »** (18 pt gras souligné, aligné sur la baseline 133,9) + tableau 144 → 794 : **EFFECTIF TOTAL** (CI → CM2, G / F / T auto) puis 3 matières (LANGUE ET COMMUNICATION · MATHÉMATIQUES · INITIATION SCIENTIFIQUE ET TECHNOLOGIQUE) × 3 statistiques (**NOMBRE D'ÉLÈVES AYANT COMPOSÉ / AYANT LA MOYENNE / POURCENTAGE**) × G / F / T |
+| **2** | **COMMENTAIRES** (4 lignes pointillées, texte en surimpression) + **PROBLEMES SOULEVES** et **SOLUTIONS MISES EN ŒUVRE** (cases 1 → 6 sur 2 colonnes) + **LE DIRECTEUR DE L'ÉCOLE** centré et souligné (baseline 444) |
+
+Détails de conformité relevés sur le modèle : colonnes 120 + 6 × (25 lettre +
+47 chiffre) = 551 pt, en-tête 44 pt, EFFECTIF TOTAL 54 pt, bandes matières
+22 pt, sous-lignes 18 pt, libellés de statistique **coupés en 3 lignes
+manuelles** (`nowrap`, « POURCENTAGE DES » touche les bordures comme dans le
+modèle) ; couleurs relevées pixel par pixel — bandes `#FBE5D6`, cellules
+lettre `#E2F0D9`, chiffres G `#17365D` / F `#C00000` / T noir.
+
+**Tout se saisit dans le formulaire** : effectifs G / F (T = G + F) et
+statistiques par classe ; le **pourcentage est calculé automatiquement**
+(MOYENNE ÷ COMPOSÉ × 100, arrondi, borné 0 → 100), même ressaisi à la main.
+L'en-tête (IA / IEF / année) est **pré-rempli depuis `config.js`** ; seul le
+titre du PDF change selon le trimestre choisi (**B. TRIMESTRE** →
+`Rapport_Evaluations_T<n>_ECOLE_ANNEE.pdf`).
+
+**Isolation du code** : moteur 100 % dédié (`champs-evaluations.js` +
+`form-evaluations.js` + `rapport-evaluations.js` + `evaluations.html`),
+brouillon local dédié (`rr_brouillon_evaluations_v1`), clé de reprise dédiée
+(`RR_MODIF_EVALUATIONS`). `form.js`, `champs.js`, `rapport.js` et `lib.js`
+restent **intacts** ; le gabarit n'est chargé qu'à la demande (registre
+`RR_MODELES[type]`). **Périmètre** : PDF + Espace Inspection — pas d'export
+XLSX (`xlsx: false`), Analyse « en préparation » (`analyse: false`).
+`pdf.js` n'a été étendu que par des attributs **optionnels**
+(`data-mm-*`, `data-marge-*`, `ctx.meta.fichier_prefixe`) dont les défauts
+sont strictement préservés : les autres types rendent à l'identique.
+
+> **Base de données** : exécuter une fois
+> `supabase/migration_visibilite_evaluations.sql` (SQL Editor) pour ajouter
+> `'evaluations'` à la contrainte CHECK de `type_visibilite` — sans elle,
+> seul le masquage de la carte depuis l'Espace Inspection échoue (l'envoi des
+> rapports fonctionne : `rapports.type` n'a aucune contrainte).
+
 ### Résistance au réseau 2G/3G
 
 * Saisie **entièrement hors-ligne** (brouillon local, restauration automatique)
@@ -130,7 +176,7 @@ l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 * Les tableaux de saisie (sections **H → N** : personnel, effectifs, mobilier, recensements…) affichent des **cases à la largeur du contenu** : titres de colonne sur une ligne entière, nombres et dates jamais coupés — et les **titres officiels de K** (jusqu'à « Cahier d'exercices mathematiques (PAAME) CM1 ») s'affichent **en entier** (champ porté à 320 px)
 * Correctif **CSS uniquement** dans `assets/css/app.css` (media query `max-width: 700px`) : `width: max-content` + `!important` pour neutraliser les largeurs fixes émises par `form.js` — **aucun fichier JS modifié**, le PDF officiel et le rendu desktop sont strictement inchangés
 * Si une ligne dépasse la largeur de l'écran, le défilement horizontal `.table-defilement` fait voir le reste (jamais de cellule perdue) — cas typique : la section **I. SITUATION DES EFFECTIFS du préscolaire**, dont la ligne TOTAL chiffrée garde la largeur d'un nombre (84 px) au lieu d'élargir toutes les colonnes à 240 px
-* Le même style profite aux formulaires général-préscolaire et succinct (classes communes)
+* Le même style profite aux formulaires général-préscolaire, succinct **et évaluations** (classes communes, tableaux enveloppés dans `.table-defilement`)
 
 ### Passage à l'échelle : 500 écoles
 
@@ -170,24 +216,27 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 
 ```
 index.html              Page d'accueil : menu des rapports (succinct/général ×
-                        préscolaire/élémentaire/moyen) + Espace Inspection
-                        (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
+                        préscolaire/élémentaire/moyen + 📝 évaluations)
+                        + Espace Inspection (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
 general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
                         PRÉSCOLAIRE » (A → L) + soumission + PDF 5 pages paysage
 succinct-prescolaire.html Formulaire du « RAPPORT DE SUCCINCT DE RENTRÉE »
                         préscolaire + soumission + PDF 2 pages (paysage + portrait)
+evaluations.html        ★ Formulaire du « RAPPORT DES ÉVALUATIONS » (A → G,
+                        trimestre T1/T2/T3) + soumission + PDF 2 pages portrait
 saisie.html             Redirection vers general-elementaire.html (anciens liens conservés)
 apercu.html             Aperçu / régénération du rapport — TYPE-AWARE :
                         ?type=<id> charge le gabarit, le brouillon et le nombre
                         de pages du type (défaut = élémentaire, inchangé)
 admin.html              Espace Inspection (connexion Supabase, liste, PDF, export XLSX)
-                        — partagé entre les 6 types : admin.html?type=<id>
+                        — partagé entre les 7 types : admin.html?type=<id>
 analyse.html            Exploitation des données (filtres, KPI, graphiques, synthèse, export XLSX)
-                        — partagée entre les 6 types : analyse.html?type=<id>
+                        — partagée entre les 7 types : analyse.html?type=<id>
 
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
                         + styles du succinct (page 2 portrait, aperçu mixte)
+                        + styles des évaluations (.a4-plein, .ev-*)
 assets/css/app.css      Styles de l'interface et du formulaire
 assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-barres)
 assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire, TYPES
@@ -198,10 +247,16 @@ assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
                         (paysage + portrait), registre RR_MODELES[type]
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
                         5 pages paysage (A → L), registre RR_MODELES[type]
+assets/js/rapport-evaluations.js  ★ Modèle du rapport des évaluations :
+                        2 pages A4 portrait 210 × 297 (marge 0), registre RR_MODELES[type]
 assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
-                        PAR PAGE : paysage par défaut, portrait sur demande)
+                        PAR PAGE : paysage par défaut, portrait sur demande ;
+                        dimensions/marges surchargeables par page via
+                        data-mm-* / data-marge-*, défauts inchangés)
 assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
 assets/js/champs-succinct.js   ★ Définition du modèle succinct (sections + tableaux)
+assets/js/champs-evaluations.js  ★ Définition des évaluations (A/B, classes
+                        CI → CM2, 3 matières × 3 statistiques, commentaires)
 assets/js/champs-general-prescolaire.js  ★ Définition du général préscolaire
                         (sections A → L, personnel 10/2/5, effectifs 10,
                         mobiliers 16, recensements K 10 / L 14 lignes,
@@ -214,6 +269,10 @@ assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
 assets/js/form-general-prescolaire.js  ★ Moteur DÉDIÉ du général préscolaire :
                         rendu A → L, calculs (T=G+F, totaux I, Total mobilier),
                         brouillon dédié, soumission 5 pages + anti-doublon
+assets/js/form-evaluations.js  ★ Moteur DÉDIÉ des évaluations : rendu A → G,
+                        combos, calculs (T = G+F, pourcentage MOYENNE/COMPOSÉ),
+                        brouillon dédié, soumission 2 pages + anti-doublon,
+                        pré-remplissage IA / IEF / année
 assets/js/db.js         Accès Supabase + file d'attente hors-ligne + listes
 assets/js/analyse.js    Exploitation : agrégation, graphiques SVG maison, synthèse, export XLSX
                          — moteur partagé + registre RR_ANALYSE[type] des modules dédiés
@@ -227,6 +286,8 @@ assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, ho
                         jsPDF + html2canvas et SheetJS sont chargés à la demande, au clic)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
 assets/drapeau.png      ★ Drapeau du Sénégal (en-tête haut gauche du rapport)
+assets/logo_evaluations.jpeg  ★ Logo officiel du rapport des évaluations
+                        (page 1, 78 × 36 pt en haut à droite)
 supabase/schema.sql     Table `rapports` + règles de sécurité (RLS)
 supabase/migration_types.sql  Colonne `type` + PK (type, ecole_code, annee) + RPC avec p_type
 supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
@@ -234,6 +295,8 @@ supabase/migration_listes_prescolaire.sql  Contrainte CHECK à 4 types +
                         amorçage idempotent des 24 écoles préscolaires
 supabase/migration_visibilite.sql  Table `type_visibilite` : activer / désactiver
                         l'affichage des rapports sur la page d'accueil
+supabase/migration_visibilite_evaluations.sql  7ᵉ type (« evaluations »)
+                        ajouté à la contrainte CHECK de `type_visibilite`
 ```
 
 ---
@@ -275,9 +338,15 @@ supabase/migration_visibilite.sql  Table `type_visibilite` : activer / désactiv
    d'amorçage) ; sans cette étape, l'accueil reste complet (fail-open)
    et la bascule de l'Espace affiche le message invitant à exécuter ce
    fichier.
-7. **Authentication → Users → Add user** : créez le compte de l'Inspection
+7. **Et pour le rapport des évaluations** → collez le contenu de
+   `supabase/migration_visibilite_evaluations.sql` → **Run** : le 7ᵉ type
+   `'evaluations'` rejoint la contrainte CHECK de `type_visibilite`
+   (idempotent). Sans cette étape, les soumissions d'évaluations fonctionnent
+   normalement mais la bascule *« Masquer de l'accueil »* de ce type échoue
+   sur `type_visibilite_type_check`.
+8. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-8. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+9. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
 > ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
@@ -349,8 +418,8 @@ ayant soumis. Trois actions par école (selon les capacités du type, voir
 
 | Action | Effet |
 |---|---|
-| **Voir / PDF** | aperçu des pages du gabarit + téléchargement du PDF officiel (6 pages pour l'élémentaire, 4 pour le général préscolaire, 2 pour le succinct préscolaire) — le gabarit dédié du type est chargé à la demande (`typeInfo.modele`) |
-| **✏ Modifier** | charge le rapport enregistré dans le formulaire de **ce** type ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé (clé de reprise dédiée par type : `RR_MODIF`, `RR_MODIF_SUCCINCT`, `RR_MODIF_GENERAL_PRESCOLAIRE`, …) |
+| **Voir / PDF** | aperçu des pages du gabarit + téléchargement du PDF officiel (6 pages pour l'élémentaire, 5 pour le général préscolaire, 2 pour le succinct préscolaire, **2 pages portrait pour les évaluations**) — le gabarit dédié du type est chargé à la demande (`typeInfo.modele`) |
+| **✏ Modifier** | charge le rapport enregistré dans le formulaire de **ce** type ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé (clé de reprise dédiée par type : `RR_MODIF`, `RR_MODIF_SUCCINCT`, `RR_MODIF_GENERAL_PRESCOLAIRE`, `RR_MODIF_EVALUATIONS`, …) |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
 ### Un espace et une Analyse PAR TYPE de rapport
@@ -365,6 +434,7 @@ admin.html?type=succinct-moyen          analyse.html?type=succinct-moyen
 admin.html?type=general-prescolaire     analyse.html?type=general-prescolaire
 admin.html?type=general-elementaire     analyse.html?type=general-elementaire   ← défaut
 admin.html?type=general-moyen           analyse.html?type=general-moyen
+admin.html?type=evaluations             analyse.html?type=evaluations
 ```
 
 - **Accueil** : chaque carte du menu porte deux liens **🔒 Espace** et
@@ -376,18 +446,21 @@ admin.html?type=general-moyen           analyse.html?type=general-moyen
 - le **titre, le sous-titre, les liens de retour** (Espace ↔ Analyse, même
   type) et **la lecture des rapports** suivent le type choisi ;
 - l'**anti-doublon s'applique par type** : une école peut déposer un
-  rapport succinct ET un rapport général sans se bloquer ;
+  rapport succinct ET un rapport général (ou un rapport d'évaluations)
+  sans se bloquer ;
 - les **capacités sont déclarées par type** dans `config.js` → `TYPES` :
   `pdf`, `xlsx`, `analyse`, `pages`, `ecoles`, `form`, `modif`,
   `brouillon` (clé du brouillon local), `modele` (gabarit dédié),
   `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
-  `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages) **et**
-  `general-prescolaire` (5 pages) ; **⬇ Export XLSX** et la page
-  **📊 Analyse** sont actifs pour `general-elementaire` **et**
+  `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages),
+  `general-prescolaire` (5 pages) **et `evaluations`** (2 pages portrait) ;
+  **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
+  `general-elementaire` **et**
   `succinct-prescolaire` (modules dédiés chargés à la demande).
-  `general-prescolaire` a `xlsx: false` et `analyse: false` : son Espace
-  Inspection affiche « 5 pages » et ouvre le bon gabarit, mais l'Export
+  `general-prescolaire` et `evaluations` ont `xlsx: false` et
+  `analyse: false` : leur Espace Inspection affiche le bon nombre de pages
+  et ouvre le gabarit, mais l'Export
   XLSX est **désactivé** et la page Analyse affiche **« Analyse en
   préparation pour ce type »** avec un lien de retour (aucune donnée lue).
   Pour un type sans capacité, l'Espace affiche
