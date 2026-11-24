@@ -14,7 +14,7 @@ Cinq types de rapports sont disponibles à ce jour (plus les types
 |---|---|---|
 | **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
 | **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → L) | **5 pages A4 paysage** |
-| **Rapport général de rentrée moyen & secondaire** | `general-moyen.html` (8 feuilles officielles) | **11 pages A4 mixtes** : 5 portraits + 6 paysages |
+| **Rapport général de rentrée moyen & secondaire** | `general-moyen.html` (11 feuilles officielles) | **14 pages A4 mixtes** : 6 portraits + 8 paysages |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
 | **Rapport des évaluations (T1 / T2 / T3)** | `evaluations.html` (sections A → G) | **2 pages A4 portrait** (210 × 297 mm, marges 0) |
 
@@ -121,23 +121,33 @@ demande (registre `RR_MODELES[type]`), comme pour le succinct.
 l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 (`analyse: false`, `xlsx: false` dans `config.js`).
 
-### Le rapport général moyen & secondaire - 11 pages strictes
+### Le rapport général moyen & secondaire — 14 pages strictes
 
-`general-moyen.html` applique le classeur officiel **« RAPPORT GÉNÉRAL DE
-RENTRÉE — Enseignement Moyen & Secondaire »** (8 feuilles). Le PDF contient
-**exactement 11 pages A4** : chaque feuille commence sur une nouvelle page,
-et les deux feuilles nominatives continuent sur plusieurs pages.
+`general-moyen.html` applique le classeur officiel 2026/2027 **« RAPPORT
+GÉNÉRAL DE RENTRÉE — Enseignement Moyen & Secondaire »** (**11 feuilles**).
+Le PDF contient **exactement 14 pages A4** : chaque feuille commence sur une
+nouvelle page, et les trois feuilles nominatives continuent sur plusieurs
+pages.
 
 | Page | Format | Feuille / contenu |
 |---|---|---|
-| **1** | Portrait (210 × 297 mm) | `1 - PAGE D'ENTRÉE` : identification, effectifs personnels / élèves, CGE, PE, cellules, clubs, chef d'établissement |
-| **2** | Portrait | `2 - STRUCTURES & EQUIPEMENTS` : locaux, sanitaires, eau / énergie, salles, équipements, manuels, supports |
-| **3** | Portrait | `3 - SITUATION TICE` : compétences, personnes ressources, partenaires, financements, contraintes / stratégies / recommandations |
-| **4** | Paysage (297 × 210 mm) | `4 - EFFECTIFS ELEVES` : classes, effectifs / passants / redoublants, LV2 |
-| **5** | Portrait | `5 - RÉSULTATS EXAMENS` : BFEM, baccalauréat (5 séries), mentions |
-| **6-7** | Paysage | `6 - PERSONNEL ADMINISTRATIF` : **52 lignes** réparties **26 + 26**, en-tête et pied répétés |
-| **8-10** | Paysage | `7 - PERSONNEL ENSEIGNANT` : **69 lignes** réparties **23 + 23 + 23** |
-| **11** | Portrait | `8 - OBSERVATIONS CHEF D'ETAB` : observations + cachet et signature |
+| **1** | Portrait (210 × 297 mm) | `1 - PAGE D'ENTRÉE` : identification (dont Code administratif et Code Chapitre), effectifs personnels / élèves, CGE, PE, gouvernement scolaire, cellules, clubs (dont EVF), chef d'établissement |
+| **2** | Paysage (297 × 210 mm) | `2 - INFORMATIONS ELEVES VULNERAB` : groupes pédagogiques (Total / Dont FA) et 11 indicateurs handicap / vulnérabilité / violences, en G / F par niveau |
+| **3** | Portrait | `3 - STRUCTURES & EQUIPEMENTS` : accessibilité, clôture, sanitaires, laboratoire, eau / énergie, connexions, salles, équipements, manuels (18 disciplines), supports numériques |
+| **4** | Portrait | `SITUATION DU TICE` : compétences numériques, personnes ressources, partenaires, financements, contraintes / stratégies / recommandations |
+| **5** | Paysage | `5-EFFECTIF ELEVES MOYEN` : 6ème → 3ème, Total et Dont FA, effectifs / passants / redoublants, LV2 par niveau |
+| **6** | Paysage | `6-EFFECTIF SECONDAIRE` : Seconde (L / LA / S / SA), Première et Terminale (L1 / LA / L2 / L'1 / S1 / S1A / S2 / S2A), LV2 par série |
+| **7** | Portrait | `7- RÉSULTATS EXAMENS 2025/2026` : BFEM et baccalauréat, colonnes **Dont FA**, pourcentages, mentions (8 séries) |
+| **8-9** | Paysage | `8- PERSONNEL ADMINISTRATIF` : **52 lignes** réparties **26 + 26**, en-tête et pied répétés |
+| **10-12** | Paysage | `9- PERSONNEL ENSEIGNANT` : **69 lignes** réparties **23 + 23 + 23** |
+| **13** | Portrait | `10 - PERSONNEL DE SERVICE` : **20 lignes** nominatives |
+| **14** | Portrait | `11 - OBSERVATIONS CHEF D'ETAB` : observations + cachet et signature |
+
+**Reprise des anciens brouillons** : `migrerDonnees()` convertit
+automatiquement une saisie de l'ancien modèle 8 feuilles vers le nouveau
+modèle (effectifs moyen / secondaire, Dont FA à zéro, séries LA / S1A / S2A
+vides, caméra / webcam reprises du tableau des équipements). Aucune donnée
+n'est perdue.
 
 **Liste fermée** : le champ *Nom de l'établissement* propose les **17
 établissements moyens** de l'inspection (11 CEM, 5 lycées, 1 CFA) via
@@ -253,8 +263,8 @@ general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
                         PRÉSCOLAIRE » (A → L) + soumission + PDF 5 pages paysage
 general-moyen.html      ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE —
-                        ENSEIGNEMENT MOYEN & SECONDAIRE » (8 feuilles)
-                        + soumission + PDF 11 pages (5 portraits + 6 paysages)
+                        ENSEIGNEMENT MOYEN & SECONDAIRE » (11 feuilles)
+                        + soumission + PDF 14 pages (6 portraits + 8 paysages)
 succinct-prescolaire.html Formulaire du « RAPPORT DE SUCCINCT DE RENTRÉE »
                         préscolaire + soumission + PDF 2 pages (paysage + portrait)
 evaluations.html        ★ Formulaire du « RAPPORT DES ÉVALUATIONS » (A → G,
@@ -271,7 +281,7 @@ analyse.html            Exploitation des données (filtres, KPI, graphiques, syn
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
                         + styles du succinct (page 2 portrait, aperçu mixte)
                         + styles des évaluations (.a4-plein, .ev-*)
-                        + styles du général moyen (11 pages A4, portraits/paysages)
+                        + styles du général moyen (14 pages A4, portraits/paysages)
 assets/css/app.css      Styles de l'interface et du formulaire
 assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-barres)
 assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire, TYPES
@@ -283,8 +293,8 @@ assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
                         5 pages paysage (A → L), registre RR_MODELES[type]
 assets/js/rapport-general-moyen.js  ★ Modèle du général moyen & secondaire :
-                        11 pages A4 (5 portraits + 6 paysages), 8 feuilles,
-                        feuilles 6/7 sur plusieurs pages, RR_MODELES[type]
+                        14 pages A4 (6 portraits + 8 paysages), 11 feuilles,
+                        feuilles 8/9/10 sur plusieurs pages, RR_MODELES[type]
 assets/js/rapport-evaluations.js  ★ Modèle du rapport des évaluations :
                         2 pages A4 portrait 210 × 297 (marge 0), registre RR_MODELES[type]
 assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
@@ -300,8 +310,9 @@ assets/js/champs-general-prescolaire.js  ★ Définition du général préscolai
                         mobiliers 16, recensements K 10 / L 14 lignes,
                         CODEC facultatif non imprimé)
 assets/js/champs-general-moyen.js  ★ Définition du général moyen & secondaire
-                        (8 feuilles, 52 administratifs / 69 enseignants,
-                        effectifs, examens, TICE, manuels)
+                        (11 feuilles, 52 administratifs / 69 enseignants /
+                        20 agents de service, élèves vulnérables, effectifs
+                        moyen et secondaire, examens, TICE, manuels)
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes +
                         24 écoles préscolaires + 17 établissements moyens
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
@@ -311,8 +322,9 @@ assets/js/form-general-prescolaire.js  ★ Moteur DÉDIÉ du général préscola
                         rendu A → L, calculs (T=G+F, totaux I, Total mobilier),
                         brouillon dédié, soumission 5 pages + anti-doublon
 assets/js/form-general-moyen.js  ★ Moteur DÉDIÉ du général moyen & secondaire :
-                        rendu 8 sections, 52/69 lignes nominatives, calculs,
-                        brouillon dédié, soumission 11 pages + anti-doublon
+                        rendu 11 sections, 52/69/20 lignes nominatives,
+                        calculs moyen/secondaire, brouillon dédié,
+                        soumission 14 pages + anti-doublon
 assets/js/form-evaluations.js  ★ Moteur DÉDIÉ des évaluations : rendu A → G,
                         combos, calculs (T = G+F, pourcentage MOYENNE/COMPOSÉ),
                         brouillon dédié, soumission 2 pages + anti-doublon,
@@ -506,7 +518,7 @@ admin.html?type=evaluations             analyse.html?type=evaluations
   `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
   `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages),
-  `general-prescolaire` (5 pages), `general-moyen` (11 pages mixtes)
+  `general-prescolaire` (5 pages), `general-moyen` (14 pages mixtes)
   **et `evaluations`** (2 pages portrait) ;
   **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
   `general-elementaire` **et**

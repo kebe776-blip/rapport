@@ -1,12 +1,13 @@
 /* =========================================================================
    rapport-general-moyen.js — Gabarit HTML du « RAPPORT GÉNÉRAL DE RENTRÉE
-   — ENSEIGNEMENT MOYEN & SECONDAIRE » : EXACTEMENT 11 PAGES.
-     • pages 1, 2, 3, 5, 11 : A4 PORTRAIT (210 x 297 mm, marges 0)
-     • pages 4, 6, 7, 8, 9, 10 : A4 PAYSAGE (297 x 210 mm, marges 0)
-     • feuille 6 (personnel administratif, 52 lignes) : pages 6 et 7
+   — ENSEIGNEMENT MOYEN & SECONDAIRE » : EXACTEMENT 14 PAGES.
+     • pages 1, 3, 4, 7, 13, 14 : A4 PORTRAIT (210 x 297 mm, marges 0)
+     • pages 2, 5, 6, 8, 9, 10, 11, 12 : A4 PAYSAGE (297 x 210 mm, marges 0)
+     • feuille 8 (personnel administratif, 52 lignes) : pages 8 et 9
        (26 + 26 lignes, en-tête répété) ;
-     • feuille 7 (personnel enseignant, 69 lignes) : pages 8, 9 et 10
-       (23 + 23 + 23 lignes, en-tête répété).
+     • feuille 9 (personnel enseignant, 69 lignes) : pages 10, 11 et 12
+       (23 + 23 + 23 lignes, en-tête répété) ;
+     • feuille 10 (personnel de service, 20 lignes) : page 13.
    Le module est AUTONOME : il ne dépend ni de champs.js ni de form.js et
    se déclare dans RR_MODELES["general-moyen"] pour l'Espace Inspection,
    apercu.html et le formulaire. rapport.js n'est pas modifié.
@@ -26,42 +27,49 @@
   var TYPE = "general-moyen";
   var MAX_ADMIN = 52;
   var MAX_ENSEIGNANT = 69;
+  var MAX_SERVICE = 20;
   var ADMIN_PAR_PAGE = 26;
   var ENS_PAR_PAGE = 23;
 
   var TITRES = [
     "Page d'entrée — identification, effectifs, CGE, PE et chef d'établissement",
+    "Informations élèves vulnérables — handicap, état civil et violences",
     "Structures & équipements — locaux, matériels, manuels et supports",
-    "Situation TICE — compétences, partenaires et financements",
-    "Effectifs élèves — classes, effectifs, passants, redoublants et LV2",
+    "Situation du TICE — compétences, partenaires et financements",
+    "Effectifs élèves — enseignement moyen",
+    "Effectifs élèves — secondaire",
     "Résultats examens — BFEM, baccalauréat et mentions",
     "Personnel administratif — lignes 1 à 26",
     "Personnel administratif — lignes 27 à 52",
     "Personnel enseignant — lignes 1 à 23",
     "Personnel enseignant — lignes 24 à 46",
     "Personnel enseignant — lignes 47 à 69",
+    "Personnel de service — lignes 1 à 20",
     "Observations du chef d'établissement"
   ];
 
   var ORIENTATIONS = [
-    "portrait", "portrait", "portrait", "landscape", "portrait",
-    "landscape", "landscape", "landscape", "landscape", "landscape",
-    "portrait"
+    "portrait", "landscape", "portrait", "portrait", "landscape",
+    "landscape", "portrait", "landscape", "landscape", "landscape",
+    "landscape", "landscape", "portrait", "portrait"
   ];
 
   /* Noms EXACTS des feuilles du classeur officiel, repris au pied de page. */
   var FEUILLES = [
     "1 - PAGE D'ENTRÉE",
-    "2 - STRUCTURES & EQUIPEMENTS",
-    "3 - SITUATION TICE",
-    "4 - EFFECTIFS ELEVES",
-    "5 - RÉSULTATS EXAMENS",
-    "6 - PERSONNEL ADMINISTRATIF",
-    "6 - PERSONNEL ADMINISTRATIF",
-    "7 - PERSONNEL ENSEIGNANT",
-    "7 - PERSONNEL ENSEIGNANT",
-    "7 - PERSONNEL ENSEIGNANT",
-    "8 - OBSERVATIONS CHEF D'ETAB"
+    "2 -INFORMATIONS ELEVES VULNERAB",
+    "3 - STRUCTURES & EQUIPEMENTS",
+    "SITUATION DU TICE",
+    "5-EFFECTIF ELEVES MOYEN",
+    "6-EFFECTIF SECONDAIRE",
+    "7- RÉSULTATS EXAMENS",
+    "8- PERSONNEL ADMINISTRATIF",
+    "8- PERSONNEL ADMINISTRATIF",
+    "9- PERSONNEL ENSEIGNANT",
+    "9- PERSONNEL ENSEIGNANT",
+    "9- PERSONNEL ENSEIGNANT",
+    "10 - PERSONNEL DE SERVICE",
+    "11 - OBSERVATIONS CHEF D'ETAB"
   ];
 
   /* -----------------------------------------------------------------------
@@ -76,7 +84,9 @@
   ];
 
   var ELEVES_LABELS = [
-    "6ème", "5ème", "4ème", "3ème", "Seconde", "Première", "Terminale"
+    ["sixieme", "6ème"], ["cinquieme", "5ème"], ["quatrieme", "4ème"],
+    ["troisieme", "3ème"], ["seconde", "Seconde"], ["premiere", "Première"],
+    ["terminale", "Terminale"]
   ];
 
   var CELLULES = [
@@ -88,7 +98,22 @@
 
   var CLUBS = [
     ["tic", "Club TIC"], ["sciences", "Club sciences"],
-    ["autres", "Autres Org/Clubs"], ["ovds", "OVDS"], ["clap", "CLAP"]
+    ["autres", "Autres Org/Clubs"], ["ovds", "OVDS"], ["clap", "CLAP"],
+    ["evf", "EVF"]
+  ];
+
+  var VULN_INDICATEURS = [
+    ["vulnerables", "Élèves vulnérables"],
+    ["sans_piece", "Nombre d'élèves sans pièce d'état civil"],
+    ["redoublants_handicapes", "Nombre de redoublants handicapés"],
+    ["moteurs", "Nombre handicapés moteurs"],
+    ["malvoyants", "Nombre handicapés malvoyants"],
+    ["deficients_visuels", "Nombre handicapés déficients visuels"],
+    ["verbo_auditif", "Nombre handicapés verbo-auditif (sourd et/ou muet)"],
+    ["cantine", "Nombre bénéficiaires de cantine"],
+    ["bourses", "Nombre bénéficiaires de bourses"],
+    ["violences_sexuelles", "Nombre victimes de violences sexuelles"],
+    ["autres_violences", "Nombre victimes d'autres formes de violences"]
   ];
 
   var SALLES_LABELS = [
@@ -109,9 +134,7 @@
     "Videoprojecteur",
     "Photocopieuse",
     "Risographe",
-    "Scanner",
-    "Caméra numérique",
-    "Webcam"
+    "Scanner"
   ];
 
   var MANUELS_DISCIPLINES = [
@@ -142,7 +165,7 @@
 
   var TICE_COMPETENCES = [
     "MS Word", "MS Excel", "MS Power Point", "Navigation Internet",
-    "Messagerie", "TICE"
+    "Messagerie", "Numérique"
   ];
 
   var TICE_NIVEAUX = ["aucun", "faible", "moyen", "avance"];
@@ -155,30 +178,23 @@
     ["prives", "Partenaires privés"]
   ];
 
-  var EFFECTIFS_COLONNES = [
-    { n: "sixieme", l: "6ème", g: "moyen" },
-    { n: "cinquieme", l: "5ème", g: "moyen" },
-    { n: "quatrieme", l: "4ème", g: "moyen" },
-    { n: "troisieme", l: "3ème", g: "moyen" },
-    { n: "seconde_l", l: "Littéraire", g: "seconde" },
-    { n: "seconde_s", l: "Scientif.", g: "seconde" },
-    { n: "premiere_l1", l: "L1", g: "premiere" },
-    { n: "premiere_l2", l: "L2", g: "premiere" },
-    { n: "premiere_lp", l: "L Prime", g: "premiere" },
-    { n: "premiere_s1", l: "S1", g: "premiere" },
-    { n: "premiere_s2", l: "S2", g: "premiere" },
-    { n: "terminale_l1", l: "L1", g: "terminale" },
-    { n: "terminale_l2", l: "L2", g: "terminale" },
-    { n: "terminale_lp", l: "L Prime", g: "terminale" },
-    { n: "terminale_s1", l: "S1", g: "terminale" },
-    { n: "terminale_s2", l: "S2", g: "terminale" }
+  var EFF_MOYEN_LEVELS = [
+    ["sixieme", "6ème"], ["cinquieme", "5ème"],
+    ["quatrieme", "4ème"], ["troisieme", "3ème"]
   ];
 
-  var EFFECTIFS_GROUPES = [
-    { cle: "moyen", l: "ENSEIGNEMENT MOYEN" },
-    { cle: "seconde", l: "SECONDE" },
-    { cle: "premiere", l: "PREMIÈRE" },
-    { cle: "terminale", l: "TERMINALE" }
+  var EFF_SEC_GROUPES = [
+    { cle: "seconde", l: "SECONDE", series: [
+      ["l", "L"], ["la", "LA"], ["s", "S"], ["sa", "SA"]
+    ] },
+    { cle: "premiere", l: "PREMIÈRE", series: [
+      ["l1", "L1"], ["la", "LA"], ["l2", "L2"], ["lp", "L'1"],
+      ["s1", "S1"], ["s1a", "S1A"], ["s2", "S2"], ["s2a", "S2A"]
+    ] },
+    { cle: "terminale", l: "TERMINALE", series: [
+      ["l1", "L1"], ["la", "LA"], ["l2", "L2"], ["lp", "L'1"],
+      ["s1", "S1"], ["s1a", "S1A"], ["s2", "S2"], ["s2a", "S2A"]
+    ] }
   ];
 
   var LV2_LANGUES = [
@@ -191,10 +207,30 @@
     ["s1", "S1"], ["s2", "S2"]
   ];
 
-  var EXAM_COLS = [
-    "ins_g", "ins_f", "pres_g", "pres_f", "pres_t",
-    "adm1_g", "adm1_f", "adm2_g", "adm2_f",
-    "adm_t_g", "adm_t_f", "adm_t", "pct_g", "pct_f", "pct_etab"
+  var MENTIONS_SERIES = [
+    ["l1", "L1"], ["l2", "L2"], ["lp", "L Prime"], ["la", "LA"],
+    ["s1", "S1"], ["s1a", "S1A"], ["s2", "S2"], ["s2a", "S2A"]
+  ];
+
+  var EXAMENS_GROUPES = [
+    { cle: "ins", l: "INSCRITS", cols: 2 },
+    { cle: "pres", l: "PRÉSENTS", cols: 2 },
+    { cle: "pres_t", l: "", cols: 1 },
+    { cle: "adm1", l: "ADMIS 1er groupe", cols: 2 },
+    { cle: "adm2", l: "ADMIS 2ème groupe", cols: 2 },
+    { cle: "adm_t", l: "TOTAL ADMIS", cols: 3 },
+    { cle: "fa", l: "DONT FA", cols: 2 },
+    { cle: "pct", l: "ADMIS / PRÉSENTS (%)", cols: 3 }
+  ];
+
+  var EXAMENS_COLONNES = [
+    ["ins_g", "ins"], ["ins_f", "ins"],
+    ["pres_g", "pres"], ["pres_f", "pres"], ["pres_t", "pres_t"],
+    ["adm1_g", "adm1"], ["adm1_f", "adm1"],
+    ["adm2_g", "adm2"], ["adm2_f", "adm2"],
+    ["adm_t_g", "adm_t"], ["adm_t_f", "adm_t"], ["adm_t", "adm_t"],
+    ["fa_g", "fa"], ["fa_f", "fa"],
+    ["pct_g", "pct"], ["pct_f", "pct"], ["pct_etab", "pct"]
   ];
 
   /* -----------------------------------------------------------------------
@@ -234,10 +270,6 @@
   function nz(v) {
     var x = entier(v);
     return x ? String(x) : "&nbsp;";
-  }
-
-  function zero(v) {
-    return entier(v) === 0 ? "" : String(entier(v));
   }
 
   function oui(v) {
@@ -312,7 +344,9 @@
     var s = txt(v).toLowerCase();
     if (s === "neant" || s === "néant") { return "NÉANT"; }
     if (s === "wifi") { return "WIFI"; }
-    if (s === "adsl") { return "ADSL"; }
+    if (s === "fibre") { return "FIBRE"; }
+    if (s === "flybox") { return "FLYBOX"; }
+    if (s === "adsl") { return "FIBRE"; }
     return maj(v);
   }
 
@@ -405,12 +439,161 @@
     return '<div class="gm-pied"><span>Rapport général de rentrée — ' +
       "Enseignement moyen &amp; secondaire — " + esc(CFG.ANNEE || "2026/2027") +
       "</span><span>" + esc(FEUILLES[n - 1] || "") +
-      " — Page " + n + " / 11</span></div>";
+      " — Page " + n + " / 14</span></div>";
   }
 
   function titrePage(texte, petit) {
     return '<div class="gm-titre-page' + (petit ? " petit" : "") + '">' +
       texte + "</div>";
+  }
+
+  /* -----------------------------------------------------------------------
+     MIGRATION DES DONNÉES ANCIENNES (8 feuilles → 11 feuilles)
+     ----------------------------------------------------------------------- */
+  function copie(obj) {
+    try { return JSON.parse(JSON.stringify(obj || {})); }
+    catch (e) { return {}; }
+  }
+
+  function migrerMoyen(d) {
+    var m = { nb_classes: {}, effectifs: {}, passants: {}, redoublants: {}, lv2: {} };
+    EFF_MOYEN_LEVELS.forEach(function (l) {
+      var cle = l[0];
+      m.nb_classes[cle] = entier(g(d, "effectifs.nb_classes." + cle));
+      ["effectifs", "passants", "redoublants"].forEach(function (bloc) {
+        m[bloc][cle] = {
+          g: entier(g(d, "effectifs." + bloc + ".g." + cle)),
+          f: entier(g(d, "effectifs." + bloc + ".f." + cle)),
+          fa_g: 0, fa_f: 0
+        };
+      });
+    });
+    LV2_LANGUES.forEach(function (lang) {
+      m.lv2[lang[0]] = {};
+      EFF_MOYEN_LEVELS.forEach(function (l) {
+        var cle = l[0];
+        m.lv2[lang[0]][cle] = {
+          g: entier(g(d, "lv2." + lang[0] + ".g." + cle)),
+          f: entier(g(d, "lv2." + lang[0] + ".f." + cle)),
+          fa_g: 0, fa_f: 0
+        };
+      });
+    });
+    return m;
+  }
+
+  function migrerSecondaire(d) {
+    var m = { nb_classes: {}, effectifs: {}, passants: {}, redoublants: {}, lv2: {} };
+    var vieuxColonnes = {
+      seconde: { l: "seconde_l", s: "seconde_s" },
+      premiere: { l1: "premiere_l1", l2: "premiere_l2", lp: "premiere_lp",
+                  s1: "premiere_s1", s2: "premiere_s2" },
+      terminale: { l1: "terminale_l1", l2: "terminale_l2", lp: "terminale_lp",
+                   s1: "terminale_s1", s2: "terminale_s2" }
+    };
+    EFF_SEC_GROUPES.forEach(function (gr) {
+      var cols = vieuxColonnes[gr.cle] || {};
+      m.nb_classes[gr.cle] = 0;
+      Object.keys(cols).forEach(function (k) {
+        m.nb_classes[gr.cle] += entier(g(d, "effectifs.nb_classes." + cols[k]));
+      });
+      ["effectifs", "passants", "redoublants"].forEach(function (bloc) {
+        m[bloc][gr.cle] = {};
+        gr.series.forEach(function (s) {
+          var old = cols[s[0]];
+          m[bloc][gr.cle][s[0]] = {
+            g: old ? entier(g(d, "effectifs." + bloc + ".g." + old)) : 0,
+            f: old ? entier(g(d, "effectifs." + bloc + ".f." + old)) : 0
+          };
+        });
+      });
+    });
+    LV2_LANGUES.forEach(function (lang) {
+      m.lv2[lang[0]] = {};
+      EFF_SEC_GROUPES.forEach(function (gr) {
+        var cols = vieuxColonnes[gr.cle] || {};
+        m.lv2[lang[0]][gr.cle] = {};
+        gr.series.forEach(function (s) {
+          var old = cols[s[0]];
+          m.lv2[lang[0]][gr.cle][s[0]] = {
+            g: old ? entier(g(d, "lv2." + lang[0] + ".g." + old)) : 0,
+            f: old ? entier(g(d, "lv2." + lang[0] + ".f." + old)) : 0
+          };
+        });
+      });
+    });
+    return m;
+  }
+
+  function migrerDonnees(src) {
+    var d = copie(src);
+    d.identification = d.identification || {};
+    if (d.identification.code_admin === undefined ||
+        d.identification.code_admin === null) {
+      d.identification.code_admin = d.identification.code_sige || "";
+    }
+    if (d.identification.code_chapitre === undefined ||
+        d.identification.code_chapitre === null) {
+      d.identification.code_chapitre = "";
+    }
+    d.chef = d.chef || {};
+    if (d.chef.chef_discipline === undefined ||
+        d.chef.chef_discipline === null) {
+      d.chef.chef_discipline = "";
+    }
+    d.clubs = d.clubs || {};
+    if (d.clubs.evf === undefined || d.clubs.evf === null) {
+      d.clubs.evf = "";
+    }
+    d.structures = d.structures || {};
+    var anciensEq = Array.isArray(d.equipements) ? d.equipements : [];
+    if ((d.structures.camera === undefined || d.structures.camera === null ||
+         d.structures.camera === "") && anciensEq[8]) {
+      d.structures.camera = entier(anciensEq[8].marche) ||
+        entier(anciensEq[8].panne) || 0;
+    }
+    if ((d.structures.webcam === undefined || d.structures.webcam === null ||
+         d.structures.webcam === "") && anciensEq[9]) {
+      d.structures.webcam = entier(anciensEq[9].marche) ||
+        entier(anciensEq[9].panne) || 0;
+    }
+    if (d.structures.internet === "adsl") { d.structures.internet = "fibre"; }
+    if (Array.isArray(d.equipements)) { d.equipements = d.equipements.slice(0, 8); }
+    d.vulnerables = d.vulnerables || {};
+    d.vulnerables.groupes = d.vulnerables.groupes || {};
+    d.vulnerables.indicateurs = d.vulnerables.indicateurs || {};
+    if (!d.effectifs_moyen || !d.effectifs_moyen.effectifs) {
+      d.effectifs_moyen = migrerMoyen(d);
+    }
+    if (!d.effectifs_secondaire || !d.effectifs_secondaire.effectifs) {
+      d.effectifs_secondaire = migrerSecondaire(d);
+    }
+    d.examens = d.examens || {};
+    d.examens.bfem = d.examens.bfem || {};
+    d.examens.bac = d.examens.bac || {};
+    d.examens.mentions = d.examens.mentions || {};
+    ["normale", "remplacement"].forEach(function (s) {
+      d.examens.bfem[s] = d.examens.bfem[s] || {};
+      if (d.examens.bfem[s].fa_g === undefined) { d.examens.bfem[s].fa_g = 0; }
+      if (d.examens.bfem[s].fa_f === undefined) { d.examens.bfem[s].fa_f = 0; }
+    });
+    BAC_SERIES.forEach(function (serie) {
+      d.examens.bac[serie[0]] = d.examens.bac[serie[0]] || {};
+      ["normale", "remplacement"].forEach(function (s) {
+        d.examens.bac[serie[0]][s] = d.examens.bac[serie[0]][s] || {};
+        if (d.examens.bac[serie[0]][s].fa_g === undefined) {
+          d.examens.bac[serie[0]][s].fa_g = 0;
+        }
+        if (d.examens.bac[serie[0]][s].fa_f === undefined) {
+          d.examens.bac[serie[0]][s].fa_f = 0;
+        }
+      });
+    });
+    MENTIONS_SERIES.forEach(function (s) {
+      d.examens.mentions[s[0]] = d.examens.mentions[s[0]] || {};
+    });
+    if (!Array.isArray(d.service)) { d.service = []; }
+    return d;
   }
 
   /* -----------------------------------------------------------------------
@@ -431,34 +614,13 @@
     return out;
   }
 
-  function blocEffectifs(src, prefixe) {
-    var b = { g: {}, f: {}, tot: {}, cg: {}, cf: {}, ct: {}, tg: 0, tf: 0, tt: 0 };
-    EFFECTIFS_COLONNES.forEach(function (c) {
-      b.g[c.n] = entier(g(src, prefixe + ".g." + c.n));
-      b.f[c.n] = entier(g(src, prefixe + ".f." + c.n));
-      b.tot[c.n] = b.g[c.n] + b.f[c.n];
-    });
-    EFFECTIFS_GROUPES.forEach(function (gr) {
-      var sg = 0, sf = 0;
-      EFFECTIFS_COLONNES.filter(function (c) { return c.g === gr.cle; })
-        .forEach(function (c) {
-          sg += b.g[c.n]; sf += b.f[c.n];
-        });
-      b.cg[gr.cle] = sg;
-      b.cf[gr.cle] = sf;
-      b.ct[gr.cle] = sg + sf;
-      b.tg += sg; b.tf += sf;
-    });
-    b.tt = b.tg + b.tf;
-    return b;
-  }
-
   function baseExamen(src) {
     return {
       ins_g: entier(g(src, "ins_g")), ins_f: entier(g(src, "ins_f")),
       pres_g: entier(g(src, "pres_g")), pres_f: entier(g(src, "pres_f")),
       adm1_g: entier(g(src, "adm1_g")), adm1_f: entier(g(src, "adm1_f")),
-      adm2_g: entier(g(src, "adm2_g")), adm2_f: entier(g(src, "adm2_f"))
+      adm2_g: entier(g(src, "adm2_g")), adm2_f: entier(g(src, "adm2_f")),
+      fa_g: entier(g(src, "fa_g")), fa_f: entier(g(src, "fa_f"))
     };
   }
 
@@ -468,7 +630,8 @@
       pres_g: b.pres_g, pres_f: b.pres_f,
       pres_t: b.pres_g + b.pres_f,
       adm1_g: b.adm1_g, adm1_f: b.adm1_f,
-      adm2_g: b.adm2_g, adm2_f: b.adm2_f
+      adm2_g: b.adm2_g, adm2_f: b.adm2_f,
+      fa_g: b.fa_g, fa_f: b.fa_f
     };
     o.adm_t_g = o.adm1_g + o.adm2_g;
     o.adm_t_f = o.adm1_f + o.adm2_f;
@@ -507,13 +670,14 @@
 
   function buildContext(donnees, opts) {
     opts = opts || {};
-    var d = donnees || {};
+    var d = migrerDonnees(donnees || {});
     var id = g(d, "identification", {});
     var nom = maj(g(id, "nom_ecole", "")) || "—";
 
     var ident = {
       nom_ecole: nom,
-      code_sige: vide(g(id, "code_sige")),
+      code_admin: vide(g(id, "code_admin") || g(id, "code_sige")),
+      code_chapitre: vide(g(id, "code_chapitre")),
       region_ia: vide(g(id, "region_ia")),
       departement: vide(g(id, "departement")),
       adresse: vide(g(id, "adresse")),
@@ -543,12 +707,10 @@
     });
 
     var eleves1 = { les: [], tf: 0, tg: 0, tt: 0 };
-    ELEVES_LABELS.forEach(function (lbl, i) {
-      var cle = ["sixieme", "cinquieme", "quatrieme", "troisieme",
-                 "seconde", "premiere", "terminale"][i];
-      var f = entier(g(d, "eleves_page1." + cle + ".filles"));
-      var h = entier(g(d, "eleves_page1." + cle + ".garcons"));
-      eleves1.les.push({ l: lbl, f: f, g: h, t: f + h });
+    ELEVES_LABELS.forEach(function (l) {
+      var f = entier(g(d, "eleves_page1." + l[0] + ".filles"));
+      var h = entier(g(d, "eleves_page1." + l[0] + ".garcons"));
+      eleves1.les.push({ l: l[1], f: f, g: h, t: f + h });
       eleves1.tf += f; eleves1.tg += h; eleves1.tt += f + h;
     });
 
@@ -592,6 +754,7 @@
       telephone: vide(g(d, "chef.chef_telephone")),
       genre: sexe(g(d, "chef.chef_genre")),
       corps_grade: vide(g(d, "chef.chef_corps_grade")),
+      discipline: vide(g(d, "chef.chef_discipline")),
       email: vide(g(d, "chef.chef_email"))
     };
 
@@ -601,16 +764,19 @@
       cloture: oui(g(d, "structures.cloture")),
       type_cloture: vide(g(d, "structures.type_cloture")),
       sanitaires_separes: oui(g(d, "structures.sanitaires_separes")),
-      nb_blocs: entier(g(d, "structures.nb_blocs")),
       nb_box_total: entier(g(d, "structures.nb_box_total")),
       nb_box_filles: entier(g(d, "structures.nb_box_filles")),
       nb_box_garcons: entier(g(d, "structures.nb_box_garcons")),
+      labo: oui(g(d, "structures.labo")),
+      nb_labos: entier(g(d, "structures.nb_labos")),
       telephone: vide(telLabel(g(d, "structures.telephone"))),
       internet: vide(netLabel(g(d, "structures.internet"))),
       bloc_admin: oui(g(d, "structures.bloc_admin")),
       salle_info_climatisee: oui(g(d, "structures.salle_info_climatisee")),
       cablage_reseau: oui(g(d, "structures.cablage_reseau")),
       nb_ordi_reseau: entier(g(d, "structures.nb_ordi_reseau")),
+      camera: entier(g(d, "structures.camera")),
+      webcam: entier(g(d, "structures.webcam")),
       eau_forage: oui(g(d, "structures.eau_forage")),
       eau_puits: oui(g(d, "structures.eau_puits")),
       eau_autre: oui(g(d, "structures.eau_autre")),
@@ -632,7 +798,7 @@
       };
     });
 
-    var equipements = arrLongueur(g(d, "equipements", []), 10).map(function (e, i) {
+    var equipements = arrLongueur(g(d, "equipements", []), 8).map(function (e, i) {
       return {
         l: EQUIPEMENTS_LABELS[i],
         marche: entier(g(e, "marche")),
@@ -687,19 +853,127 @@
       recommandations: vide(g(d, "tice.recommandations"))
     };
 
-    var effectifs = {
-      nb: EFFECTIFS_COLONNES.map(function (c) {
-        return entier(g(d, "effectifs.nb_classes." + c.n));
-      }),
-      effectifs: blocEffectifs(d, "effectifs.effectifs"),
-      passants: blocEffectifs(d, "effectifs.passants"),
-      redoublants: blocEffectifs(d, "effectifs.redoublants"),
-      lv2: {}
-    };
-    LV2_LANGUES.forEach(function (l) {
-      effectifs.lv2[l[0]] = blocEffectifs(d, "lv2." + l[0]);
+    /* --- Élèves vulnérables --- */
+    var vulnerables = { groupes: {}, indicateurs: [] };
+    ELEVES_LABELS.forEach(function (l) {
+      vulnerables.groupes[l[0]] = {
+        total: entier(g(d, "vulnerables.groupes." + l[0] + ".total")),
+        fa: entier(g(d, "vulnerables.groupes." + l[0] + ".fa"))
+      };
+    });
+    VULN_INDICATEURS.forEach(function (ind) {
+      var cells = {};
+      ELEVES_LABELS.forEach(function (l) {
+        cells[l[0]] = {
+          g: entier(g(d, "vulnerables.indicateurs." + ind[0] + "." + l[0] + ".g")),
+          f: entier(g(d, "vulnerables.indicateurs." + ind[0] + "." + l[0] + ".f"))
+        };
+      });
+      vulnerables.indicateurs.push({ cle: ind[0], l: ind[1], cellules: cells });
     });
 
+    /* --- Effectifs moyen --- */
+    var effectifsMoyen = {
+      nb: {}, effectifs: {}, passants: {}, redoublants: {}, lv2: {},
+      total: { g: 0, f: 0, total: 0, fa_g: 0, fa_f: 0, fa: 0 },
+      totals: {
+        effectifs: { g: 0, f: 0, total: 0, fa_g: 0, fa_f: 0, fa: 0 },
+        passants: { g: 0, f: 0, total: 0, fa_g: 0, fa_f: 0, fa: 0 },
+        redoublants: { g: 0, f: 0, total: 0, fa_g: 0, fa_f: 0, fa: 0 }
+      }
+    };
+    EFF_MOYEN_LEVELS.forEach(function (l) {
+      var cle = l[0];
+      effectifsMoyen.nb[cle] = entier(g(d, "effectifs_moyen.nb_classes." + cle));
+      ["effectifs", "passants", "redoublants"].forEach(function (bloc) {
+        var o = {
+          g: entier(g(d, "effectifs_moyen." + bloc + "." + cle + ".g")),
+          f: entier(g(d, "effectifs_moyen." + bloc + "." + cle + ".f")),
+          fa_g: entier(g(d, "effectifs_moyen." + bloc + "." + cle + ".fa_g")),
+          fa_f: entier(g(d, "effectifs_moyen." + bloc + "." + cle + ".fa_f"))
+        };
+        o.total = o.g + o.f;
+        o.fa_total = o.fa_g + o.fa_f;
+        effectifsMoyen[bloc][cle] = o;
+        var t = effectifsMoyen.totals[bloc];
+        t.g += o.g;
+        t.f += o.f;
+        t.total += o.total;
+        t.fa_g += o.fa_g;
+        t.fa_f += o.fa_f;
+        t.fa += o.fa_total;
+      });
+    });
+    effectifsMoyen.total = effectifsMoyen.totals.effectifs;
+    LV2_LANGUES.forEach(function (lang) {
+      var o = { levels: {}, total_g: 0, total_f: 0, total_fa_g: 0,
+                total_fa_f: 0, total: 0, total_fa: 0 };
+      EFF_MOYEN_LEVELS.forEach(function (l) {
+        var cle = l[0];
+        var c = {
+          g: entier(g(d, "effectifs_moyen.lv2." + lang[0] + "." + cle + ".g")),
+          f: entier(g(d, "effectifs_moyen.lv2." + lang[0] + "." + cle + ".f")),
+          fa_g: entier(g(d, "effectifs_moyen.lv2." + lang[0] + "." + cle + ".fa_g")),
+          fa_f: entier(g(d, "effectifs_moyen.lv2." + lang[0] + "." + cle + ".fa_f"))
+        };
+        c.total = c.g + c.f;
+        c.fa_total = c.fa_g + c.fa_f;
+        o.levels[cle] = c;
+        o.total_g += c.g; o.total_f += c.f;
+        o.total_fa_g += c.fa_g; o.total_fa_f += c.fa_f;
+      });
+      o.total = o.total_g + o.total_f;
+      o.total_fa = o.total_fa_g + o.total_fa_f;
+      effectifsMoyen.lv2[lang[0]] = o;
+    });
+
+    /* --- Effectifs secondaire --- */
+    var effectifsSecondaire = {
+      nb: {}, effectifs: {}, passants: {}, redoublants: {}, lv2: {},
+      total: { g: 0, f: 0, total: 0 }
+    };
+    EFF_SEC_GROUPES.forEach(function (gr) {
+      effectifsSecondaire.nb[gr.cle] = entier(g(d,
+        "effectifs_secondaire.nb_classes." + gr.cle));
+      ["effectifs", "passants", "redoublants"].forEach(function (bloc) {
+        var o = { series: {}, total_g: 0, total_f: 0, total: 0 };
+        gr.series.forEach(function (s) {
+          var c = {
+            g: entier(g(d, "effectifs_secondaire." + bloc + "." + gr.cle + "." + s[0] + ".g")),
+            f: entier(g(d, "effectifs_secondaire." + bloc + "." + gr.cle + "." + s[0] + ".f"))
+          };
+          c.total = c.g + c.f;
+          o.series[s[0]] = c;
+          o.total_g += c.g; o.total_f += c.f; o.total += c.total;
+        });
+        effectifsSecondaire[bloc][gr.cle] = o;
+        if (bloc === "effectifs") {
+          effectifsSecondaire.total.g += o.total_g;
+          effectifsSecondaire.total.f += o.total_f;
+          effectifsSecondaire.total.total += o.total;
+        }
+      });
+    });
+    LV2_LANGUES.forEach(function (lang) {
+      var o = { cycles: {}, total_g: 0, total_f: 0, total: 0 };
+      EFF_SEC_GROUPES.forEach(function (gr) {
+        var c = { series: {}, total_g: 0, total_f: 0, total: 0 };
+        gr.series.forEach(function (s) {
+          var cell = {
+            g: entier(g(d, "effectifs_secondaire.lv2." + lang[0] + "." + gr.cle + "." + s[0] + ".g")),
+            f: entier(g(d, "effectifs_secondaire.lv2." + lang[0] + "." + gr.cle + "." + s[0] + ".f"))
+          };
+          cell.total = cell.g + cell.f;
+          c.series[s[0]] = cell;
+          c.total_g += cell.g; c.total_f += cell.f; c.total += cell.total;
+        });
+        o.cycles[gr.cle] = c;
+        o.total_g += c.total_g; o.total_f += c.total_f; o.total += c.total;
+      });
+      effectifsSecondaire.lv2[lang[0]] = o;
+    });
+
+    /* --- Examens --- */
     var bfem = {
       normale: deriveExamen(baseExamen(g(d, "examens.bfem.normale", {}))),
       remplacement: deriveExamen(baseExamen(g(d, "examens.bfem.remplacement", {})))
@@ -723,22 +997,33 @@
     });
 
     var mentions = { series: {}, total: null };
-    BAC_SERIES.forEach(function (s) {
-      mentions.series[s[0]] = mentionBase(
-        g(d, "examens.mentions." + s[0], {}));
+    MENTIONS_SERIES.forEach(function (s) {
+      mentions.series[s[0]] = mentionBase(g(d, "examens.mentions." + s[0], {}));
     });
-    var mTotal = mentions.series[BAC_SERIES[0][0]];
-    BAC_SERIES.slice(1).forEach(function (s) {
+    var mTotal = mentions.series[MENTIONS_SERIES[0][0]];
+    MENTIONS_SERIES.slice(1).forEach(function (s) {
       mTotal = sommeMention(mTotal, mentions.series[s[0]]);
     });
     mentions.total = mTotal;
 
     var observations = vide(g(d, "observations.texte"));
+    var service = arrLongueur(g(d, "service", []), MAX_SERVICE).map(function (r) {
+      return {
+        fonction: escAff(g(r, "fonction")),
+        prenom: escAff(g(r, "prenom")),
+        nom: escAff(g(r, "nom")),
+        sexe: sexe(g(r, "sexe")),
+        date_naissance: dateFr(g(r, "date_naissance")),
+        date_prise_service: dateFr(g(r, "date_prise_service")),
+        specialite: escAff(g(r, "specialite"))
+      };
+    });
 
     return {
       meta: {
         ecole: nom === "—" ? "—" : nom,
         annee: CFG.ANNEE || "2026/2027",
+        anneeExamens: "2025/2026",
         situation: "SITUATION AU 31 DÉCEMBRE 2026",
         id: opts.id || null,
         fichier_prefixe: "Rapport_Rentree_Moyen_"
@@ -762,10 +1047,13 @@
       manuels: manuels,
       supports: supports,
       tice: tice,
-      effectifs: effectifs,
+      vulnerables: vulnerables,
+      effectifsMoyen: effectifsMoyen,
+      effectifsSecondaire: effectifsSecondaire,
       examens: { bfem: bfem, bac: bac, mentions: mentions },
       admin: listeRemplie(g(d, "admin", [])),
       enseignant: listeRemplie(g(d, "enseignant", [])),
+      service: service,
       observations: observations
     };
   }
@@ -777,17 +1065,17 @@
     var c = ctx.ident;
     var identGauche = [
       { l: "Nom de l'établissement", v: c.nom_ecole },
+      { l: "Code administratif de l'établissement", v: c.code_admin },
+      { l: "Code Chapitre", v: c.code_chapitre },
       { l: "Adresse de l'établissement", v: c.adresse },
       { l: "Commune", v: c.commune },
       { l: "Ville / village", v: c.ville_village },
       { l: "Téléphone fixe", v: c.telephone_fixe },
       { l: "Email de l'établissement", v: c.email },
       { l: "Site WEB de l'établissement", v: c.site_web },
-      { l: "Géoréférencement - latitude", v: c.geolat },
-      { l: "Géoréférencement - longitude", v: c.geolong }
+      { l: "Géoréférencement - latitude", v: c.geolat }
     ];
     var identDroite = [
-      { l: "Code SIGE de l'établissement", v: c.code_sige },
       { l: "Région / IA", v: c.region_ia },
       { l: "Département", v: c.departement },
       { l: "IEF", v: c.ief },
@@ -796,7 +1084,8 @@
       { l: "Type (CEM - CFA - Lycée - LFA - BST)", v: c.type_etab },
       { l: "Collège polarisé par un BST, préciser", v: c.bst_polarise },
       { l: "Année de création", v: c.annee_creation },
-      { l: "N° de réf. de la circulaire de création", v: c.ref_circulaire }
+      { l: "N° de réf. de la circulaire de création", v: c.ref_circulaire },
+      { l: "Géoréférencement - longitude", v: c.geolong }
     ];
 
     var html = '<div class="gm-page gm-p1">' + enteteOfficiel(ctx) +
@@ -806,7 +1095,7 @@
         '<span class="situation">' + esc(ctx.meta.situation) + "</span>" +
       "</div>" +
       '<div class="gm-cols2 gm-ident">' +
-        '<div class="gm-col" style="flex:1.06;">' + kv2Table(identGauche) + "</div>" +
+        '<div class="gm-col" style="flex:1.04;">' + kv2Table(identGauche) + "</div>" +
         '<div class="gm-col">' + kv2Table(identDroite) + "</div>" +
       "</div>";
 
@@ -849,10 +1138,10 @@
       ]);
 
     /* PE + gouvernement */
-    html += '<div class="gm-h">Projet d\'établissement et gouvernement des élèves</div>' +
+    html += '<div class="gm-h">Projet d\'établissement et gouvernement scolaire</div>' +
       kvTable([
         { l: "L'établissement dispose-t-il d'un Projet d'Établissement (PE) courant ?", v: ctx.pe.projet_etab },
-        { l: "Gouvernement d'élèves ?", v: ctx.pe.gouvernement_eleves },
+        { l: "Gouvernement scolaire ?", v: ctx.pe.gouvernement_eleves },
         { l: "Si oui, préciser (PE)", v: ctx.pe.projet_precisions, full: true },
         { l: "Nombre de filles", v: nz(ctx.pe.gouv_filles) },
         { l: "Nombre de garçons", v: nz(ctx.pe.gouv_garcons) },
@@ -898,6 +1187,7 @@
           { l: "Téléphone du Chef d'établissement", v: ctx.chef.telephone },
           { l: "Genre (M ou F)", v: ctx.chef.genre },
           { l: "Corps & grade du Chef d'Établissement", v: ctx.chef.corps_grade },
+          { l: "Discipline(s) / spécialité(s)", v: ctx.chef.discipline, full: true },
           { l: "Email du Chef d'Établissement", v: ctx.chef.email }
         ]) + "</div>" +
         '<div style="width:62mm; flex:none;"><div class="gm-sign" style="margin-top:0;">' +
@@ -912,29 +1202,80 @@
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 2 — STRUCTURES & ÉQUIPEMENTS
+     PAGE 2 — INFORMATIONS ÉLÈVES VULNÉRABLES (PAYSAGE)
      ----------------------------------------------------------------------- */
   function page2(ctx) {
+    var v = ctx.vulnerables;
+    var html = '<div class="gm-page gm-paysage gm-p2">' + topline(ctx) +
+      titrePage("INFORMATIONS SUR LES EFFECTIFS DES ÉLÈVES HANDICAPÉS, " +
+        "VULNÉRABLES, SANS PIÈCE D'ÉTAT CIVIL ET VICTIMES DE VIOLENCES", true);
+
+    /* Nombre de groupes pédagogiques */
+    html += '<div class="gm-h">Nombre de groupes pédagogiques</div>' +
+      '<table class="gm-t compact gm-vuln-groupes"><thead><tr>' +
+        '<th style="width:20%;">Niveau</th>' +
+        ELEVES_LABELS.map(function (l) {
+          return "<th>" + esc(l[1]) + "</th>";
+        }).join("") + "</tr></thead><tbody>" +
+      '<tr><td>Total</td>' +
+      ELEVES_LABELS.map(function (l) {
+        return '<td class="c">' + nz(v.groupes[l[0]].total) + "</td>";
+      }).join("") + "</tr>" +
+      '<tr><td>Dont Franco-arabe</td>' +
+      ELEVES_LABELS.map(function (l) {
+        return '<td class="c">' + nz(v.groupes[l[0]].fa) + "</td>";
+      }).join("") + "</tr></tbody></table>";
+
+    /* Indicateurs */
+    html += '<table class="gm-t gm-vuln"><thead><tr>' +
+      '<th rowspan="2" style="width:31%;">Indicateur</th>' +
+      ELEVES_LABELS.map(function (l) {
+        return '<th colspan="2" class="grp">' + esc(l[1]) + "</th>";
+      }).join("") + "</tr><tr>" +
+      ELEVES_LABELS.map(function () {
+        return "<th>G</th><th>F</th>";
+      }).join("") + "</tr></thead><tbody>";
+    v.indicateurs.forEach(function (ind) {
+      html += "<tr><td>" + esc(ind.l) + "</td>";
+      ELEVES_LABELS.forEach(function (l) {
+        var c = ind.cellules[l[0]];
+        html += '<td class="c">' + nz(c.g) + '</td><td class="c">' +
+          nz(c.f) + "</td>";
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+
+    return html + pied(2) + "</div>";
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 3 — STRUCTURES & ÉQUIPEMENTS
+     ----------------------------------------------------------------------- */
+  function page3(ctx) {
     var s = ctx.structures;
-    var html = '<div class="gm-page gm-p2">' + topline(ctx) +
+    var html = '<div class="gm-page gm-p3">' + topline(ctx) +
       titrePage("STRUCTURES &amp; ÉQUIPEMENTS", true);
 
     html += kvTable([
-      { l: "Établissement accessible en toute saison ?", v: s.accessible },
+      { l: "Établissement accessible en toute saison à partir de la route principale ?", v: s.accessible },
       { l: "Nature de la route ?", v: s.nature_route },
       { l: "Établissement clôturé ?", v: s.cloture },
       { l: "Type de clôture", v: s.type_cloture },
       { l: "Blocs sanitaires séparés garçons-filles ?", v: s.sanitaires_separes },
-      { l: "Nombre de blocs sanitaires", v: nz(s.nb_blocs) },
       { l: "Nbre de box - Total", v: nz(s.nb_box_total) },
       { l: "dont Filles", v: nz(s.nb_box_filles) },
       { l: "dont Garçons", v: nz(s.nb_box_garcons) },
+      { l: "Laboratoire ?", v: s.labo },
+      { l: "Nombre de laboratoires fonctionnels", v: nz(s.nb_labos) },
       { l: "Connection Téléphone", v: s.telephone },
       { l: "Connection Internet", v: s.internet },
       { l: "Bloc administratif ?", v: s.bloc_admin },
       { l: "Salle informatique disponible climatisée ?", v: s.salle_info_climatisee },
       { l: "Câblage réseau ?", v: s.cablage_reseau },
-      { l: "Nbre d'ordinateurs connectés au réseau", v: nz(s.nb_ordi_reseau) }
+      { l: "Nbre d'ordinateurs connectés au réseau", v: nz(s.nb_ordi_reseau) },
+      { l: "Caméra numérique - nombre", v: nz(s.camera) },
+      { l: "Webcam - nombre", v: nz(s.webcam) }
     ]);
 
     html += '<div class="gm-h">Source(s) d\'eau et d\'énergie</div><div class="gm-checks">' +
@@ -1005,18 +1346,18 @@
     });
     html += "</tr></tbody></table>";
 
-    return html + pied(2) + "</div>";
+    return html + pied(3) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 3 — SITUATION TICE
+     PAGE 4 — SITUATION DU TICE
      ----------------------------------------------------------------------- */
-  function page3(ctx) {
+  function page4(ctx) {
     var t = ctx.tice;
-    var html = '<div class="gm-page gm-p3">' + topline(ctx) +
-      titrePage("SITUATION TICE", true);
+    var html = '<div class="gm-page gm-p4">' + topline(ctx) +
+      titrePage("SITUATION DU TICE", true);
 
-    html += '<div class="gm-h">Personnels de l\'établissement selon leurs compétences TIC</div>' +
+    html += '<div class="gm-h">Personnels de l\'établissement selon leurs compétences en numérique</div>' +
       '<table class="gm-t compact"><thead><tr>' +
         '<th rowspan="2" style="width:16%;">TYPE DE PERSONNEL</th>' +
         '<th rowspan="2" style="width:24%;">COMPÉTENCE</th>' +
@@ -1043,18 +1384,18 @@
     html += "</tbody></table>";
 
     html += '<table class="gm-kv gm-tice-infos"><tbody>' +
-      '<tr><td class="kv-l">Nombre de personnes ressources en TIC dans ' +
+      '<tr><td class="kv-l">Nombre de personnes ressources en numérique dans ' +
         'l\'établissement ?</td><td class="kv-v">' + nz(t.personnes_ressources) +
         '</td><td class="kv-l">Le Projet d\'établissement comprend-il un ' +
-        'volet TIC ?</td><td class="kv-v">' + (t.volet_tic || "&nbsp;") +
+        'volet numérique ?</td><td class="kv-v">' + (t.volet_tic || "&nbsp;") +
       "</td></tr>" +
       '<tr><td class="kv-l">Fonction(s) de ces personnes</td>' +
         '<td class="kv-v" colspan="3">' + (t.fonctions || "&nbsp;") + "</td></tr>" +
-      '<tr><td class="kv-l">Si oui, décrire le volet TIC</td>' +
+      '<tr><td class="kv-l">Si oui, décrire le volet numérique</td>' +
         '<td class="kv-v" colspan="3">' + (t.volet_description || "&nbsp;") +
       "</td></tr></tbody></table>";
 
-    html += '<div class="gm-h">Avez-vous des partenaires dans le domaine des TIC ?</div>' +
+    html += '<div class="gm-h">Avez-vous des partenaires dans le domaine du numérique ?</div>' +
       '<table class="gm-t compact"><thead><tr>' +
         '<th style="width:44%;">PARTENAIRE</th>' +
         '<th colspan="3">Domaine(s) de partenariat (cochez)</th>' +
@@ -1075,128 +1416,245 @@
     html += "</div>";
 
     html += '<div class="gm-h">Préoccupations et suggestions</div>' +
-      '<div class="gm-question">Quelles sont les 3 principales contraintes auxquelles vous faites face dans l\'utilisation des TIC dans votre établissement ?</div>' +
+      '<div class="gm-question">Quelles sont les 3 principales contraintes auxquelles vous faites face dans l\'utilisation du numérique dans votre établissement ?</div>' +
       '<div class="gm-rep">' + t.contraintes + "</div>" +
       '<div class="gm-question">Quelles stratégies avez-vous mises en œuvre pour surmonter ces contraintes ?</div>' +
       '<div class="gm-rep">' + t.strategies + "</div>" +
-      '<div class="gm-question">Quelles recommandations pouvez-vous formuler pour la pérennisation de l\'usage des TIC dans votre établissement ?</div>' +
+      '<div class="gm-question">Quelles recommandations pouvez-vous formuler pour la pérennisation de l\'usage du numérique dans votre établissement ?</div>' +
       '<div class="gm-rep">' + t.recommandations + "</div>";
-
-    return html + pied(3) + "</div>";
-  }
-
-  /* -----------------------------------------------------------------------
-     PAGE 4 — EFFECTIFS ÉLÈVES (PAYSAGE)
-     ----------------------------------------------------------------------- */
-  function enteteEffectifs() {
-    var html = '<thead><tr>' +
-      '<th rowspan="2" colspan="2" style="width:14%;">CLASSES &amp; ÉLÈVES</th>';
-    EFFECTIFS_GROUPES.forEach(function (gr) {
-      var nb = EFFECTIFS_COLONNES.filter(function (c) { return c.g === gr.cle; }).length + 1;
-      html += '<th colspan="' + nb + '" class="grp">' + esc(gr.l) + "</th>";
-    });
-    html += "</tr><tr>";
-    EFFECTIFS_GROUPES.forEach(function (gr) {
-      EFFECTIFS_COLONNES.filter(function (c) { return c.g === gr.cle; })
-        .forEach(function (c) {
-          html += "<th>" + esc(c.l) + "</th>";
-        });
-      html += '<th class="grp">TOTAL</th>';
-    });
-    return html + "</tr></thead>";
-  }
-
-  function cellulesColonnes(vals, totaux, classe) {
-    var html = "";
-    EFFECTIFS_GROUPES.forEach(function (gr) {
-      EFFECTIFS_COLONNES.filter(function (c) { return c.g === gr.cle; })
-        .forEach(function (c) {
-          html += '<td class="c">' + nz(vals[c.n]) + "</td>";
-        });
-      html += '<td class="c tot">' + nz(totaux[gr.cle]) + "</td>";
-    });
-    return html;
-  }
-
-  function page4(ctx) {
-    var e = ctx.effectifs;
-    var html = '<div class="gm-page gm-paysage gm-p4">' + topline(ctx) +
-      titrePage("EFFECTIFS ÉLÈVES", true);
-
-    /* Nombre de classes */
-    html += '<table class="gm-t tres-compact"><thead>' + enteteEffectifs() +
-      '</thead><tbody><tr><td colspan="2" class="lbl-cell">Nbre classes pédagogiques</td>';
-    EFFECTIFS_GROUPES.forEach(function (gr) {
-      EFFECTIFS_COLONNES.filter(function (c) { return c.g === gr.cle; })
-        .forEach(function (c, i) {
-          var idx = EFFECTIFS_COLONNES.indexOf(c);
-          html += '<td class="c">' + nz(e.nb[idx]) + "</td>";
-        });
-      var tot = 0;
-      EFFECTIFS_COLONNES.forEach(function (c, i) {
-        if (c.g === gr.cle) { tot += e.nb[i]; }
-      });
-      html += '<td class="c tot">' + nz(tot) + "</td>";
-    });
-    html += "</tr>";
-
-    function lignes(titre, b) {
-      var out = "";
-      out += '<tr><td rowspan="3" class="lbl-cell">' + titre +
-        '</td><td class="c">Garçons</td>' + cellulesColonnes(b.g, b.ct, "") + "</tr>";
-      out += '<tr><td class="c">Filles</td>' + cellulesColonnes(b.f, b.ct, "") + "</tr>";
-      out += '<tr class="tot"><td class="c">TOTAL</td>' +
-        cellulesColonnes(b.tot, b.ct, "tot") + "</tr>";
-      return out;
-    }
-
-    html += lignes("EFFECTIFS", e.effectifs);
-    html += lignes("PASSANTS", e.passants);
-    html += lignes("REDOUBLANTS", e.redoublants);
-    html += "</tbody></table>";
-
-    /* LV2 */
-    html += '<div class="gm-h">Effectifs élèves par deuxième langue vivante étudiée (LV2)</div>' +
-      '<table class="gm-t tres-compact"><thead>' + enteteEffectifs() + "</thead><tbody>";
-    LV2_LANGUES.forEach(function (l) {
-      var b = e.lv2[l[0]];
-      html += '<tr><td rowspan="2" class="lbl-cell">' + esc(l[1]) +
-        '</td><td class="c">Garçons</td>' + cellulesColonnes(b.g, b.cg, "") + "</tr>";
-      html += '<tr><td class="c">Filles</td>' + cellulesColonnes(b.f, b.cf, "") +
-        "</tr>";
-    });
-    html += "</tbody></table>";
 
     return html + pied(4) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 5 — RÉSULTATS EXAMENS
+     PAGE 5 — EFFECTIFS ÉLÈVES : ENSEIGNEMENT MOYEN (PAYSAGE)
+     ----------------------------------------------------------------------- */
+  function enteteMoyen() {
+    var html = '<thead><tr>' +
+      '<th rowspan="2" colspan="2" class="lbl-cell">CLASSES &amp; ÉLÈVES</th>' +
+      '<th colspan="8" class="grp">ENSEIGNEMENT MOYEN</th>' +
+      '<th colspan="2" class="grp">TOTAL</th></tr><tr>';
+    EFF_MOYEN_LEVELS.forEach(function (l) {
+      html += '<th colspan="2">' + esc(l[1]) + "</th>";
+    });
+    html += '<th>Total</th><th>Total FA</th></tr></thead>';
+    return html;
+  }
+
+  function page5(ctx) {
+    var e = ctx.effectifsMoyen;
+    var html = '<div class="gm-page gm-paysage gm-p5">' + topline(ctx) +
+      titrePage("EFFECTIFS ÉLÈVES — ENSEIGNEMENT MOYEN", true);
+
+    html += '<table class="gm-t compact gm-eff-moyen"><thead>' + enteteMoyen().replace("</thead>", "") +
+      '<tr><th colspan="2"></th>';
+    EFF_MOYEN_LEVELS.forEach(function () {
+      html += "<th>Total</th><th>Dont FA</th>";
+    });
+    html += "<th></th><th></th></tr></thead><tbody>";
+
+    /* Nombre de classes */
+    html += '<tr><td colspan="2" class="lbl-cell">Nbre classes pédagogiques</td>';
+    EFF_MOYEN_LEVELS.forEach(function (l) {
+      html += '<td class="c v" colspan="2">' + nz(e.nb[l[0]]) + "</td>";
+    });
+    var nbTot = 0;
+    EFF_MOYEN_LEVELS.forEach(function (l) { nbTot += e.nb[l[0]]; });
+    html += '<td class="c tot" colspan="2">' + nz(nbTot) + "</td></tr>";
+
+    function lignes(titre, bloc) {
+      var out = "";
+      ["g", "f", "total"].forEach(function (k, i) {
+        out += "<tr" + (k === "total" ? ' class="tot"' : "") + ">";
+        if (i === 0) {
+          out += '<td rowspan="3" class="lbl-cell">' + esc(titre) + "</td>";
+        }
+        out += '<td class="c">' + (k === "g" ? "Garçons" :
+          k === "f" ? "Filles" : "TOTAL") + "</td>";
+        EFF_MOYEN_LEVELS.forEach(function (l) {
+          var c = e[bloc][l[0]];
+          if (k === "g") {
+            out += '<td class="c">' + nz(c.g) + '</td><td class="c">' + nz(c.fa_g) + "</td>";
+          } else if (k === "f") {
+            out += '<td class="c">' + nz(c.f) + '</td><td class="c">' + nz(c.fa_f) + "</td>";
+          } else {
+            out += '<td class="c">' + nz(c.total) + '</td><td class="c">' + nz(c.fa_total) + "</td>";
+          }
+        });
+        var tot = e.totals[bloc];
+        if (k === "g") {
+          out += '<td class="c">' + nz(tot.g) + '</td><td class="c">' + nz(tot.fa_g) + "</td>";
+        } else if (k === "f") {
+          out += '<td class="c">' + nz(tot.f) + '</td><td class="c">' + nz(tot.fa_f) + "</td>";
+        } else {
+          out += '<td class="c tot">' + nz(tot.total) + '</td><td class="c tot">' + nz(tot.fa) + "</td>";
+        }
+        out += "</tr>";
+      });
+      return out;
+    }
+
+    html += lignes("EFFECTIFS", "effectifs");
+    html += lignes("PASSANTS", "passants");
+    html += lignes("REDOUBLANTS", "redoublants");
+    html += "</tbody></table>";
+
+    /* LV2 */
+    html += '<div class="gm-h">Effectifs élèves par deuxième langue vivante étudiée (LV2)</div>' +
+      '<table class="gm-t compact gm-eff-moyen"><thead>' + enteteMoyen().replace("</thead>", "") +
+      '<tr><th colspan="2"></th>';
+    EFF_MOYEN_LEVELS.forEach(function () {
+      html += "<th>Total</th><th>Dont FA</th>";
+    });
+    html += "<th></th><th></th></tr></thead><tbody>";
+    LV2_LANGUES.forEach(function (lang) {
+      var lv = e.lv2[lang[0]];
+      ["g", "f"].forEach(function (k, i) {
+        html += '<tr data-lv2="' + lang[0] + '">';
+        if (i === 0) {
+          html += '<td rowspan="2" class="lbl-cell">' + esc(lang[1]) + "</td>";
+        }
+        html += '<td class="c">' + (k === "g" ? "Garçons" : "Filles") + "</td>";
+        EFF_MOYEN_LEVELS.forEach(function (l) {
+          var c = lv.levels[l[0]];
+          if (k === "g") {
+            html += '<td class="c">' + nz(c.g) + '</td><td class="c">' + nz(c.fa_g) + "</td>";
+          } else {
+            html += '<td class="c">' + nz(c.f) + '</td><td class="c">' + nz(c.fa_f) + "</td>";
+          }
+        });
+        if (k === "g") {
+          html += '<td class="c">' + nz(lv.total_g) + '</td><td class="c">' + nz(lv.total_fa_g) + "</td>";
+        } else {
+          html += '<td class="c">' + nz(lv.total_f) + '</td><td class="c">' + nz(lv.total_fa_f) + "</td>";
+        }
+        html += "</tr>";
+      });
+    });
+    html += "</tbody></table>";
+
+    return html + pied(5) + "</div>";
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 6 — EFFECTIFS ÉLÈVES : SECONDAIRE (PAYSAGE)
+     ----------------------------------------------------------------------- */
+  function enteteSecondaire() {
+    var html = '<thead><tr><th rowspan="2" class="lbl-cell">CLASSES &amp; ÉLÈVES</th>';
+    EFF_SEC_GROUPES.forEach(function (gr) {
+      html += '<th colspan="' + (gr.series.length + 1) + '" class="grp">' +
+        esc(gr.l) + "</th>";
+    });
+    html += "</tr><tr>";
+    EFF_SEC_GROUPES.forEach(function (gr) {
+      gr.series.forEach(function (s) {
+        html += "<th>" + esc(s[1]) + "</th>";
+      });
+      html += '<th class="grp">TOTAL</th>';
+    });
+    html += "</tr></thead>";
+    return html;
+  }
+
+  function page6(ctx) {
+    var e = ctx.effectifsSecondaire;
+    var html = '<div class="gm-page gm-paysage gm-p6">' + topline(ctx) +
+      titrePage("EFFECTIFS ÉLÈVES — SECONDAIRE", true);
+
+    html += '<table class="gm-t tres-compact gm-eff-sec"><thead>' + enteteSecondaire() + "</thead><tbody>";
+
+    /* Nombre de classes : une valeur par cycle, dans la colonne TOTAL. */
+    html += '<tr><td class="lbl-cell">Nbre classes</td>';
+    EFF_SEC_GROUPES.forEach(function (gr) {
+      html += '<td colspan="' + gr.series.length + '"></td>' +
+        '<td class="c v">' + nz(e.nb[gr.cle]) + "</td>";
+    });
+    html += "</tr>";
+
+    function lignes(titre, bloc) {
+      var out = "";
+      ["g", "f", "total"].forEach(function (k, i) {
+        out += "<tr" + (k === "total" ? ' class="tot"' : "") + ">";
+        if (i === 0) {
+          out += '<td rowspan="3" class="lbl-cell">' + esc(titre) + "</td>";
+        }
+        EFF_SEC_GROUPES.forEach(function (gr) {
+          gr.series.forEach(function (s) {
+            var c = e[bloc][gr.cle].series[s[0]];
+            out += '<td class="c">' + nz(k === "g" ? c.g : k === "f" ? c.f : c.total) + "</td>";
+          });
+          out += '<td class="c v">' + nz(e[bloc][gr.cle][k === "total" ? "total" : "total_" + k]) +
+            "</td>";
+        });
+        out += "</tr>";
+      });
+      return out;
+    }
+    html += lignes("EFFECTIFS", "effectifs");
+    html += lignes("PASSANTS", "passants");
+    html += lignes("REDOUBLANTS", "redoublants");
+    html += "</tbody></table>";
+
+    /* LV2 */
+    html += '<div class="gm-h">Effectifs élèves par deuxième langue vivante étudiée (LV2)</div>' +
+      '<table class="gm-t tres-compact gm-eff-sec"><thead>' + enteteSecondaire() + "</thead><tbody>";
+    LV2_LANGUES.forEach(function (lang) {
+      var lv = e.lv2[lang[0]];
+      ["g", "f"].forEach(function (k, i) {
+        html += '<tr data-lv2s="' + lang[0] + '">';
+        if (i === 0) {
+          html += '<td rowspan="2" class="lbl-cell">' + esc(lang[1]) + "</td>";
+        }
+        EFF_SEC_GROUPES.forEach(function (gr) {
+          var c = lv.cycles[gr.cle];
+          gr.series.forEach(function (s) {
+            var cell = c.series[s[0]];
+            html += '<td class="c">' + nz(cell[k]) + "</td>";
+          });
+          html += '<td class="c v">' + nz(c["total_" + k]) + "</td>";
+        });
+        html += "</tr>";
+      });
+    });
+    html += "</tbody></table>";
+
+    return html + pied(6) + "</div>";
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 7 — RÉSULTATS EXAMENS (PORTRAIT)
      ----------------------------------------------------------------------- */
   function examHeader(first) {
     var html = '<thead><tr>' +
-      '<th rowspan="3" style="width:12%;">' + (first || "SESSION") + "</th>" +
-      '<th colspan="2">INSCRITS</th><th colspan="3">PRÉSENTS</th>' +
-      '<th colspan="7">ADMIS</th><th colspan="3">ADMIS / PRÉSENTS (%)</th>' +
-      '</tr><tr><th colspan="2"></th><th colspan="3"></th>' +
-      '<th colspan="2">1er groupe</th><th colspan="2">2ème groupe</th>' +
-      '<th colspan="3">TOTAL</th><th colspan="3">Admis sur Présents (%)</th>' +
-      '</tr><tr>' +
-      "<th>Garçons</th><th>Filles</th>" +
-      "<th>Garçons</th><th>Filles</th><th>ETAB</th>" +
-      "<th>Garçons</th><th>Filles</th>" +
-      "<th>Garçons</th><th>Filles</th>" +
-      "<th>Garçons</th><th>Filles</th><th>ETAB</th>" +
-      "<th>Garçons</th><th>Filles</th><th>% ETAB</th>" +
-      "</tr></thead>";
-    return html;
+      '<th rowspan="2" style="width:16%;">' + (first || "SESSION") + "</th>";
+    EXAMENS_GROUPES.forEach(function (gr) {
+      html += '<th colspan="' + gr.cols + '"' +
+        (gr.cle === "pres_t" ? ' class="gm-total-col"' : "") + ">" +
+        esc(gr.l) + "</th>";
+    });
+    html += "</tr><tr>";
+    EXAMENS_GROUPES.forEach(function (gr) {
+      if (gr.cle === "pres_t") {
+        html += '<th class="gm-total-col">ETAB</th>';
+        return;
+      }
+      EXAMENS_COLONNES.filter(function (c) { return c[1] === gr.cle; })
+        .forEach(function (c) {
+          var l = c[0] === "pres_t" ? "ETAB" :
+            c[0].indexOf("_g") !== -1 ? "Garçons" :
+            c[0].indexOf("_f") !== -1 ? "Filles" :
+            c[0] === "adm_t" ? "ETAB" : c[0] === "pct_etab" ? "% ETAB" : "";
+          html += "<th>" + esc(l) + "</th>";
+        });
+    });
+    return html + "</tr></thead>";
   }
 
   function examCells(d) {
     var out = "";
     ["ins_g", "ins_f", "pres_g", "pres_f", "pres_t",
      "adm1_g", "adm1_f", "adm2_g", "adm2_f",
-     "adm_t_g", "adm_t_f", "adm_t"].forEach(function (k) {
+     "adm_t_g", "adm_t_f", "adm_t", "fa_g", "fa_f"].forEach(function (k) {
       out += '<td class="c">' + nz(d[k]) + "</td>";
     });
     ["pct_g", "pct_f", "pct_etab"].forEach(function (k) {
@@ -1205,14 +1663,14 @@
     return out;
   }
 
-  function page5(ctx) {
+  function page7(ctx) {
     var ex = ctx.examens;
-    var html = '<div class="gm-page gm-p5">' + topline(ctx) +
-      titrePage("RÉSULTATS AUX EXAMENS", true);
+    var html = '<div class="gm-page gm-p7">' + topline(ctx) +
+      titrePage("RÉSULTATS AUX EXAMENS 2025/2026", true);
 
     /* BFEM */
-    html += '<div class="gm-h">BFEM — ' + esc(ctx.meta.annee) + "</div>" +
-      '<table class="gm-t serre">' + examHeader("SESSION") + "<tbody>";
+    html += '<div class="gm-h">BFEM — ' + esc(ctx.meta.anneeExamens) + "</div>" +
+      '<table class="gm-t serre gm-exams">' + examHeader("SESSION") + "<tbody>";
     [["Normale", ex.bfem.normale], ["Remplacement", ex.bfem.remplacement],
      ["TOTAL", ex.bfem.total]].forEach(function (r, i) {
       html += '<tr' + (i === 2 ? ' class="tot"' : "") + "><td>" + esc(r[0]) +
@@ -1221,8 +1679,8 @@
     html += "</tbody></table>";
 
     /* BAC */
-    html += '<div class="gm-h">BACCALAURÉAT — ' + esc(ctx.meta.annee) + "</div>" +
-      '<table class="gm-t serre">' + examHeader("SÉRIE / SESSION") + "<tbody>";
+    html += '<div class="gm-h">BACCALAURÉAT — ' + esc(ctx.meta.anneeExamens) + "</div>" +
+      '<table class="gm-t serre gm-exams">' + examHeader("SÉRIE / SESSION") + "<tbody>";
     BAC_SERIES.forEach(function (s) {
       var b = ex.bac[s[0]];
       ["normale", "remplacement", "total"].forEach(function (k, i) {
@@ -1239,14 +1697,14 @@
 
     /* Mentions */
     html += '<div class="gm-h">Mentions au baccalauréat</div>' +
-      '<table class="gm-t compact"><thead><tr>' +
-      '<th rowspan="2" style="width:14%;">SÉRIE</th>' +
+      '<table class="gm-t compact gm-mentions"><thead><tr>' +
+      '<th rowspan="2" style="width:13%;">SÉRIE</th>' +
       '<th colspan="2">Très bien</th><th colspan="2">Bien</th>' +
       '<th colspan="2">Assez Bien</th><th colspan="3">TOTAL</th>' +
       '</tr><tr><th>Garçons</th><th>Filles</th><th>Garçons</th><th>Filles</th>' +
       '<th>Garçons</th><th>Filles</th><th>Garçons</th><th>Filles</th><th>ETAB</th>' +
       "</tr></thead><tbody>";
-    BAC_SERIES.forEach(function (s) {
+    MENTIONS_SERIES.forEach(function (s) {
       var m = ex.mentions.series[s[0]];
       html += '<tr><td class="lbl-cell">' + esc(s[1]) + "</td>" +
         '<td class="c">' + nz(m.tb_g) + '</td><td class="c">' + nz(m.tb_f) +
@@ -1260,15 +1718,15 @@
       '<td class="c">' + nz(mt.tb_g) + '</td><td class="c">' + nz(mt.tb_f) +
       '</td><td class="c">' + nz(mt.bien_g) + '</td><td class="c">' + nz(mt.bien_f) +
       '</td><td class="c">' + nz(mt.ab_g) + '</td><td class="c">' + nz(mt.ab_f) +
-      '</td><td class="c">' + nz(mt.total_g) + '</td><td class="c">' +
-      nz(mt.total_f) + '</td><td class="c">' + nz(mt.total_etab) +
-      "</td></tr></tbody></table>";
+      '</td><td class="c v">' + nz(mt.total_g) + '</td><td class="c v">' +
+      nz(mt.total_f) + '</td><td class="c v">' + nz(mt.total_etab) + "</td></tr>" +
+      "</tbody></table>";
 
-    return html + pied(5) + "</div>";
+    return html + pied(7) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
-     PAGES 6-7 — PERSONNEL ADMINISTRATIF (26 + 26)
+     PAGES 8-9 — PERSONNEL ADMINISTRATIF (26 + 26)
      ----------------------------------------------------------------------- */
   function adminEntete() {
     return '<thead><tr>' +
@@ -1299,8 +1757,8 @@
       "<td>" + escAff(row.specialite) + "</td></tr>";
   }
 
-  function pageAdmin(ctx, debut, nb, part) {
-    var html = '<div class="gm-page gm-paysage gm-p' + (part === 1 ? 6 : 7) + '">' +
+  function pageAdmin(ctx, debut, nb, part, pageNo) {
+    var html = '<div class="gm-page gm-paysage gm-p' + pageNo + '">' +
       topline(ctx) +
       titrePage("ÉTAT NOMINATIF DU PERSONNEL ADMINISTRATIF", true) +
       '<div class="gm-topline" style="border:0; margin-bottom:.6mm; font-size:5.8pt;">' +
@@ -1311,11 +1769,11 @@
       html += adminLigne(ctx.admin[debut + i], debut + i + 1);
     }
     html += "</tbody></table>";
-    return html + pied(part === 1 ? 6 : 7) + "</div>";
+    return html + pied(pageNo) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
-     PAGES 8-10 — PERSONNEL ENSEIGNANT (23 + 23 + 23)
+     PAGES 10-12 — PERSONNEL ENSEIGNANT (23 + 23 + 23)
      ----------------------------------------------------------------------- */
   function ensEntete() {
     return '<thead><tr>' +
@@ -1358,8 +1816,8 @@
       "<td>" + escAff(row.classes) + "</td></tr>";
   }
 
-  function pageEns(ctx, debut, nb, part) {
-    var html = '<div class="gm-page gm-paysage gm-p' + (part === 1 ? 8 : (part === 2 ? 9 : 10)) + '">' +
+  function pageEns(ctx, debut, nb, part, pageNo) {
+    var html = '<div class="gm-page gm-paysage gm-p' + pageNo + '">' +
       topline(ctx) +
       titrePage("ÉTAT NOMINATIF DU PERSONNEL ENSEIGNANT CRAIE EN MAIN", true) +
       '<div class="gm-topline" style="border:0; margin-bottom:.6mm; font-size:5.8pt;">' +
@@ -1370,19 +1828,52 @@
       html += ensLigne(ctx.enseignant[debut + i], debut + i + 1);
     }
     html += "</tbody></table>";
-    return html + pied(part === 1 ? 8 : (part === 2 ? 9 : 10)) + "</div>";
+    return html + pied(pageNo) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 11 — OBSERVATIONS
+     PAGE 13 — PERSONNEL DE SERVICE
      ----------------------------------------------------------------------- */
-  function page11(ctx) {
-    return '<div class="gm-page gm-p11">' + topline(ctx) +
+  function pageService(ctx) {
+    var html = '<div class="gm-page gm-p13">' + topline(ctx) +
+      titrePage("ÉTAT NOMINATIF DU PERSONNEL DE SERVICE", true) +
+      '<div class="gm-topline" style="border:0; margin-bottom:.6mm; font-size:5.8pt;">' +
+        "<span>Liste officielle des 20 emplois — lignes 1 à 20</span>" +
+        "<span>Page 13 / 14</span></div>" +
+      '<table class="gm-pers service"><thead><tr>' +
+        '<th style="width:5%;">N°<br>Ord</th>' +
+        '<th style="width:19%;">FONCTIONS</th>' +
+        '<th style="width:15%;">PRÉNOM(S)</th>' +
+        '<th style="width:15%;">NOM</th>' +
+        '<th style="width:6%;">Sexe<br>M/F</th>' +
+        '<th style="width:12%;">Date<br>Naissance</th>' +
+        '<th style="width:15%;">Date de prise de<br>service</th>' +
+        '<th style="width:13%;">SPÉCIALITÉ</th>' +
+      "</tr></thead><tbody>";
+    ctx.service.forEach(function (r, i) {
+      html += "<tr><td class=\"c\">" + (i + 1) + "</td>" +
+        "<td>" + r.fonction + "</td>" +
+        '<td class="nom">' + r.prenom + "</td>" +
+        '<td class="nom">' + r.nom + "</td>" +
+        '<td class="c">' + r.sexe + "</td>" +
+        '<td class="c">' + r.date_naissance + "</td>" +
+        '<td class="c">' + r.date_prise_service + "</td>" +
+        "<td>" + r.specialite + "</td></tr>";
+    });
+    html += "</tbody></table>";
+    return html + pied(13) + "</div>";
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 14 — OBSERVATIONS
+     ----------------------------------------------------------------------- */
+  function page14(ctx) {
+    return '<div class="gm-page gm-p14">' + topline(ctx) +
       titrePage("OBSERVATIONS DU CHEF D'ÉTABLISSEMENT", true) +
       '<div class="gm-obs-box">' + ctx.observations + "</div>" +
       '<div class="gm-sign"><div class="cadre"><b>Cachet et signature du Chef ' +
       "d'Établissement :</b></div></div>" +
-      pied(11) + "</div>";
+      pied(14) + "</div>";
   }
 
   /* -----------------------------------------------------------------------
@@ -1390,17 +1881,24 @@
      ----------------------------------------------------------------------- */
   function pageContents(ctx) {
     var contenus = [
-      page1(ctx), page2(ctx), page3(ctx), page4(ctx), page5(ctx),
-      pageAdmin(ctx, 0, ADMIN_PAR_PAGE, 1),
-      pageAdmin(ctx, ADMIN_PAR_PAGE, ADMIN_PAR_PAGE, 2),
-      pageEns(ctx, 0, ENS_PAR_PAGE, 1),
-      pageEns(ctx, ENS_PAR_PAGE, ENS_PAR_PAGE, 2),
-      pageEns(ctx, ENS_PAR_PAGE * 2, ENS_PAR_PAGE, 3),
-      page11(ctx)
+      page1(ctx),
+      page2(ctx),
+      page3(ctx),
+      page4(ctx),
+      page5(ctx),
+      page6(ctx),
+      page7(ctx),
+      pageAdmin(ctx, 0, ADMIN_PAR_PAGE, 1, 8),
+      pageAdmin(ctx, ADMIN_PAR_PAGE, ADMIN_PAR_PAGE, 2, 9),
+      pageEns(ctx, 0, ENS_PAR_PAGE, 1, 10),
+      pageEns(ctx, ENS_PAR_PAGE, ENS_PAR_PAGE, 2, 11),
+      pageEns(ctx, ENS_PAR_PAGE * 2, ENS_PAR_PAGE, 3, 12),
+      pageService(ctx),
+      page14(ctx)
     ];
-    if (contenus.length !== 11 || TITRES.length !== 11 ||
-        ORIENTATIONS.length !== 11 || FEUILLES.length !== 11) {
-      throw new Error("Le rapport général moyen doit comporter exactement 11 pages.");
+    if (contenus.length !== 14 || TITRES.length !== 14 ||
+        ORIENTATIONS.length !== 14 || FEUILLES.length !== 14) {
+      throw new Error("Le rapport général moyen doit comporter exactement 14 pages.");
     }
     return contenus;
   }
@@ -1473,7 +1971,7 @@
       var leg = (slot && slot.classList.contains("apercu-slot"))
         ? slot.querySelector(".apercu-legende") : null;
       if (leg) {
-        leg.textContent = "Page " + (i + 1) + " / 11 — " + TITRES[i];
+        leg.textContent = "Page " + (i + 1) + " / 14 — " + TITRES[i];
         leg.style.marginTop = Math.ceil(hauteurPx * (scale - 1)) + "px";
       }
     });
@@ -1486,6 +1984,7 @@
   global.RR_MODELES = global.RR_MODELES || {};
   global.RR_MODELES[TYPE] = {
     buildContext: buildContext,
+    migrerDonnees: migrerDonnees,
     buildPages: buildPages,
     pageContents: pageContents,
     renderPreview: renderPreview,
@@ -1497,6 +1996,7 @@
 
   R.generalMoyen = {
     buildContext: buildContext,
+    migrerDonnees: migrerDonnees,
     buildPages: buildPages,
     renderPreview: renderPreview,
     fitPreview: fitPreview,

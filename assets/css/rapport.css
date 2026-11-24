@@ -367,8 +367,8 @@ table.ev-table .ev-t  { color: #000000; }
 
 /* =====================================================================
    RAPPORT GÉNÉRAL DE RENTRÉE — ENSEIGNEMENT MOYEN & SECONDAIRE
-   EXACTEMENT 11 PAGES : 5 portraits (1,2,3,5,11) + 6 paysages
-   (4,6,7,8,9,10). Feuilles 6 et 7 réparties avec en-têtes répétés.
+   EXACTEMENT 14 PAGES : 6 portraits (1,3,4,7,13,14) + 8 paysages
+   (2,5,6,8,9,10,11,12). Feuilles 8, 9 et 10 réparties avec en-têtes répétés.
    ===================================================================== */
 .gm-page {
   font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
@@ -637,18 +637,110 @@ table.gm-pers th { font-size: 6.7pt; line-height: 1.05; }
 .gm-page.gm-p1 table.gm-t.compact th,
 .gm-page.gm-p1 table.gm-t.compact td { padding: .7mm .8mm; }
 .gm-page.gm-p1 table.gm-t.compact td:first-child { font-size: 6.55pt; }
-.gm-page.gm-p2 .gm-cols2 { gap: 4mm; }
-.gm-page.gm-p4 table.gm-t th { height: 5.4mm; padding: .5mm .55mm; font-size: 7.6pt; }
-.gm-page.gm-p4 table.gm-t td { height: 5.9mm; padding: .5mm .55mm; font-size: 7.7pt; }
-.gm-page.gm-p4 table.gm-t td.lbl-cell {
-  font-size: 7pt; white-space: nowrap; line-height: 1.02;
+/* Page 1 : ajout du Code Chapitre et de la discipline du chef. */
+.gm-page.gm-p1 { font-size: 7.9pt; }
+.gm-page.gm-p1 table.gm-t.compact th,
+.gm-page.gm-p1 table.gm-t.compact td { padding: .65mm .7mm; font-size: 6.9pt; }
+.gm-page.gm-p1 table.gm-kv td { padding: .55mm .9mm .35mm .2mm; font-size: 7.8pt; }
+.gm-page.gm-p1 table.gm-kv td.kv-l { font-size: 7.1pt; padding-bottom: 1.15mm; }
+.gm-page.gm-p1 table.gm-kv td.kv-v { min-height: 4.8mm; font-size: 7.9pt; }
+.gm-page.gm-p1 .gm-h { margin-top: 1.2mm; font-size: 7.3pt; padding: .55mm .8mm; }
+.gm-page.gm-p1 .gm-checks { font-size: 7pt; padding: .8mm .3mm; }
+
+/* Page 2 : élèves vulnérables (paysage, 29 colonnes). */
+.gm-page.gm-p2 .gm-titre-page {
+  font-size: 10.8pt; white-space: normal; padding: 1mm; margin: .8mm 0 1.2mm;
 }
-.gm-page.gm-p5 table.gm-t th,
-.gm-page.gm-p5 table.gm-t td { height: 7mm; padding: .55mm .45mm; font-size: 7.7pt; }
-.gm-page.gm-p5 table.gm-t.compact th,
-.gm-page.gm-p5 table.gm-t.compact td { height: 7mm; }
-.gm-page.gm-p6 table.gm-pers td,
-.gm-page.gm-p7 table.gm-pers td { height: 6.55mm; }
-.gm-page.gm-p8 table.gm-pers td { height: 6.75mm; }
-.gm-page.gm-p9 table.gm-pers td,
-.gm-page.gm-p10 table.gm-pers td { height: 6.55mm; }
+.gm-page.gm-p2 .gm-h { font-size: 7pt; padding: .5mm .8mm; margin-top: 1mm; }
+table.gm-vuln-groupes { table-layout: fixed; }
+table.gm-vuln-groupes th, table.gm-vuln-groupes td {
+  font-size: 7.2pt; padding: 1.8mm .5mm;
+}
+table.gm-vuln-groupes th:first-child, table.gm-vuln-groupes td:first-child {
+  width: 20%;
+}
+table.gm-vuln { table-layout: fixed; }
+table.gm-vuln th, table.gm-vuln td {
+  font-size: 7.1pt; padding: 2.25mm .4mm; line-height: 1.08;
+}
+table.gm-vuln th:first-child, table.gm-vuln td:first-child {
+  width: 31%; text-align: left;
+}
+
+/* Page 3 : structures & équipements (portrait). */
+.gm-page.gm-p3 { font-size: 7.2pt; }
+.gm-page.gm-p3 .gm-kv td { padding: .35mm .8mm .22mm .2mm; font-size: 6.9pt; }
+.gm-page.gm-p3 .gm-kv td.kv-l { font-size: 6.4pt; padding-bottom: .65mm; }
+.gm-page.gm-p3 .gm-kv td.kv-v { min-height: 4.2mm; font-size: 7pt; }
+.gm-page.gm-p3 .gm-h { font-size: 6.9pt; padding: .45mm .8mm; margin-top: 1mm; }
+.gm-page.gm-p3 table.gm-t th,
+.gm-page.gm-p3 table.gm-t td { font-size: 6.3pt; padding: .38mm .45mm; }
+.gm-page.gm-p3 table.gm-t td.lbl-cell { font-size: 6.2pt; }
+.gm-page.gm-p3 .gm-checks { font-size: 6.8pt; gap: 1mm 4mm; padding: .9mm .3mm; }
+
+/* Page 4 : situation du TICE. */
+.gm-page.gm-p4 .gm-question { font-size: 7.6pt; margin: 1.6mm 0 .6mm; }
+.gm-page.gm-p4 .gm-rep { min-height: 37mm; font-size: 8pt; line-height: 1.4; }
+.gm-page.gm-p4 table.gm-t th,
+.gm-page.gm-p4 table.gm-t td { font-size: 7pt; padding: .45mm .5mm; }
+
+/* Pages 5-6 : effectifs (paysage). */
+.gm-page.gm-p5 table.gm-eff-moyen { table-layout: fixed; }
+.gm-page.gm-p5 table.gm-eff-moyen th,
+.gm-page.gm-p5 table.gm-eff-moyen td {
+  font-size: 7pt; padding: .55mm .4mm; line-height: 1.08;
+}
+.gm-page.gm-p5 table.gm-eff-moyen td.lbl-cell { font-size: 6.6pt; }
+.gm-page.gm-p5 .gm-h { font-size: 7pt; margin-top: 1.2mm; }
+.gm-page.gm-p6 table.gm-eff-sec { table-layout: fixed; }
+.gm-page.gm-p6 table.gm-eff-sec th,
+.gm-page.gm-p6 table.gm-eff-sec td {
+  font-size: 6.3pt; padding: .8mm .25mm; line-height: 1.08;
+}
+.gm-page.gm-p6 table.gm-eff-sec th:first-child,
+.gm-page.gm-p6 table.gm-eff-sec td:first-child { width: 11%; }
+.gm-page.gm-p6 table.gm-eff-sec td.lbl-cell { font-size: 5.8pt; }
+.gm-page.gm-p6 .gm-h { font-size: 6.6pt; margin-top: .9mm; }
+
+/* Page 7 : résultats examens (portrait). */
+.gm-page.gm-p7 table.gm-exams { table-layout: fixed; }
+.gm-page.gm-p7 table.gm-exams th,
+.gm-page.gm-p7 table.gm-exams td {
+  font-size: 6.4pt; padding: 2.5mm .22mm; line-height: 1.04;
+}
+.gm-page.gm-p7 table.gm-exams td.lbl-cell { font-size: 6.4pt; }
+.gm-page.gm-p7 table.gm-exams th:first-child,
+.gm-page.gm-p7 table.gm-exams td:first-child {
+  width: 16%; font-size: 6pt;
+}
+.gm-page.gm-p7 .gm-h { font-size: 6.8pt; padding: .4mm .7mm; margin-top: .9mm; }
+.gm-page.gm-p7 table.gm-mentions th,
+.gm-page.gm-p7 table.gm-mentions td { font-size: 6.6pt; padding: 1.1mm .35mm; }
+
+/* Pages 8-12 : tableaux nominatifs (paysage). */
+.gm-page.gm-p8 table.gm-pers td,
+.gm-page.gm-p9 table.gm-pers td { height: 6.55mm; }
+.gm-page.gm-p10 table.gm-pers td,
+.gm-page.gm-p11 table.gm-pers td,
+.gm-page.gm-p12 table.gm-pers td { height: 6.7mm; }
+.gm-page.gm-p8 table.gm-pers th,
+.gm-page.gm-p8 table.gm-pers td,
+.gm-page.gm-p9 table.gm-pers th,
+.gm-page.gm-p9 table.gm-pers td { font-size: 6.8pt; }
+.gm-page.gm-p10 table.gm-pers th,
+.gm-page.gm-p10 table.gm-pers td,
+.gm-page.gm-p11 table.gm-pers th,
+.gm-page.gm-p11 table.gm-pers td,
+.gm-page.gm-p12 table.gm-pers th,
+.gm-page.gm-p12 table.gm-pers td { font-size: 6.6pt; }
+
+/* Page 13 : personnel de service (portrait). */
+.gm-page.gm-p13 table.gm-pers { table-layout: fixed; }
+.gm-page.gm-p13 table.gm-pers th,
+.gm-page.gm-p13 table.gm-pers td {
+  height: 10mm; padding: .4mm .5mm; font-size: 7.3pt;
+}
+.gm-page.gm-p13 table.gm-pers th { font-size: 6.4pt; }
+
+/* Page 14 : observations. */
+.gm-page.gm-p14 .gm-obs-box { min-height: 222mm; }

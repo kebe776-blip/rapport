@@ -25,7 +25,7 @@
 
   <div id="message" class="bandeau info">
     <b>Remplissez le formulaire officiel puis cliquez sur « Soumettre ».</b>
-    Votre rapport PDF (11 pages : 5 portraits + 6 paysages) sera téléchargé
+    Votre rapport PDF (14 pages : 6 portraits + 8 paysages) sera téléchargé
     automatiquement après l'enregistrement de la soumission.
   </div>
 
@@ -35,7 +35,7 @@
 
   <div class="carte center" id="carte-soumission">
     <button class="btn vert large" id="btn-soumettre">
-      ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL (11 PAGES)
+      ✅ SOUMETTRE ET TÉLÉCHARGER LE PDF OFFICIEL (14 PAGES)
     </button>
     <div class="petit mt">
       <a href="#" id="lien-reset">Effacer la saisie en cours</a>
@@ -136,7 +136,7 @@
       message.className = "bandeau ok";
       message.innerHTML = "<b>Soumission terminée.</b> " +
         "Fichier officiel généré : <b>" + window.RR.esc(nom) + "</b> — " +
-        "11 pages (5 portraits + 6 paysages).";
+        "14 pages (6 portraits + 8 paysages).";
       document.getElementById("zone-apercu").scrollIntoView({
         behavior: "smooth", block: "start"
       });
@@ -168,7 +168,7 @@
       window.RR.esc(aModifier.nom || aModifier.code) + ".</b><br>" +
       "Les données du rapport sont chargées : corrigez ce qui doit l'être, " +
       "puis cliquez sur « SOUMETTRE ». Le rapport existant sera remplacé et " +
-      "le nouveau PDF (11 pages) téléchargé." +
+      "le nouveau PDF (14 pages) téléchargé." +
       "<br><span class='petit'>Gardez le même <b>nom d'établissement</b> : " +
       "le modifier créerait un rapport distinct au lieu de remplacer " +
       "celui-ci.</span>";

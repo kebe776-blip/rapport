@@ -70,7 +70,7 @@ window.RR_CONFIG = {
       brouillon: "rr_brouillon_v1" },
     { id: "general-moyen",         nom: "Rapport général de rentrée moyen & secondaire",
       form: "general-moyen.html", pdf: true, xlsx: false, analyse: false,
-      pages: 11, ecoles: "RR_ECOLES_MOYEN", mixte: true,
+      pages: 14, ecoles: "RR_ECOLES_MOYEN", mixte: true,
       modif: "RR_MODIF_GENERAL_MOYEN",
       brouillon: "rr_brouillon_general_moyen_v1",
       modele: "assets/js/rapport-general-moyen.js" },

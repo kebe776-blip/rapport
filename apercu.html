@@ -90,9 +90,9 @@
   var NB_PAGES = typeInfo.pages || 6;
   /* Orientation du gabarit du type : portrait (rapport des évaluations),
      paysage (types historiques) ou mixte (rapport général moyen :
-     5 pages portrait + 6 pages paysage). */
+     6 pages portrait + 8 pages paysage). */
   var ORIENTATION = typeInfo.mixte
-    ? "mixte (5 portraits + 6 paysages)"
+    ? "mixte (6 portraits + 8 paysages)"
     : (typeInfo.portrait ? "portrait" : "paysage");
 
   function modele() {

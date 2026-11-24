@@ -1,11 +1,14 @@
 /* =========================================================================
    form-general-moyen.js — Moteur de saisie DÉDIÉ du « RAPPORT GÉNÉRAL DE
    RENTRÉE — ENSEIGNEMENT MOYEN & SECONDAIRE » (general-moyen.html).
-   • Rendu des 8 sections du modèle officiel (11 pages PDF), tableaux
-     nominatifs dynamiques (52 administratifs / 69 enseignants), calculs
-     automatiques (effectifs, examens, mentions), brouillon hors-ligne
-     dédié et soumission (enregistrement typé + PDF 11 pages via
-     RR_MODELES).
+   • Rendu des 11 sections du modèle officiel 2026/2027 (14 pages PDF) :
+     page d'entrée, élèves vulnérables, structures, TICE, effectifs moyen,
+     effectifs secondaire, examens, personnel administratif, personnel
+     enseignant, personnel de service, observations.
+   • Tableaux nominatifs dynamiques (52 administratifs / 69 enseignants /
+     20 agents de service), calculs automatiques (effectifs, LV2, examens,
+     mentions), brouillon hors-ligne dédié et soumission (enregistrement
+     typé + PDF 14 pages via RR_MODELES).
    • Copie autonome adaptée de form-general-prescolaire.js : form.js et
      champs.js ne sont ni modifiés ni chargés par cette page.
    ========================================================================= */
@@ -22,8 +25,10 @@
 
   var MAX_ADMIN = 52;
   var MAX_ENSEIGNANT = 69;
+  var MAX_SERVICE = 20;
   var INIT_ADMIN = 8;
   var INIT_ENSEIGNANT = 10;
+  var INIT_SERVICE = 4;
 
   var conteneur = null;
   var donnees = {};
@@ -77,6 +82,24 @@
       .replace(/[^A-Za-z0-9]+/g, " ")
       .trim()
       .toUpperCase();
+  }
+
+  function maxDe(type) {
+    if (type === "admin") { return MAX_ADMIN; }
+    if (type === "enseignant") { return MAX_ENSEIGNANT; }
+    return MAX_SERVICE;
+  }
+
+  function initDe(type) {
+    if (type === "admin") { return INIT_ADMIN; }
+    if (type === "enseignant") { return INIT_ENSEIGNANT; }
+    return INIT_SERVICE;
+  }
+
+  function colonnesDe(type) {
+    if (type === "admin") { return D.COLONNES_ADMIN; }
+    if (type === "enseignant") { return D.COLONNES_ENSEIGNANT; }
+    return D.COLONNES_SERVICE;
   }
 
   /* -----------------------------------------------------------------------
@@ -167,12 +190,8 @@
       html += inputHTML(path, {
         type: c.t === "num" ? "num" : "text",
         maj: c.maj, max: c.max, tel: c.tel,
-        placeholder: c.t === "date" ? "JJ/MM/AAAA" : c.placeholder,
-        style: c.def ? null : null
+        placeholder: c.t === "date" ? "JJ/MM/AAAA" : c.placeholder
       });
-      if (c.def) {
-        /* valeur par défaut posée après le rendu par `poserDefauts` */
-      }
     }
     return html + aide + "</div>";
   }
@@ -260,11 +279,11 @@
       "</div>";
 
     /* PE + gouvernement */
-    html += '<h3 class="gm-h3">Projet d\'établissement et gouvernement des élèves</h3>' +
+    html += '<h3 class="gm-h3">Projet d\'établissement et gouvernement scolaire</h3>' +
       '<div class="champs">' +
         champHTML("pe", { n: "projet_etab", l: "L'établissement dispose-t-il d'un Projet d'Établissement (PE) courant ?", t: "select", opts: D.OPTIONS.OUI_NON }) +
         champHTML("pe", { n: "projet_precisions", l: "Si oui, préciser", t: "area", rows: 2, large: true }) +
-        champHTML("pe", { n: "gouvernement_eleves", l: "Existe-t-il un gouvernement d'élèves ?", t: "select", opts: D.OPTIONS.OUI_NON }) +
+        champHTML("pe", { n: "gouvernement_eleves", l: "Existe-t-il un gouvernement scolaire ?", t: "select", opts: D.OPTIONS.OUI_NON }) +
         champHTML("pe", { n: "gouv_filles", l: "Si oui, nombre de filles", t: "num" }) +
         champHTML("pe", { n: "gouv_garcons", l: "Nombre de garçons", t: "num" }) +
         champHTML("pe", { n: "gouv_membres", l: "Nombre total de membres", t: "num" }) +
@@ -303,6 +322,7 @@
         champHTML("chef", { n: "chef_telephone", l: "Téléphone du Chef d'établissement", req: true, tel: true }) +
         champHTML("chef", { n: "chef_genre", l: "Genre (M ou F) du Chef d'Établissement", t: "select", opts: D.OPTIONS.GENRE }) +
         champHTML("chef", { n: "chef_corps_grade", l: "Corps & grade du Chef d'Établissement" }) +
+        champHTML("chef", { n: "chef_discipline", l: "Discipline(s) / spécialité(s) du Chef d'Établissement", large: true }) +
         champHTML("chef", { n: "chef_email", l: "Email du Chef d'Établissement" }) +
       "</div>" +
       '<div class="gm-note">Cachet et signature du chef d\'établissement à apposer sur l\'exemplaire papier.</div>';
@@ -311,27 +331,80 @@
   }
 
   /* -----------------------------------------------------------------------
-     SECTION 2 — STRUCTURES & ÉQUIPEMENTS
+     SECTION 2 — INFORMATIONS ÉLÈVES VULNÉRABLES
      ----------------------------------------------------------------------- */
   function section2HTML() {
-    var html = enteteSection("2", "STRUCTURES & ÉQUIPEMENTS", "S2");
+    var html = enteteSection("2",
+      "INFORMATIONS ÉLÈVES VULNÉRABLES — handicap, état civil et violences", "S2");
+
+    html += '<div class="gm-bloc-titre">Nombre de groupes pédagogiques</div>' +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-vuln-groupes" data-vuln-groupes>' +
+      '<thead><tr><th style="min-width:190px;">Niveau</th>' +
+      D.ELEVES_LIGNES.map(function (l) {
+        return "<th>" + esc(l.l) + "</th>";
+      }).join("") + "</tr></thead><tbody>" +
+      '<tr><td><b>Total</b></td>' +
+      D.ELEVES_LIGNES.map(function (l) {
+        return '<td><input type="number" min="0" data-type="num" data-path="vulnerables.groupes.' +
+          l.n + '.total"></td>';
+      }).join("") + "</tr>" +
+      '<tr><td><b>Dont Franco-arabe</b></td>' +
+      D.ELEVES_LIGNES.map(function (l) {
+        return '<td><input type="number" min="0" data-type="num" data-path="vulnerables.groupes.' +
+          l.n + '.fa"></td>';
+      }).join("") + "</tr>" +
+      "</tbody></table></div>";
+
+    html += '<div class="gm-bloc-titre">Effectifs par indicateur (Garçons / Filles)</div>' +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-vulnerables" data-vuln-table>' +
+      '<thead><tr><th rowspan="2" style="min-width:330px;">Indicateur</th>' +
+      D.ELEVES_LIGNES.map(function (l) {
+        return '<th colspan="2" class="grp">' + esc(l.l) + "</th>";
+      }).join("") + "</tr><tr>" +
+      D.ELEVES_LIGNES.map(function () {
+        return "<th>G</th><th>F</th>";
+      }).join("") + "</tr></thead><tbody>";
+
+    D.VULNERABLES_INDICATEURS.forEach(function (ind) {
+      html += "<tr><td>" + esc(ind.l) + "</td>";
+      D.ELEVES_LIGNES.forEach(function (l) {
+        ["g", "f"].forEach(function (s) {
+          html += '<td><input type="number" min="0" data-type="num" data-path="vulnerables.indicateurs.' +
+            ind.n + "." + l.n + "." + s + '"></td>';
+        });
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table></div>";
+
+    return html + finSection();
+  }
+
+  /* -----------------------------------------------------------------------
+     SECTION 3 — STRUCTURES & ÉQUIPEMENTS
+     ----------------------------------------------------------------------- */
+  function section3HTML() {
+    var html = enteteSection("3", "STRUCTURES & ÉQUIPEMENTS", "S3");
 
     var champs = [
-      { n: "accessible", l: "Établissement accessible en toute saison ?", t: "select", opts: D.OPTIONS.OUI_NON },
+      { n: "accessible", l: "Établissement accessible en toute saison à partir de la route principale ?", t: "select", opts: D.OPTIONS.OUI_NON },
       { n: "nature_route", l: "Nature de la route ?" },
       { n: "cloture", l: "Établissement clôturé ?", t: "select", opts: D.OPTIONS.OUI_NON },
       { n: "type_cloture", l: "Type de clôture" },
       { n: "sanitaires_separes", l: "Blocs sanitaires séparés garçons-filles ?", t: "select", opts: D.OPTIONS.OUI_NON },
-      { n: "nb_blocs", l: "Nombre de blocs sanitaires", t: "num" },
-      { n: "nb_box_total", l: "Nombre de box (total)", t: "num" },
+      { n: "nb_box_total", l: "Nbre de box (total)", t: "num" },
       { n: "nb_box_filles", l: "dont box filles", t: "num" },
       { n: "nb_box_garcons", l: "dont box garçons", t: "num" },
+      { n: "labo", l: "Laboratoire ?", t: "select", opts: D.OPTIONS.OUI_NON },
+      { n: "nb_labos", l: "Si oui, nombre de laboratoires fonctionnels", t: "num" },
       { n: "telephone", l: "Connection téléphone", t: "select", opts: D.OPTIONS.TELEPHONE },
       { n: "internet", l: "Connection Internet", t: "select", opts: D.OPTIONS.INTERNET },
       { n: "bloc_admin", l: "Bloc administratif ?", t: "select", opts: D.OPTIONS.OUI_NON },
       { n: "salle_info_climatisee", l: "Salle informatique disponible climatisée ?", t: "select", opts: D.OPTIONS.OUI_NON },
       { n: "cablage_reseau", l: "Câblage réseau ?", t: "select", opts: D.OPTIONS.OUI_NON },
-      { n: "nb_ordi_reseau", l: "Nombre d'ordinateurs connectés au réseau", t: "num" }
+      { n: "nb_ordi_reseau", l: "Nombre d'ordinateurs connectés au réseau", t: "num" },
+      { n: "camera", l: "Caméra numérique — nombre", t: "num" },
+      { n: "webcam", l: "Webcam — nombre", t: "num" }
     ];
     html += champsHTML("structures", champs);
 
@@ -411,12 +484,12 @@
   }
 
   /* -----------------------------------------------------------------------
-     SECTION 3 — SITUATION TICE
+     SECTION 4 — SITUATION DU TICE
      ----------------------------------------------------------------------- */
-  function section3HTML() {
-    var html = enteteSection("3", "SITUATION TICE", "S3");
+  function section4HTML() {
+    var html = enteteSection("4", "SITUATION DU TICE", "S4");
 
-    html += '<div class="gm-bloc-titre">Personnels de l\'établissement selon leurs compétences TIC</div>' +
+    html += '<div class="gm-bloc-titre">Personnels de l\'établissement selon leurs compétences en numérique</div>' +
       '<div class="table-defilement"><table class="table-saisie gm-table-saisie">' +
         '<thead><tr><th colspan="2">Type de personnel / compétence</th>' +
         D.TICE_NIVEAUX.map(function (n) { return "<th>" + esc(n[1]) + "</th>"; }).join("") +
@@ -438,14 +511,14 @@
     html += "</tbody></table></div>";
 
     html += '<div class="champs">' +
-      champHTML("tice", { n: "personnes_ressources", l: "Nombre de personnes ressources en TIC", t: "num" }) +
+      champHTML("tice", { n: "personnes_ressources", l: "Nombre de personnes ressources en numérique", t: "num" }) +
       champHTML("tice", { n: "fonctions", l: "Fonction(s) de ces personnes", t: "area", rows: 2, large: true }) +
-      champHTML("tice", { n: "volet_tic", l: "Le Projet d'établissement comprend-il un volet TIC ?", t: "select", opts: D.OPTIONS.OUI_NON }) +
+      champHTML("tice", { n: "volet_tic", l: "Le Projet d'établissement comprend-il un volet numérique ?", t: "select", opts: D.OPTIONS.OUI_NON }) +
       champHTML("tice", { n: "volet_description", l: "Si oui, décrire", t: "area", rows: 2, large: true }) +
       "</div>";
 
     /* Partenaires */
-    html += '<div class="gm-bloc-titre">Partenaires dans le domaine des TIC</div>' +
+    html += '<div class="gm-bloc-titre">Partenaires dans le domaine du numérique</div>' +
       '<div class="table-defilement"><table class="table-saisie gm-table-saisie">' +
         '<thead><tr><th style="min-width:240px;">Partenaire</th>' +
         '<th>Technique</th><th>Pédagogique</th><th>Financier</th></tr></thead><tbody>';
@@ -466,116 +539,266 @@
       }).join("") + "</div>";
 
     html += '<div class="champs">' +
-      champHTML("tice", { n: "contraintes", l: "3 principales contraintes dans l'utilisation des TIC", t: "area", rows: 3, large: true }) +
+      champHTML("tice", { n: "contraintes", l: "3 principales contraintes dans l'utilisation du numérique", t: "area", rows: 3, large: true }) +
       champHTML("tice", { n: "strategies", l: "Stratégies mises en œuvre pour surmonter ces contraintes", t: "area", rows: 3, large: true }) +
-      champHTML("tice", { n: "recommandations", l: "Recommandations pour la pérennisation de l'usage des TIC", t: "area", rows: 3, large: true }) +
+      champHTML("tice", { n: "recommandations", l: "Recommandations pour la pérennisation de l'usage du numérique", t: "area", rows: 3, large: true }) +
       "</div>";
 
     return html + finSection();
   }
 
   /* -----------------------------------------------------------------------
-     SECTION 4 — EFFECTIFS ÉLÈVES
+     SECTION 5 — EFFECTIFS ÉLÈVES : ENSEIGNEMENT MOYEN
      ----------------------------------------------------------------------- */
-  function colonnesHTML(labelCols) {
-    var html = '<th colspan="' + labelCols + '" rowspan="2">Classes &amp; élèves</th>';
-    D.EFFECTIFS_GROUPES.forEach(function (g) {
-      var cols = D.EFFECTIFS_COLONNES.filter(function (c) { return c.groupe === g.cle; });
-      html += '<th colspan="' + (cols.length + 1) + '" class="grp eff">' + esc(g.l) + "</th>";
+  function enteteMoyen() {
+    var html = '<thead><tr><th rowspan="2" colspan="2" class="gm-eff-label">CLASSES &amp; ÉLÈVES</th>' +
+      '<th colspan="8" class="grp">ENSEIGNEMENT MOYEN</th>' +
+      '<th colspan="2" class="grp">TOTAL</th></tr><tr>';
+    D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+      html += '<th colspan="2">' + esc(l[1]) + "</th>";
     });
+    html += '<th>Total</th><th>Total FA</th></tr><tr>' +
+      '<th colspan="2"></th>';
+    D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function () {
+      html += "<th>Total</th><th>Dont FA</th>";
+    });
+    html += "<th></th><th></th></tr></thead>";
     return html;
   }
 
-  function sousColonnesHTML() {
+  function inputsMoyen(block, level, kind) {
+    return '<td><input type="number" min="0" data-type="num" data-effm="' +
+      block + '" data-level="' + level + '" data-kind="' + kind + '" data-path="' +
+      "effectifs_moyen." + block + "." + level + "." + kind + '"></td>';
+  }
+
+  function ligneMoyen(block, label, sexe, ligne) {
     var html = "";
-    D.EFFECTIFS_GROUPES.forEach(function (g) {
-      D.EFFECTIFS_COLONNES.filter(function (c) { return c.groupe === g.cle; })
-        .forEach(function (c) {
-          html += "<th>" + esc(c.l) + "</th>";
-        });
-      html += '<th class="gm-total-col">TOTAL</th>';
+    if (sexe === "g") {
+      html += '<tr><td rowspan="3" class="gm-eff-bloc">' + esc(label) + "</td>" +
+        '<td class="c">Garçons</td>';
+    } else if (sexe === "f") {
+      html += '<tr><td class="c">Filles</td>';
+    } else {
+      html += '<tr class="totale"><td class="c">TOTAL</td>';
+    }
+    D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+      if (sexe === "g") {
+        html += inputsMoyen(block, l[0], "g") + inputsMoyen(block, l[0], "fa_g");
+      } else if (sexe === "f") {
+        html += inputsMoyen(block, l[0], "f") + inputsMoyen(block, l[0], "fa_f");
+      } else {
+        html += '<td><input type="text" readonly class="gm-calc" data-effm-total="' +
+          block + '" data-level="' + l[0] + '"></td>' +
+          '<td><input type="text" readonly class="gm-calc" data-effm-fatotal="' +
+          block + '" data-level="' + l[0] + '"></td>';
+      }
     });
-    return html;
+    if (sexe === "g") {
+      html += '<td><input type="text" readonly class="gm-calc" data-effm-gtotal="g"></td>' +
+        '<td><input type="text" readonly class="gm-calc" data-effm-gtotal="fa_g"></td>';
+    } else if (sexe === "f") {
+      html += '<td><input type="text" readonly class="gm-calc" data-effm-gtotal="f"></td>' +
+        '<td><input type="text" readonly class="gm-calc" data-effm-gtotal="fa_f"></td>';
+    } else {
+      html += '<td><input type="text" readonly class="gm-calc" data-effm-grand="total"></td>' +
+        '<td><input type="text" readonly class="gm-calc" data-effm-grand="fa"></td>';
+    }
+    return html + "</tr>";
   }
 
-  function cellulesColonnes(rowType, prefix, extra) {
-    var html = "";
-    var base = rowType === "nb" ? prefix : prefix + "." + rowType;
-    D.EFFECTIFS_GROUPES.forEach(function (g) {
-      D.EFFECTIFS_COLONNES.filter(function (c) { return c.groupe === g.cle; })
-        .forEach(function (c) {
-          var path = base + "." + c.n;
-          var attrs = ' data-type="num" min="0" data-col="' + c.n +
-                      '" data-cycle="' + g.cle + '"';
-          if (extra) { attrs += " " + extra; }
-          if (rowType === "total") {
-            html += '<td><input type="text" readonly class="gm-calc" data-total-cell="' +
-              c.n + '"' + (extra ? " " + extra : "") + "></td>";
-          } else {
-            html += '<td><input type="number"' + attrs + ' data-path="' +
-              esc(path) + '"></td>';
-          }
-        });
-      html += '<td><input type="text" readonly class="gm-calc" data-cycle-total="' +
-        g.cle + '"></td>';
-    });
-    return html;
-  }
-
-  function effectifsNbHTML() {
-    var html = '<div class="gm-bloc-titre">Nombre de classes pédagogiques</div>' +
-      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effectifs" data-eff-table="nb">' +
-        "<thead><tr>" + colonnesHTML(1) + "</tr><tr>" + sousColonnesHTML() +
-        "</tr></thead><tbody><tr><td><b>Nbre classes</b></td>";
-    html += cellulesColonnes("nb", "effectifs.nb_classes");
-    html += "</tr></tbody></table></div>";
-    return html;
-  }
-
-  function effectifsGroupeHTML(cle, titre, classe) {
-    var html = '<div class="gm-bloc-titre">' + esc(titre) + "</div>" +
-      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effectifs" data-eff-table="' +
-      esc(cle) + '"><thead><tr>' + colonnesHTML(2) + "</tr><tr>" + sousColonnesHTML() +
-      "</tr></thead><tbody>" +
-      '<tr data-eff-row="g"><td rowspan="3" class="gm-rowspan"><b>' + esc(titre) +
-        "</b></td><td>Garçons</td>" + cellulesColonnes("g", "effectifs." + cle) + "</tr>" +
-      '<tr data-eff-row="f"><td>Filles</td>' +
-        cellulesColonnes("f", "effectifs." + cle) + "</tr>" +
-      '<tr data-eff-row="total" class="totale"><td colspan="2">TOTAL</td>' +
-        cellulesColonnes("total", "effectifs." + cle) + "</tr>" +
+  function tableMoyen(block, titre) {
+    return '<div class="gm-bloc-titre">' + esc(titre) + "</div>" +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effm" data-effm-table="' +
+      esc(block) + '">' + enteteMoyen() + "<tbody>" +
+      ligneMoyen(block, titre, "g") +
+      ligneMoyen(block, titre, "f") +
+      ligneMoyen(block, titre, "total") +
       "</tbody></table></div>";
+  }
+
+  function tableMoyenNb() {
+    var html = '<div class="gm-bloc-titre">Nombre de classes pédagogiques</div>' +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effm" data-effm-table="nb">' +
+      '<thead><tr><th class="gm-eff-label">Niveau</th>' +
+      D.EFFECTIFS_MOYEN_NIVEAUX.map(function (l) {
+        return "<th>" + esc(l[1]) + "</th>";
+      }).join("") + "<th>Total</th></tr></thead><tbody><tr>" +
+      '<td><b>Nbre classes</b></td>';
+    D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+      html += '<td><input type="number" min="0" data-type="num" data-effm-nb="' +
+        l[0] + '" data-path="effectifs_moyen.nb_classes.' + l[0] + '"></td>';
+    });
+    html += '<td><input type="text" readonly class="gm-calc" data-effm-nbtotal></td>' +
+      "</tr></tbody></table></div>";
     return html;
   }
 
-  function lv2HTML() {
+  function tableMoyenLv2() {
     var html = '<div class="gm-bloc-titre">Effectifs élèves par deuxième langue vivante étudiée (LV2)</div>' +
-      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effectifs" data-eff-table="lv2">' +
-      "<thead><tr>" + colonnesHTML(2) + "</tr><tr>" + sousColonnesHTML() +
-      "</tr></thead><tbody>";
-    D.LV2_LANGUES.forEach(function (l) {
-      html += '<tr data-eff-row="g" data-lang="' + l[0] + '"><td rowspan="2" class="gm-rowspan"><b>' +
-        esc(l[1]) + "</b></td><td>Garçons</td>" +
-        cellulesColonnes("g", "lv2." + l[0]) + "</tr>" +
-        '<tr data-eff-row="f" data-lang="' + l[0] + '"><td>Filles</td>' +
-        cellulesColonnes("f", "lv2." + l[0]) + "</tr>";
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effm" data-effm-table="lv2">' +
+      enteteMoyen() + "<tbody>";
+    D.LV2_LANGUES.forEach(function (lang) {
+      ["g", "f"].forEach(function (sexe, j) {
+        html += '<tr data-lv2m-row="' + sexe + '" data-lang="' + lang[0] + '">';
+        if (j === 0) {
+          html += '<td rowspan="2" class="gm-eff-bloc">' + esc(lang[1]) + "</td>";
+        }
+        html += '<td class="c">' + (sexe === "g" ? "Garçons" : "Filles") + "</td>";
+        D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+          html += '<td><input type="number" min="0" data-type="num" data-lv2m="' +
+            lang[0] + '" data-level="' + l[0] + '" data-kind="' + sexe + '" data-path="' +
+            "effectifs_moyen.lv2." + lang[0] + "." + l[0] + "." + sexe + '"></td>' +
+            '<td><input type="number" min="0" data-type="num" data-lv2m="' +
+            lang[0] + '" data-level="' + l[0] + '" data-kind="fa_' + sexe + '" data-path="' +
+            "effectifs_moyen.lv2." + lang[0] + "." + l[0] + ".fa_" + sexe + '"></td>';
+        });
+        html += '<td><input type="text" readonly class="gm-calc" data-lv2m-total="' +
+          lang[0] + '" data-kind="' + sexe + '"></td>' +
+          '<td><input type="text" readonly class="gm-calc" data-lv2m-total="' +
+          lang[0] + '" data-kind="fa_' + sexe + '"></td></tr>';
+      });
     });
     html += "</tbody></table></div>";
     return html;
   }
 
-  function section4HTML() {
-    var html = enteteSection("4", "EFFECTIFS ÉLÈVES", "S4");
-    html += effectifsNbHTML();
-    html += '<div class="gm-note">Renseignez les garçons et les filles ; les totaux par classe et par cycle se calculent automatiquement. Le tableau « Effectifs » alimente le bilan de la page d\'entrée.</div>';
-    html += effectifsGroupeHTML("effectifs", "EFFECTIFS", "");
-    html += effectifsGroupeHTML("passants", "PASSANTS", "");
-    html += effectifsGroupeHTML("redoublants", "REDOUBLANTS", "");
-    html += lv2HTML();
+  function section5HTML() {
+    var html = enteteSection("5", "EFFECTIFS ÉLÈVES — ENSEIGNEMENT MOYEN", "S5");
+    html += tableMoyenNb();
+    html += '<div class="gm-note">Renseignez les garçons, les filles et la part « Dont Franco-arabe ». Les totaux par niveau et par cycle se calculent automatiquement.</div>';
+    html += tableMoyen("effectifs", "EFFECTIFS");
+    html += tableMoyen("passants", "PASSANTS");
+    html += tableMoyen("redoublants", "REDOUBLANTS");
+    html += tableMoyenLv2();
     return html + finSection();
   }
 
   /* -----------------------------------------------------------------------
-     SECTION 5 — RÉSULTATS EXAMENS
+     SECTION 6 — EFFECTIFS ÉLÈVES : SECONDAIRE
+     ----------------------------------------------------------------------- */
+  function enteteSecondaire() {
+    var html = '<thead><tr><th rowspan="2" class="gm-eff-label">CLASSES &amp; ÉLÈVES</th>';
+    D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+      html += '<th colspan="' + (gr.series.length + 1) + '" class="grp">' +
+        esc(gr.l) + "</th>";
+    });
+    html += "</tr><tr>";
+    D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+      gr.series.forEach(function (s) {
+        html += "<th>" + esc(s[1]) + "</th>";
+      });
+      html += '<th class="grp">TOTAL</th>';
+    });
+    html += "</tr></thead>";
+    return html;
+  }
+
+  function inputSecondaire(block, groupe, serie, sexe) {
+    return '<td><input type="number" min="0" data-type="num" data-effs="' +
+      block + '" data-group="' + groupe + '" data-serie="' + serie +
+      '" data-kind="' + sexe + '" data-path="effectifs_secondaire.' + block +
+      "." + groupe + "." + serie + "." + sexe + '"></td>';
+  }
+
+  function ligneSecondaire(block, label, sexe) {
+    var html = "";
+    if (sexe === "g") {
+      html += '<tr><td rowspan="3" class="gm-eff-bloc">' + esc(label) + "</td>" +
+        '<td class="c">Garçons</td>';
+    } else if (sexe === "f") {
+      html += '<tr><td class="c">Filles</td>';
+    } else {
+      html += '<tr class="totale"><td class="c">TOTAL</td>';
+    }
+    D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+      gr.series.forEach(function (s) {
+        if (sexe === "g" || sexe === "f") {
+          html += inputSecondaire(block, gr.cle, s[0], sexe);
+        } else {
+          html += '<td><input type="text" readonly class="gm-calc" data-effs-total="' +
+            block + '" data-group="' + gr.cle + '" data-serie="' + s[0] + '"></td>';
+        }
+      });
+      if (sexe === "g" || sexe === "f") {
+        html += '<td><input type="text" readonly class="gm-calc" data-effs-gtotal="' +
+          block + '" data-group="' + gr.cle + '" data-kind="' + sexe + '"></td>';
+      } else {
+        html += '<td><input type="text" readonly class="gm-calc" data-effs-gtotal="' +
+          block + '" data-group="' + gr.cle + '" data-kind="total"></td>';
+      }
+    });
+    return html + "</tr>";
+  }
+
+  function tableSecondaire(block, titre) {
+    return '<div class="gm-bloc-titre">' + esc(titre) + "</div>" +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effs" data-effs-table="' +
+      esc(block) + '">' + enteteSecondaire() + "<tbody>" +
+      ligneSecondaire(block, titre, "g") +
+      ligneSecondaire(block, titre, "f") +
+      ligneSecondaire(block, titre, "total") +
+      "</tbody></table></div>";
+  }
+
+  function tableSecondaireNb() {
+    var html = '<div class="gm-bloc-titre">Nombre de classes pédagogiques</div>' +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effs" data-effs-table="nb">' +
+      '<thead><tr><th class="gm-eff-label">Cycle</th>' +
+      D.EFFECTIFS_SECONDAIRE_GROUPES.map(function (gr) {
+        return "<th>" + esc(gr.l) + "</th>";
+      }).join("") + "<th>Total</th></tr></thead><tbody><tr>" +
+      '<td><b>Nbre classes</b></td>';
+    D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+      html += '<td><input type="number" min="0" data-type="num" data-effs-nb="' +
+        gr.cle + '" data-path="effectifs_secondaire.nb_classes.' + gr.cle + '"></td>';
+    });
+    html += '<td><input type="text" readonly class="gm-calc" data-effs-nbtotal></td>' +
+      "</tr></tbody></table></div>";
+    return html;
+  }
+
+  function tableSecondaireLv2() {
+    var html = '<div class="gm-bloc-titre">Effectifs élèves par deuxième langue vivante étudiée (LV2)</div>' +
+      '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-effs" data-effs-table="lv2">' +
+      enteteSecondaire() + "<tbody>";
+    D.LV2_LANGUES.forEach(function (lang) {
+      ["g", "f"].forEach(function (sexe, j) {
+        html += '<tr data-lv2s-row="' + sexe + '" data-lang="' + lang[0] + '">';
+        if (j === 0) {
+          html += '<td rowspan="2" class="gm-eff-bloc">' + esc(lang[1]) + "</td>";
+        }
+        html += '<td class="c">' + (sexe === "g" ? "Garçons" : "Filles") + "</td>";
+        D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+          gr.series.forEach(function (s) {
+            html += '<td><input type="number" min="0" data-type="num" data-lv2s="' +
+              lang[0] + '" data-group="' + gr.cle + '" data-serie="' + s[0] +
+              '" data-kind="' + sexe + '" data-path="effectifs_secondaire.lv2.' +
+              lang[0] + "." + gr.cle + "." + s[0] + "." + sexe + '"></td>';
+          });
+          html += '<td><input type="text" readonly class="gm-calc" data-lv2s-total="' +
+            lang[0] + '" data-group="' + gr.cle + '" data-kind="' + sexe + '"></td>';
+        });
+        html += "</tr>";
+      });
+    });
+    html += "</tbody></table></div>";
+    return html;
+  }
+
+  function section6HTML() {
+    var html = enteteSection("6", "EFFECTIFS ÉLÈVES — SECONDAIRE", "S6");
+    html += tableSecondaireNb();
+    html += '<div class="gm-note">Renseignez les garçons et les filles par série. Les totaux par série et par cycle se calculent automatiquement.</div>';
+    html += tableSecondaire("effectifs", "EFFECTIFS");
+    html += tableSecondaire("passants", "PASSANTS");
+    html += tableSecondaire("redoublants", "REDOUBLANTS");
+    html += tableSecondaireLv2();
+    return html + finSection();
+  }
+
+  /* -----------------------------------------------------------------------
+     SECTION 7 — RÉSULTATS EXAMENS (2025/2026)
      ----------------------------------------------------------------------- */
   function examBaseInputs(prefix, rowKey) {
     return D.EXAMENS_COLONNES.map(function (c) {
@@ -591,8 +814,8 @@
   function examHeaderHTML() {
     var html = "<tr><th rowspan=\"2\">SESSION</th>";
     D.EXAMENS_GROUPES.forEach(function (g) {
-      var cls = g.cle === "pres_t" ? ' class="gm-total-col"' : "";
-      html += '<th colspan="' + g.cols + '"' + cls + ">" + esc(g.l) + "</th>";
+      html += '<th colspan="' + g.cols + '"' +
+        (g.cle === "pres_t" ? ' class="gm-total-col"' : "") + ">" + esc(g.l) + "</th>";
     });
     html += "</tr><tr>";
     D.EXAMENS_GROUPES.forEach(function (g) {
@@ -627,7 +850,7 @@
   }
 
   function bfemHTML() {
-    var html = '<div class="gm-bloc-titre">BFEM</div>' +
+    var html = '<div class="gm-bloc-titre">BFEM — 2025/2026</div>' +
       '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-examens" data-exam-table="bfem">' +
       "<thead>" + examHeaderHTML() + "</thead><tbody>";
     D.BFEM_SESSIONS.forEach(function (s) {
@@ -640,7 +863,7 @@
   }
 
   function bacHTML() {
-    var html = '<div class="gm-bloc-titre">BACCALAURÉAT</div>' +
+    var html = '<div class="gm-bloc-titre">BACCALAURÉAT — 2025/2026</div>' +
       '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-examens" data-exam-table="bac">' +
       '<thead><tr><th rowspan="2">SÉRIE</th><th rowspan="2">SESSION</th>';
     D.EXAMENS_GROUPES.forEach(function (g) {
@@ -714,7 +937,7 @@
   }
 
   function mentionsHTML() {
-    var html = '<div class="gm-bloc-titre">Mentions au BACCALAURÉAT</div>' +
+    var html = '<div class="gm-bloc-titre">Mentions au BACCALAURÉAT — 2025/2026</div>' +
       '<div class="table-defilement"><table class="table-saisie gm-table-saisie gm-examens" data-mentions-table>' +
       '<thead><tr><th rowspan="2">SÉRIE</th>';
     D.MENTIONS_GROUPES.forEach(function (g) {
@@ -733,7 +956,7 @@
       }
     });
     html += "</tr></thead><tbody>";
-    D.BAC_SERIES.forEach(function (s) {
+    D.MENTIONS_SERIES.forEach(function (s) {
       html += mentionRowHTML(s[1], "mention_" + s[0],
         "examens.mentions." + s[0], null);
     });
@@ -742,17 +965,17 @@
     return html;
   }
 
-  function section5HTML() {
-    var html = enteteSection("5", "RÉSULTATS EXAMENS", "S5");
+  function section7HTML() {
+    var html = enteteSection("7", "RÉSULTATS EXAMENS — 2025/2026", "S7");
     html += bfemHTML() + bacHTML() + mentionsHTML();
     return html + finSection();
   }
 
   /* -----------------------------------------------------------------------
-     SECTIONS 6-7 — PERSONNELS NOMINATIFS
+     SECTIONS 8-10 — PERSONNELS NOMINATIFS
      ----------------------------------------------------------------------- */
   function persLigneHTML(type, i) {
-    var cols = type === "admin" ? D.COLONNES_ADMIN : D.COLONNES_ENSEIGNANT;
+    var cols = colonnesDe(type);
     var html = '<tr data-pers-row="' + type + '"><td class="num" data-numero>' +
       (i + 1) + "</td>";
     cols.forEach(function (c) {
@@ -773,9 +996,9 @@
     return html;
   }
 
-  function persTableHTML(type, titre, max, init) {
-    var cols = type === "admin" ? D.COLONNES_ADMIN : D.COLONNES_ENSEIGNANT;
-    var html = enteteSection(type === "admin" ? "6" : "7", titre, type === "admin" ? "S6" : "S7") +
+  function persTableHTML(type, titre, num, badge, max, init) {
+    var cols = colonnesDe(type);
+    var html = enteteSection(num, titre, badge) +
       '<div class="gm-table-actions">' +
         '<button type="button" class="btn vert petit js-ajouter-pers" data-pers="' + type + '">' +
           "＋ Ajouter une ligne</button>" +
@@ -794,13 +1017,13 @@
     return html;
   }
 
-  function section8HTML() {
-    return enteteSection("8", "OBSERVATIONS DU CHEF D'ÉTABLISSEMENT", "S8") +
+  function section11HTML() {
+    return enteteSection("11", "OBSERVATIONS DU CHEF D'ÉTABLISSEMENT", "S11") +
       '<div class="champs">' +
         champHTML("observations", {
           n: "texte", l: "Observations générales du chef d'établissement",
           t: "area", rows: 12, large: true,
-          aide: "Le texte est repris intégralement dans le grand cadre de la page 11 du PDF."
+          aide: "Le texte est repris intégralement dans le grand cadre de la page 14 du PDF."
         }) +
       "</div>" + finSection();
   }
@@ -812,11 +1035,12 @@
     conteneur = el;
     var html = "";
 
-    /* Navigation rapide 1 → 8 */
+    /* Navigation rapide 1 → 11 */
     html += '<div class="carte"><div class="gm-nav">';
-    [["1", "Page d'entrée"], ["2", "Structures"], ["3", "TICE"],
-     ["4", "Effectifs"], ["5", "Examens"], ["6", "Personnel admin."],
-     ["7", "Personnel ens."], ["8", "Observations"]].forEach(function (s) {
+    [["1", "Page d'entrée"], ["2", "Élèves vulnérables"], ["3", "Structures"],
+     ["4", "TICE"], ["5", "Effectifs moyen"], ["6", "Effectifs secondaire"],
+     ["7", "Examens"], ["8", "Personnel admin."], ["9", "Personnel ens."],
+     ["10", "Personnel service"], ["11", "Observations"]].forEach(function (s) {
       html += '<a class="btn gris petit" href="#gm_sec_' + s[0] + '" data-aller="' +
         s[0] + '">' + s[0] + ". " + esc(s[1]) + "</a>";
     });
@@ -827,11 +1051,15 @@
     html += '<div id="gm_sec_3">' + section3HTML() + "</div>";
     html += '<div id="gm_sec_4">' + section4HTML() + "</div>";
     html += '<div id="gm_sec_5">' + section5HTML() + "</div>";
-    html += '<div id="gm_sec_6">' + persTableHTML("admin",
-      "PERSONNEL ADMINISTRATIF", MAX_ADMIN, INIT_ADMIN) + "</div>";
-    html += '<div id="gm_sec_7">' + persTableHTML("enseignant",
-      "PERSONNEL ENSEIGNANT", MAX_ENSEIGNANT, INIT_ENSEIGNANT) + "</div>";
-    html += '<div id="gm_sec_8">' + section8HTML() + "</div>";
+    html += '<div id="gm_sec_6">' + section6HTML() + "</div>";
+    html += '<div id="gm_sec_7">' + section7HTML() + "</div>";
+    html += '<div id="gm_sec_8">' + persTableHTML("admin",
+      "PERSONNEL ADMINISTRATIF", "8", "S8", MAX_ADMIN, INIT_ADMIN) + "</div>";
+    html += '<div id="gm_sec_9">' + persTableHTML("enseignant",
+      "PERSONNEL ENSEIGNANT", "9", "S9", MAX_ENSEIGNANT, INIT_ENSEIGNANT) + "</div>";
+    html += '<div id="gm_sec_10">' + persTableHTML("service",
+      "PERSONNEL DE SERVICE", "10", "S10", MAX_SERVICE, INIT_SERVICE) + "</div>";
+    html += '<div id="gm_sec_11">' + section11HTML() + "</div>";
 
     conteneur.innerHTML = html;
     poserDefauts();
@@ -1007,7 +1235,8 @@
     }
     if (el.closest && el.closest("[data-p1p]")) { recalcPersonnels(); }
     if (el.closest && el.closest("[data-p1e]")) { recalcElevesPage1(); }
-    if (el.closest && el.closest('table[data-eff-table]')) { recalcEffectifs(); }
+    if (el.closest && el.closest('table[data-effm-table]')) { recalcEffectifsMoyen(); }
+    if (el.closest && el.closest('table[data-effs-table]')) { recalcEffectifsSecondaire(); }
     if (el.closest && el.closest('[data-exam-table]')) { recalcExamens(); }
     if (el.closest && el.closest('[data-mentions-table]')) { recalcMentions(); }
 
@@ -1093,58 +1322,122 @@
     return s;
   }
 
-  function recalcEffectifs() {
-    /* Nombre de classes : totaux de cycle. */
-    var nb = conteneur.querySelector('table[data-eff-table="nb"]');
+  function recalcEffectifsMoyen() {
+    var nb = conteneur.querySelector('[data-effm-table="nb"]');
     if (nb) {
-      D.EFFECTIFS_GROUPES.forEach(function (g) {
-        var t = nb.querySelector('[data-cycle-total="' + g.cle + '"]');
-        if (t) { t.value = sommeInputs(nb, 'input[data-cycle="' + g.cle + '"]'); }
+      var total = 0;
+      D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+        var el = nb.querySelector('[data-effm-nb="' + l[0] + '"]');
+        total += nombre(el);
       });
+      var t = nb.querySelector("[data-effm-nbtotal]");
+      if (t) { t.value = total; }
     }
 
-    /* Groupes EFFECTIFS / PASSANTS / REDOUBLANTS. */
-    ["effectifs", "passants", "redoublants"].forEach(function (cle) {
-      var table = conteneur.querySelector('table[data-eff-table="' + cle + '"]');
-      if (!table) { return; }
-      var g = table.querySelector('tr[data-eff-row="g"]');
-      var f = table.querySelector('tr[data-eff-row="f"]');
-      var tot = table.querySelector('tr[data-eff-row="total"]');
-      if (!g || !f) { return; }
-      D.EFFECTIFS_GROUPES.forEach(function (gr) {
-        var sg = sommeInputs(g, 'input[data-cycle="' + gr.cle + '"]');
-        var sf = sommeInputs(f, 'input[data-cycle="' + gr.cle + '"]');
-        var cg = g.querySelector('[data-cycle-total="' + gr.cle + '"]');
-        var cf = f.querySelector('[data-cycle-total="' + gr.cle + '"]');
-        if (cg) { cg.value = sg; }
-        if (cf) { cf.value = sf; }
-        if (tot) {
-          var ct = tot.querySelector('[data-cycle-total="' + gr.cle + '"]');
-          if (ct) { ct.value = sg + sf; }
+    conteneur.querySelectorAll("table.gm-effm").forEach(function (table) {
+      var block = table.getAttribute("data-effm-table");
+      if (!block || block === "nb") { return; }
+      var g = table.querySelector('[data-effm="' + block + '"][data-kind="g"]');
+      if (!g) { return; }
+      D.EFFECTIFS_MOYEN_NIVEAUX.forEach(function (l) {
+        var lv = l[0];
+        var gv = sommeInputs(table, '[data-effm="' + block + '"][data-level="' + lv + '"][data-kind="g"]');
+        var fv = sommeInputs(table, '[data-effm="' + block + '"][data-level="' + lv + '"][data-kind="f"]');
+        var fag = sommeInputs(table, '[data-effm="' + block + '"][data-level="' + lv + '"][data-kind="fa_g"]');
+        var faf = sommeInputs(table, '[data-effm="' + block + '"][data-level="' + lv + '"][data-kind="fa_f"]');
+        var tot = table.querySelector('[data-effm-total="' + block + '"][data-level="' + lv + '"]');
+        var fat = table.querySelector('[data-effm-fatotal="' + block + '"][data-level="' + lv + '"]');
+        if (tot) { tot.value = gv + fv; }
+        if (fat) { fat.value = fag + faf; }
+      });
+      ["g", "f", "fa_g", "fa_f"].forEach(function (kind) {
+        var c = table.querySelector('[data-effm-gtotal="' + kind + '"]');
+        if (c) {
+          c.value = sommeInputs(table, '[data-effm="' + block + '"][data-kind="' + kind + '"]');
         }
       });
-      if (tot) {
-        D.EFFECTIFS_COLONNES.forEach(function (c) {
-          var cible = tot.querySelector('[data-total-cell="' + c.n + '"]');
-          if (!cible) { return; }
-          var ig = g.querySelector('input[data-col="' + c.n + '"]');
-          var if_ = f.querySelector('input[data-col="' + c.n + '"]');
-          cible.value = nombre(ig) + nombre(if_);
-        });
+      var grand = table.querySelector('[data-effm-grand="total"]');
+      var grandFa = table.querySelector('[data-effm-grand="fa"]');
+      if (grand) {
+        grand.value = sommeInputs(table, '[data-effm="' + block + '"][data-kind="g"]') +
+          sommeInputs(table, '[data-effm="' + block + '"][data-kind="f"]');
+      }
+      if (grandFa) {
+        grandFa.value = sommeInputs(table, '[data-effm="' + block + '"][data-kind="fa_g"]') +
+          sommeInputs(table, '[data-effm="' + block + '"][data-kind="fa_f"]');
       }
     });
 
-    /* LV2 : totaux de cycle par langue et par sexe. */
-    var lv2 = conteneur.querySelector('table[data-eff-table="lv2"]');
+    var lv2 = conteneur.querySelector('[data-effm-table="lv2"]');
     if (lv2) {
-      D.LV2_LANGUES.forEach(function (l) {
+      D.LV2_LANGUES.forEach(function (lang) {
         ["g", "f"].forEach(function (sexe) {
-          var tr = lv2.querySelector('tr[data-eff-row="' + sexe + '"][data-lang="' + l[0] + '"]');
+          var tr = lv2.querySelector('tr[data-lv2m-row="' + sexe + '"][data-lang="' + lang[0] + '"]');
           if (!tr) { return; }
-          D.EFFECTIFS_GROUPES.forEach(function (gr) {
-            var cellule = tr.querySelector('[data-cycle-total="' + gr.cle + '"]');
-            if (cellule) {
-              cellule.value = sommeInputs(tr, 'input[data-cycle="' + gr.cle + '"]');
+          ["g", "f", "fa_g", "fa_f"].forEach(function (kind) {
+            var c = tr.querySelector('[data-lv2m-total="' + lang[0] + '"][data-kind="' + kind + '"]');
+            if (c) {
+              c.value = sommeInputs(tr, '[data-lv2m="' + lang[0] + '"][data-kind="' + kind + '"]');
+            }
+          });
+        });
+      });
+    }
+  }
+
+  function recalcEffectifsSecondaire() {
+    var nb = conteneur.querySelector('[data-effs-table="nb"]');
+    if (nb) {
+      var total = 0;
+      D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+        total += nombre(nb.querySelector('[data-effs-nb="' + gr.cle + '"]'));
+      });
+      var t = nb.querySelector("[data-effs-nbtotal]");
+      if (t) { t.value = total; }
+    }
+
+    conteneur.querySelectorAll("table.gm-effs").forEach(function (table) {
+      var block = table.getAttribute("data-effs-table");
+      if (!block || block === "nb") { return; }
+      D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+        gr.series.forEach(function (s) {
+          var gv = sommeInputs(table, '[data-effs="' + block + '"][data-group="' + gr.cle +
+            '"][data-serie="' + s[0] + '"][data-kind="g"]');
+          var fv = sommeInputs(table, '[data-effs="' + block + '"][data-group="' + gr.cle +
+            '"][data-serie="' + s[0] + '"][data-kind="f"]');
+          var tot = table.querySelector('[data-effs-total="' + block + '"][data-group="' +
+            gr.cle + '"][data-serie="' + s[0] + '"]');
+          if (tot) { tot.value = gv + fv; }
+        });
+        ["g", "f", "total"].forEach(function (kind) {
+          var c = table.querySelector('[data-effs-gtotal="' + block + '"][data-group="' +
+            gr.cle + '"][data-kind="' + kind + '"]');
+          if (c) {
+            var sum = 0;
+            gr.series.forEach(function (s) {
+              sum += sommeInputs(table, '[data-effs="' + block + '"][data-group="' + gr.cle +
+                '"][data-serie="' + s[0] + '"][data-kind="' + (kind === "total" ? "g" : kind) + '"]') +
+                (kind === "total" ? sommeInputs(table, '[data-effs="' + block + '"][data-group="' +
+                gr.cle + '"][data-serie="' + s[0] + '"][data-kind="f"]') : 0);
+            });
+            c.value = sum;
+          }
+        });
+      });
+    });
+
+    var lv2 = conteneur.querySelector('[data-effs-table="lv2"]');
+    if (lv2) {
+      D.LV2_LANGUES.forEach(function (lang) {
+        ["g", "f"].forEach(function (sexe) {
+          var tr = lv2.querySelector('tr[data-lv2s-row="' + sexe + '"][data-lang="' + lang[0] + '"]');
+          if (!tr) { return; }
+          D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
+            var c = tr.querySelector('[data-lv2s-total="' + lang[0] + '"][data-group="' +
+              gr.cle + '"][data-kind="' + sexe + '"]');
+            if (c) {
+              c.value = sommeInputs(tr, '[data-lv2s="' + lang[0] + '"][data-group="' +
+                gr.cle + '"][data-kind="' + sexe + '"]');
             }
           });
         });
@@ -1157,15 +1450,15 @@
     var adm_t_g = base.adm1_g + base.adm2_g;
     var adm_t_f = base.adm1_f + base.adm2_f;
     var adm_t = adm_t_g + adm_t_f;
-    function pct(n, d) {
+    function pctv(n, d) {
       return d > 0 ? (Math.round(n / d * 1000) / 10) : "";
     }
     return {
       pres_t: pres_t,
       adm_t_g: adm_t_g, adm_t_f: adm_t_f, adm_t: adm_t,
-      pct_g: pct(adm_t_g, base.pres_g),
-      pct_f: pct(adm_t_f, base.pres_f),
-      pct_etab: pct(adm_t, pres_t)
+      pct_g: pctv(adm_t_g, base.pres_g),
+      pct_f: pctv(adm_t_f, base.pres_f),
+      pct_etab: pctv(adm_t, pres_t)
     };
   }
 
@@ -1278,7 +1571,7 @@
         somme[m[0] + "_g"] = 0;
         somme[m[0] + "_f"] = 0;
       });
-      D.BAC_SERIES.forEach(function (s) {
+      D.MENTIONS_SERIES.forEach(function (s) {
         var source = index["mention_" + s[0]];
         if (!source) { return; }
         var base = lireMention(source);
@@ -1294,13 +1587,14 @@
   function recalculerTout() {
     recalcPersonnels();
     recalcElevesPage1();
-    recalcEffectifs();
+    recalcEffectifsMoyen();
+    recalcEffectifsSecondaire();
     recalcExamens();
     recalcMentions();
   }
 
   /* -----------------------------------------------------------------------
-     LIGNES DYNAMIQUES (personnel administratif / enseignant)
+     LIGNES DYNAMIQUES (personnel administratif / enseignant / service)
      ----------------------------------------------------------------------- */
   function corpsPers(type) {
     return conteneur.querySelector('tbody[data-pers-body="' + type + '"]');
@@ -1312,7 +1606,7 @@
   }
 
   function majCompteur(type) {
-    var max = type === "admin" ? MAX_ADMIN : MAX_ENSEIGNANT;
+    var max = maxDe(type);
     var el = conteneur.querySelector('[data-compteur="' + type + '"]');
     if (el) { el.textContent = compterPers(type) + " / " + max + " lignes"; }
   }
@@ -1320,7 +1614,7 @@
   function ajouterPers(type, silencieux) {
     var tb = corpsPers(type);
     if (!tb) { return; }
-    var max = type === "admin" ? MAX_ADMIN : MAX_ENSEIGNANT;
+    var max = maxDe(type);
     var n = compterPers(type);
     if (n >= max) {
       if (!silencieux) {
@@ -1361,8 +1655,12 @@
      REMPLISSAGE / COLLECTE
      ----------------------------------------------------------------------- */
   function remplir(obj) {
+    var m = modele();
+    if (m && typeof m.migrerDonnees === "function") {
+      obj = m.migrerDonnees(obj || {});
+    }
     donnees = obj || {};
-    ["admin", "enseignant"].forEach(function (type) {
+    ["admin", "enseignant", "service"].forEach(function (type) {
       var arr = donnees[type];
       if (Array.isArray(arr) && arr.length) { assurerLignes(type, arr.length); }
     });
@@ -1374,7 +1672,7 @@
         el.checked = !!(v === true || v === "oui" || v === "OUI" || v === 1);
         return;
       }
-      if (v === undefined || v === null) { v = el.type === "number" ? "" : ""; }
+      if (v === undefined || v === null) { v = ""; }
       el.value = v;
     });
     recalculerTout();
@@ -1386,7 +1684,7 @@
     Array.prototype.forEach.call(conteneur.querySelectorAll("[data-path]"), function (el) {
       setPath(out, el.getAttribute("data-path"), valeurDeEl(el));
     });
-    ["admin", "enseignant"].forEach(function (cle) {
+    ["admin", "enseignant", "service"].forEach(function (cle) {
       if (!Array.isArray(out[cle])) { return; }
       out[cle] = out[cle].filter(function (row) {
         return row && Object.keys(row).some(function (k) {
@@ -1498,11 +1796,15 @@
       erreurs.push("Le personnel enseignant ne peut pas dépasser " +
         MAX_ENSEIGNANT + " lignes.");
     }
+    if (compterPers("service") > MAX_SERVICE) {
+      erreurs.push("Le personnel de service ne peut pas dépasser " +
+        MAX_SERVICE + " lignes.");
+    }
     return erreurs;
   }
 
   /* -----------------------------------------------------------------------
-     SOUMISSION — PDF 11 pages
+     SOUMISSION — PDF 14 pages
      ----------------------------------------------------------------------- */
   async function soumettre(page) {
     var erreurs = valider();
@@ -1555,8 +1857,8 @@
     M.renderPreview(page.apercu, ctx);
 
     var pages = page.apercu.querySelectorAll(".pdf-page");
-    if (pages.length !== 11) {
-      throw new Error("Le rapport doit tenir sur exactement 11 pages (" +
+    if (pages.length !== 14) {
+      throw new Error("Le rapport doit tenir sur exactement 14 pages (" +
                       pages.length + " détectées).");
     }
 
