@@ -86,14 +86,14 @@
     <div class="carte" id="zone-listes" style="display:none;">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <h2 style="margin:0; border:none; padding:0; flex:1;">
-          Listes des écoles et des CODEC
+          Listes des écoles, CODEC et établissements
         </h2>
         <button class="btn gris petit" id="btn-listes-rafraichir">↻ Actualiser</button>
       </div>
       <div class="aide mt">
-        Ces listes alimentent les listes déroulantes du formulaire du
-        directeur. Une école ou un CODEC absent de la liste ne pourra pas
-        soumettre son rapport.
+        Ces listes alimentent les listes déroulantes des formulaires du
+        directeur (écoles, CODEC, communes, préscolaire, moyen). Une valeur
+        absente de sa liste ne pourra pas être soumise.
       </div>
       <div id="msg-listes" class="bandeau info mt" style="display:none;"></div>
 
@@ -157,6 +157,22 @@
             <button class="btn vert petit" data-ajout-btn="ecole_prescolaire">＋ Ajouter</button>
           </div>
           <ul class="liste-items" id="items-prescolaires"></ul>
+        </div>
+
+        <!-- 5ᵉ liste : établissements MOYENS & SECONDAIRES (CEM, lycées, CFA) -->
+        <div class="liste-colonne" data-type="ecole_moyen">
+          <div class="liste-entete">
+            <b id="nb-moyens">—</b> établissement(s) moyen(s)
+          </div>
+          <input type="search" class="liste-recherche" data-type="ecole_moyen"
+                 placeholder="Rechercher un CEM, lycée ou CFA…">
+          <div class="liste-ajout">
+            <input type="text" data-ajout="ecole_moyen" maxlength="90"
+                   placeholder="Ajouter un établissement moyen…"
+                   aria-label="Nouvel établissement moyen">
+            <button class="btn vert petit" data-ajout-btn="ecole_moyen">＋ Ajouter</button>
+          </div>
+          <ul class="liste-items" id="items-moyens"></ul>
         </div>
       </div>
     </div>
@@ -271,12 +287,20 @@
     /* Libellé du bouton PDF : nombre de pages du gabarit du type */
     $("btn-pdf").textContent = "⬇ Télécharger le PDF (" +
       (typeInfo.pages || 6) + " pages)";
-    /* Export XLSX : classeur câblé sur le modèle général élémentaire */
+    /* Export XLSX : classeur câblé sur le modèle général élémentaire.
+       Pour le rapport général moyen & secondaire, l'export XLSX est
+       volontairement supprimé (le PDF officiel 11 pages le remplace) :
+       on masque le bouton au lieu de le laisser grisé. */
     if (!xlsxOk) {
       var x = $("btn-xlsx");
-      x.disabled = true;
-      x.title = "Export XLSX indisponible pour « " + typeInfo.nom +
-                " » (modèle en préparation).";
+      if (TYPE === "general-moyen") {
+        x.disabled = true;
+        x.style.display = "none";
+      } else {
+        x.disabled = true;
+        x.title = "Export XLSX indisponible pour « " + typeInfo.nom +
+                  " » (modèle en préparation).";
+      }
     }
   }());
 
@@ -701,7 +725,7 @@
      place de RR_ECOLES / RR_CODECS / RR_COMMUNES (référencées par
      champs.js côté formulaire) → cache localStorage. */
   var listesVides = { ecole: "", codec: "", commune: "",
-                      ecole_prescolaire: "" };
+                      ecole_prescolaire: "", ecole_moyen: "" };
   /* D'où vient la liste affichée : "" = en cours de chargement,
      puis "serveur" / "cache" / "fallback" (ecoles.js). */
   var listesSource = "";
@@ -716,7 +740,8 @@
             "Listes synchronisées avec Supabase (" + r.ecoles +
             " écoles, " + r.codecs + " CODEC, " +
             (r.communes || 0) + " communes, " +
-            (r.prescolaires || 0) + " écoles préscolaires).");
+            (r.prescolaires || 0) + " écoles préscolaires, " +
+            (r.moyens || 0) + " établissements moyens).");
       } else if (r.source === "cache") {
         msg("msg-listes", "warn",
             "<b>Hors-ligne :</b> listes lues en cache local — " +
@@ -741,6 +766,9 @@
     if (type === "ecole_prescolaire") {
       return window.RR_ECOLES_PRESCOLAIRE || [];
     }
+    if (type === "ecole_moyen") {
+      return window.RR_ECOLES_MOYEN || [];
+    }
     return window.RR_ECOLES || [];
   }
 
@@ -748,15 +776,17 @@
     if (type === "codec") { return "CODEC"; }
     if (type === "commune") { return "communes"; }
     if (type === "ecole_prescolaire") { return "écoles préscolaires"; }
+    if (type === "ecole_moyen") { return "établissements moyens"; }
     return "écoles";
   }
 
-  /* Ids DOM par type de liste (4 colonnes gérées à l'identique). */
+  /* Ids DOM par type de liste (5 colonnes gérées à l'identique). */
   var IDS_LISTES = {
     ecole: { ul: "items-ecoles", nb: "nb-ecoles" },
     codec: { ul: "items-codecs", nb: "nb-codecs" },
     commune: { ul: "items-communes", nb: "nb-communes" },
-    ecole_prescolaire: { ul: "items-prescolaires", nb: "nb-prescolaires" }
+    ecole_prescolaire: { ul: "items-prescolaires", nb: "nb-prescolaires" },
+    ecole_moyen: { ul: "items-moyens", nb: "nb-moyens" }
   };
 
   function afficherListes() {
@@ -764,6 +794,7 @@
     afficherUneListe("codec");
     afficherUneListe("commune");
     afficherUneListe("ecole_prescolaire");
+    afficherUneListe("ecole_moyen");
     /* La liste a changé (chargement, ajout, suppression) : le compteur
        « En attente d'envoi » en dépend, on le recalcule. */
     afficherStats();
@@ -851,10 +882,12 @@
   async function retirerDeLaListe(type, valeur) {
     var libelle = type === "codec" ? "CODEC" :
                   type === "commune" ? "communes" :
-                  type === "ecole_prescolaire" ? "écoles préscolaires" : "écoles";
+                  type === "ecole_prescolaire" ? "écoles préscolaires" :
+                  type === "ecole_moyen" ? "établissements moyens" : "écoles";
     var details = "Valeur : " + valeur + "\n";
 
-    if (type === "ecole" || type === "ecole_prescolaire") {
+    if (type === "ecole" || type === "ecole_prescolaire" ||
+        type === "ecole_moyen") {
       var norm = window.RRdb.normaliserListe;
       var nb = lignes.filter(function (l) {
         return norm(l.ecole_nom || l.ecole_code) === norm(valeur);

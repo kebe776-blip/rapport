@@ -7,13 +7,14 @@ formulaire officiel dans son navigateur, clique sur **Soumettre**, et le
 **PDF officiel se télécharge automatiquement** — strictement identique au
 modèle administratif, sans compte, sans sélection d'école.
 
-Trois types de rapports sont disponibles à ce jour (plus les types
+Cinq types de rapports sont disponibles à ce jour (plus les types
 « bientôt disponibles ») :
 
 | Type | Formulaire | PDF |
 |---|---|---|
 | **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
 | **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → L) | **5 pages A4 paysage** |
+| **Rapport général de rentrée moyen & secondaire** | `general-moyen.html` (8 feuilles officielles) | **11 pages A4 mixtes** : 5 portraits + 6 paysages |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
 | **Rapport des évaluations (T1 / T2 / T3)** | `evaluations.html` (sections A → G) | **2 pages A4 portrait** (210 × 297 mm, marges 0) |
 
@@ -120,7 +121,36 @@ demande (registre `RR_MODELES[type]`), comme pour le succinct.
 l'**Export XLSX** de ce type sont déclarés *« en préparation »*
 (`analyse: false`, `xlsx: false` dans `config.js`).
 
-### Le rapport des évaluations — 2 pages A4 portrait strictes
+### Le rapport général moyen & secondaire - 11 pages strictes
+
+`general-moyen.html` applique le classeur officiel **« RAPPORT GÉNÉRAL DE
+RENTRÉE — Enseignement Moyen & Secondaire »** (8 feuilles). Le PDF contient
+**exactement 11 pages A4** : chaque feuille commence sur une nouvelle page,
+et les deux feuilles nominatives continuent sur plusieurs pages.
+
+| Page | Format | Feuille / contenu |
+|---|---|---|
+| **1** | Portrait (210 × 297 mm) | `1 - PAGE D'ENTRÉE` : identification, effectifs personnels / élèves, CGE, PE, cellules, clubs, chef d'établissement |
+| **2** | Portrait | `2 - STRUCTURES & EQUIPEMENTS` : locaux, sanitaires, eau / énergie, salles, équipements, manuels, supports |
+| **3** | Portrait | `3 - SITUATION TICE` : compétences, personnes ressources, partenaires, financements, contraintes / stratégies / recommandations |
+| **4** | Paysage (297 × 210 mm) | `4 - EFFECTIFS ELEVES` : classes, effectifs / passants / redoublants, LV2 |
+| **5** | Portrait | `5 - RÉSULTATS EXAMENS` : BFEM, baccalauréat (5 séries), mentions |
+| **6-7** | Paysage | `6 - PERSONNEL ADMINISTRATIF` : **52 lignes** réparties **26 + 26**, en-tête et pied répétés |
+| **8-10** | Paysage | `7 - PERSONNEL ENSEIGNANT` : **69 lignes** réparties **23 + 23 + 23** |
+| **11** | Portrait | `8 - OBSERVATIONS CHEF D'ETAB` : observations + cachet et signature |
+
+**Liste fermée** : le champ *Nom de l'établissement* propose les **17
+établissements moyens** de l'inspection (11 CEM, 5 lycées, 1 CFA) via
+`RR_ECOLES_MOYEN`. Toute valeur hors liste est **refusée à la validation**.
+La liste se gère depuis l'Espace Inspection, comme les écoles préscolaires.
+
+**Isolation du code** : moteur 100 % dédié (`champs-general-moyen.js` +
+`form-general-moyen.js` + `rapport-general-moyen.js`). `form.js`,
+`champs.js` et `rapport.js` restent **intacts**. Le gabarit n'est chargé par
+l'Espace Inspection qu'au moment d'afficher un rapport de ce type. Ce type
+n'a **ni export XLSX ni page Analyse** (`xlsx: false`, `analyse: false`).
+
+### Le rapport des évaluations - 2 pages A4 portrait strictes
 
 `evaluations.html` applique le modèle officiel **« RAPPORT DES ÉVALUATIONS
 DU 1er / 2e / 3e TRIMESTRE »** (relevé verbatim sur
@@ -186,28 +216,29 @@ sont strictement préservés : les autres types rendent à l'identique.
 * GitHub Pages : ~1,5 Mo de site, servi depuis le CDN GitHub (100 Go/mois offerts)
 * Aucun serveur à maintenir, aucun coût
 
-### Listes fermées : écoles, CODEC, communes et écoles préscolaires
+### Listes fermées : écoles, CODEC, communes, préscolaire et moyen
 
 Les champs **Nom de l'école**, **CODEC** et **Commune** (section A) sont des
 listes déroulantes **filtrables** : on tape quelques lettres, la liste réduit,
 on choisit. Le filtrage est **insensible aux accents et à la casse**
 (`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
 
-* **`assets/js/ecoles.js`** contient les quatre tableaux de repli :
+* **`assets/js/ecoles.js`** contient les cinq tableaux de repli :
   `RR_ECOLES` (**101 écoles**), `RR_CODECS` (**15 CODEC**),
   `RR_COMMUNES` (**5 communes** : KEUR MABA DIAKHOU, KEUR MADIABEL,
-  KEUR MANDONGO, NDRAMÉ ESCALE, WACK NGOUNA) et
-  `RR_ECOLES_PRESCOLAIRE` (**24 écoles préscolaires** : CPCE / CTP / EM,
-  liste fermée du rapport succinct). La source de
-  vérité est la table Supabase **`listes`** (voir `supabase/listes.sql`).
+  KEUR MANDONGO, NDRAMÉ ESCALE, WACK NGOUNA),
+  `RR_ECOLES_PRESCOLAIRE` (**24 écoles préscolaires** : CPCE / CTP / EM)
+  et `RR_ECOLES_MOYEN` (**17 établissements moyens** : 11 CEM, 5 lycées,
+  1 CFA). La source de vérité est la table Supabase **`listes`**
+  (voir `supabase/listes.sql` et les migrations).
 * **Blocage** : une valeur absente de la liste est **refusée à la
   soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
 * **CODEC et Commune facultatifs** : le champ peut rester vide, mais s'il
   est saisi il doit figer dans la liste.
 * **Gestion depuis l'espace Inspection** : la carte *« Listes des écoles
-  et des CODEC »* donne les **quatre colonnes** (écoles, CODEC, communes,
-  écoles préscolaires) pour ajouter ou supprimer une valeur sans toucher au
-  code (voir § 4).
+  et des CODEC »* donne les **cinq colonnes** (écoles, CODEC, communes,
+  écoles préscolaires, établissements moyens) pour ajouter ou supprimer une
+  valeur sans toucher au code (voir § 4).
 * **Repli hors-ligne** : serveur → cache localStorage → `ecoles.js`.
 
 ---
@@ -221,6 +252,9 @@ index.html              Page d'accueil : menu des rapports (succinct/général �
 general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
                         PRÉSCOLAIRE » (A → L) + soumission + PDF 5 pages paysage
+general-moyen.html      ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE —
+                        ENSEIGNEMENT MOYEN & SECONDAIRE » (8 feuilles)
+                        + soumission + PDF 11 pages (5 portraits + 6 paysages)
 succinct-prescolaire.html Formulaire du « RAPPORT DE SUCCINCT DE RENTRÉE »
                         préscolaire + soumission + PDF 2 pages (paysage + portrait)
 evaluations.html        ★ Formulaire du « RAPPORT DES ÉVALUATIONS » (A → G,
@@ -237,6 +271,7 @@ analyse.html            Exploitation des données (filtres, KPI, graphiques, syn
 assets/css/rapport.css  Mise en page officielle du rapport (partagée écran/PDF)
                         + styles du succinct (page 2 portrait, aperçu mixte)
                         + styles des évaluations (.a4-plein, .ev-*)
+                        + styles du général moyen (11 pages A4, portraits/paysages)
 assets/css/app.css      Styles de l'interface et du formulaire
 assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-barres)
 assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire, TYPES
@@ -247,6 +282,9 @@ assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
                         (paysage + portrait), registre RR_MODELES[type]
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
                         5 pages paysage (A → L), registre RR_MODELES[type]
+assets/js/rapport-general-moyen.js  ★ Modèle du général moyen & secondaire :
+                        11 pages A4 (5 portraits + 6 paysages), 8 feuilles,
+                        feuilles 6/7 sur plusieurs pages, RR_MODELES[type]
 assets/js/rapport-evaluations.js  ★ Modèle du rapport des évaluations :
                         2 pages A4 portrait 210 × 297 (marge 0), registre RR_MODELES[type]
 assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
@@ -261,14 +299,20 @@ assets/js/champs-general-prescolaire.js  ★ Définition du général préscolai
                         (sections A → L, personnel 10/2/5, effectifs 10,
                         mobiliers 16, recensements K 10 / L 14 lignes,
                         CODEC facultatif non imprimé)
+assets/js/champs-general-moyen.js  ★ Définition du général moyen & secondaire
+                        (8 feuilles, 52 administratifs / 69 enseignants,
+                        effectifs, examens, TICE, manuels)
 assets/js/ecoles.js     ★ LISTES FERMÉES : 101 écoles + 15 CODEC + 5 communes +
-                        24 écoles préscolaires (combos du formulaire)
+                        24 écoles préscolaires + 17 établissements moyens
 assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
                         validation minimale, brouillon, soumission 2 pages
 assets/js/form-general-prescolaire.js  ★ Moteur DÉDIÉ du général préscolaire :
                         rendu A → L, calculs (T=G+F, totaux I, Total mobilier),
                         brouillon dédié, soumission 5 pages + anti-doublon
+assets/js/form-general-moyen.js  ★ Moteur DÉDIÉ du général moyen & secondaire :
+                        rendu 8 sections, 52/69 lignes nominatives, calculs,
+                        brouillon dédié, soumission 11 pages + anti-doublon
 assets/js/form-evaluations.js  ★ Moteur DÉDIÉ des évaluations : rendu A → G,
                         combos, calculs (T = G+F, pourcentage MOYENNE/COMPOSÉ),
                         brouillon dédié, soumission 2 pages + anti-doublon,
@@ -293,6 +337,8 @@ supabase/migration_types.sql  Colonne `type` + PK (type, ecole_code, annee) + RP
 supabase/listes.sql     Table `listes` (écoles / CODEC / communes) + amorçage des 121 entrées
 supabase/migration_listes_prescolaire.sql  Contrainte CHECK à 4 types +
                         amorçage idempotent des 24 écoles préscolaires
+supabase/migration_listes_moyen.sql  Contrainte CHECK à 5 types +
+                        amorçage idempotent des 17 établissements moyens
 supabase/migration_visibilite.sql  Table `type_visibilite` : activer / désactiver
                         l'affichage des rapports sur la page d'accueil
 supabase/migration_visibilite_evaluations.sql  7ᵉ type (« evaluations »)
@@ -331,23 +377,29 @@ supabase/migration_visibilite_evaluations.sql  7ᵉ type (« evaluations »)
    rien et ne remet jamais une école retirée). Sans cette étape, l'ajout
    d'une école préscolaire depuis l'Espace Inspection échoue sur
    « check constraint ».
-6. **Et pour l'activation / désactivation des rapports sur l'accueil** →
+6. **Et pour le rapport général moyen & secondaire** → collez le contenu de
+   `supabase/migration_listes_moyen.sql` → **Run** : la contrainte
+   `listes.type` accepte le 5ᵉ type `ecole_moyen` et les **17 établissements
+   moyens** sont amorcés (idempotent). Sans cette étape, l'ajout ou la
+   suppression d'un établissement moyen depuis l'Espace Inspection échoue
+   sur « check constraint ».
+7. **Et pour l'activation / désactivation des rapports sur l'accueil** →
    collez le contenu de `supabase/migration_visibilite.sql` → **Run** : la
    table `type_visibilite` mémorise les types masqués depuis l'Espace
    Inspection. Un type **absent de la table est actif** (aucune ligne
    d'amorçage) ; sans cette étape, l'accueil reste complet (fail-open)
    et la bascule de l'Espace affiche le message invitant à exécuter ce
    fichier.
-7. **Et pour le rapport des évaluations** → collez le contenu de
+8. **Et pour le rapport des évaluations** → collez le contenu de
    `supabase/migration_visibilite_evaluations.sql` → **Run** : le 7ᵉ type
    `'evaluations'` rejoint la contrainte CHECK de `type_visibilite`
    (idempotent). Sans cette étape, les soumissions d'évaluations fonctionnent
    normalement mais la bascule *« Masquer de l'accueil »* de ce type échoue
    sur `type_visibilite_type_check`.
-8. **Authentication → Users → Add user** : créez le compte de l'Inspection
+9. **Authentication → Users → Add user** : créez le compte de l'Inspection
    (email + mot de passe) — c'est la seule connexion requise
-9. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
-   URL** (`https://xxxx.supabase.co`) et la **anon public key**
+10. **Project Settings → API Keys → View legacy API keys** : copiez l'**Project
+    URL** (`https://xxxx.supabase.co`) et la **anon public key**
 
 > ⚠️ Le rôle `anon` n'a **pas** de droit SELECT sur `rapports` : les écritures
 > passent par la fonction SQL `sauver_rapport` (SECURITY DEFINER). N'ajoutez pas
@@ -454,15 +506,16 @@ admin.html?type=evaluations             analyse.html?type=evaluations
   `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
   `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages),
-  `general-prescolaire` (5 pages) **et `evaluations`** (2 pages portrait) ;
+  `general-prescolaire` (5 pages), `general-moyen` (11 pages mixtes)
+  **et `evaluations`** (2 pages portrait) ;
   **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
   `general-elementaire` **et**
   `succinct-prescolaire` (modules dédiés chargés à la demande).
-  `general-prescolaire` et `evaluations` ont `xlsx: false` et
-  `analyse: false` : leur Espace Inspection affiche le bon nombre de pages
-  et ouvre le gabarit, mais l'Export
-  XLSX est **désactivé** et la page Analyse affiche **« Analyse en
-  préparation pour ce type »** avec un lien de retour (aucune donnée lue).
+  `general-prescolaire`, `general-moyen` et `evaluations` ont
+  `xlsx: false` et `analyse: false` : leur Espace Inspection affiche le bon
+  nombre de pages et ouvre le gabarit, mais l'Export XLSX est **désactivé**
+  et la page Analyse affiche **« Analyse en préparation pour ce type »**
+  avec un lien de retour (aucune donnée lue).
   Pour un type sans capacité, l'Espace affiche
   « à venir ».
 
@@ -585,11 +638,12 @@ liste vient alors du cache ou de `ecoles.js`.
 > L'ancien libellé « En attente d'envoi » affichait la file locale ; ce
 > compteur a été renommé **« File locale »** pour lever l'ambiguïté.
 
-### Gérer les listes des écoles, des CODEC, des communes et des écoles préscolaires
+### Gérer les listes des écoles, des CODEC, des communes, du préscolaire et du moyen
 
-Dans `admin.html`, la carte **« Listes des écoles et des CODEC »** (sous le
-tableau de bord) donne les **quatre colonnes** (écoles, CODEC, communes,
-écoles préscolaires), avec recherche, ajout et suppression :
+Dans `admin.html`, la carte **« Listes des écoles, CODEC et établissements »** (sous le
+tableau de bord) donne les **cinq colonnes** (écoles, CODEC, communes,
+écoles préscolaires, établissements moyens), avec recherche, ajout et
+suppression :
 
 | Action | Effet |
 |---|---|

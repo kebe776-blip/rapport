@@ -364,3 +364,291 @@ table.ev-table .ev-t  { color: #000000; }
   font-size: 14pt; font-weight: bold; line-height: 20pt;
   text-decoration: underline; text-underline-offset: 1pt;
 }
+
+/* =====================================================================
+   RAPPORT GÉNÉRAL DE RENTRÉE — ENSEIGNEMENT MOYEN & SECONDAIRE
+   EXACTEMENT 11 PAGES : 5 portraits (1,2,3,5,11) + 6 paysages
+   (4,6,7,8,9,10). Feuilles 6 et 7 réparties avec en-têtes répétés.
+   ===================================================================== */
+.gm-page {
+  font-family: "Arial Narrow", Arial, Helvetica, sans-serif;
+  color: #000;
+  font-size: 6.6pt;
+  line-height: 1.1;
+  padding: 1.2mm 1.6mm 4.4mm;
+  min-height: 100%;
+  position: relative;
+}
+.gm-page * { box-sizing: border-box; }
+
+/* --- En-tête institutionnel (page 1) --- */
+.gm-entete-officiel { display: flex; align-items: center; gap: 2mm; margin-bottom: 1.4mm; }
+.gm-entete-officiel .centre { flex: 1; text-align: center; line-height: 1.12; }
+.gm-entete-officiel .rep { font-size: 8pt; font-weight: bold; letter-spacing: .3pt; }
+.gm-entete-officiel .devise { font-size: 6.8pt; font-style: italic; }
+.gm-entete-officiel .niv { font-size: 7pt; font-weight: bold; }
+.gm-entete-officiel .logo-box { width: 16mm; height: 10mm; border: .25mm solid #666;
+  font-size: 5pt; color: #444; text-align: center; padding-top: 3.2mm; }
+.gm-entete-officiel .logo-img { width: 16mm; height: 10mm; object-fit: contain; }
+
+/* --- Ligne d'établissement des feuilles 2 à 11 --- */
+.gm-topline {
+  display: flex; justify-content: space-between; align-items: baseline;
+  border-bottom: .25mm solid #000; padding-bottom: .5mm; margin-bottom: 1.1mm;
+  font-size: 6.4pt;
+}
+.gm-topline .etab { font-weight: bold; text-transform: uppercase; }
+.gm-topline .situation { font-weight: bold; font-style: italic; white-space: nowrap; }
+
+/* --- Titres --- */
+.gm-titre-page {
+  border: .4mm solid #000; text-align: center; font-weight: bold;
+  font-size: 11pt; letter-spacing: .3pt; padding: .9mm; margin: .6mm 0 1mm;
+  background: #fff;
+}
+.gm-titre-page.petit { font-size: 8.8pt; padding: .6mm; margin-bottom: .9mm; }
+.gm-titre-page .annee { font-size: 7pt; font-weight: normal; font-style: italic; }
+.gm-h {
+  background: #eaf0f7; border: .25mm solid #000; border-bottom: 0;
+  font-weight: bold; font-size: 6.2pt; padding: .45mm .8mm; margin-top: 1mm;
+  text-transform: uppercase; letter-spacing: .2pt;
+}
+.gm-h:first-child { margin-top: 0; }
+
+/* --- Grilles libellé / valeur --- */
+table.gm-kv { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.gm-kv td {
+  vertical-align: bottom; padding: .5mm 1mm .15mm .2mm; font-size: 6.1pt;
+}
+table.gm-kv td.kv-l {
+  font-size: 5.15pt; line-height: 1.05; color: #222;
+  vertical-align: bottom; padding-bottom: 1.1mm;
+}
+table.gm-kv td.kv-v {
+  border-bottom: .22mm solid #000; min-height: 3.4mm;
+  font-weight: bold; color: #123f66; padding: 0 .7mm .35mm;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 6.3pt;
+}
+table.gm-kv .lbl { display: block; font-size: 5.15pt; line-height: 1.05; color: #222; }
+table.gm-kv .val {
+  display: block; border-bottom: .22mm solid #000; min-height: 3.4mm;
+  font-weight: bold; color: #123f66; padding: 0 .5mm;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+table.gm-kv .val.rouge { color: #111; }
+
+/* --- Deux colonnes --- */
+.gm-cols2 { display: flex; gap: 2.2mm; align-items: flex-start; }
+.gm-cols2 > .gm-col { flex: 1; min-width: 0; }
+
+/* --- Tableaux --- */
+table.gm-t { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.gm-t th, table.gm-t td {
+  border: .22mm solid #000; padding: .35mm .5mm; font-size: 5.8pt;
+  vertical-align: middle; overflow: hidden;
+}
+table.gm-t th { text-align: center; font-weight: bold; background: #f0f3f7; line-height: 1.02; }
+table.gm-t td.c { text-align: center; }
+table.gm-t td.r { text-align: right; }
+table.gm-t td.v { font-weight: bold; color: #123f66; text-align: center; }
+table.gm-t tr.tot td { font-weight: bold; background: #f7f7f7; }
+table.gm-t th.grp { background: #dde7f2; }
+table.gm-t td.lbl-cell { font-weight: bold; font-size: 5.6pt; }
+table.gm-t td.lbl-cell span { font-weight: normal; }
+table.gm-t.tres-compact th, table.gm-t.tres-compact td { font-size: 5.1pt; padding: .22mm .3mm; }
+table.gm-t.compact th, table.gm-t.compact td { font-size: 5.4pt; padding: .25mm .35mm; }
+table.gm-t.serre th, table.gm-t.serre td { padding: .12mm .25mm; }
+
+/* --- Cases à cocher --- */
+.gm-checks { display: flex; flex-wrap: wrap; gap: .8mm 3.2mm; padding: .7mm .4mm; font-size: 5.9pt; }
+.gm-check { display: inline-flex; align-items: center; gap: .7mm; white-space: nowrap; }
+.gm-cb {
+  display: inline-block; width: 2.8mm; height: 2.8mm; border: .22mm solid #000;
+  text-align: center; font-size: 5.2pt; line-height: 2.5mm; font-weight: bold;
+  vertical-align: middle; background: #fff;
+}
+.gm-cb.on { background: #123f66; color: #fff; }
+
+/* --- Tableaux nominatifs --- */
+table.gm-pers { width: 100%; border-collapse: collapse; table-layout: fixed; }
+table.gm-pers th, table.gm-pers td {
+  border: .22mm solid #000; padding: .25mm .45mm; font-size: 5.75pt;
+  vertical-align: middle; overflow: hidden; white-space: nowrap;
+}
+table.gm-pers th { text-align: center; font-weight: bold; background: #eaf0f7;
+  white-space: normal; line-height: 1.02; font-size: 5.3pt; }
+table.gm-pers td.c { text-align: center; }
+table.gm-pers td.nom { text-transform: uppercase; }
+table.gm-pers tr.vide td { height: 5.7mm; }
+table.gm-pers.admin td { height: 5.55mm; }
+table.gm-pers.ens td { height: 6.25mm; }
+
+/* --- Observations --- */
+.gm-obs-box {
+  border: .3mm solid #000; min-height: 196mm; padding: 2.5mm 3mm;
+  font-size: 8.5pt; line-height: 1.45; white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gm-sign {
+  margin-top: 2.5mm; display: flex; justify-content: flex-end;
+  font-size: 6.8pt;
+}
+.gm-sign .cadre { border: .25mm solid #000; width: 70mm; height: 22mm; padding: 1mm 2mm; }
+.gm-sign .cadre b { font-size: 6.4pt; }
+
+/* --- Pied de page --- */
+.gm-pied {
+  position: absolute; left: 1.6mm; right: 1.6mm; bottom: 1mm;
+  display: flex; justify-content: space-between;
+  font-size: 4.8pt; color: #555; border-top: .15mm solid #999; padding-top: .3mm;
+}
+
+/* --- Questions / réponses libres (TICE) --- */
+.gm-question {
+  font-weight: bold; font-size: 6.1pt; margin: 1.2mm 0 .5mm;
+}
+.gm-rep {
+  border: .22mm solid #000; min-height: 13mm; padding: 1mm 1.5mm;
+  font-size: 6.6pt; line-height: 1.35; white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* --- Mentions et notes --- */
+.gm-note { font-size: 5.2pt; font-style: italic; color: #333; margin: .4mm 0; }
+.gm-marge-haut { margin-top: 1mm; }
+.gm-2lignes { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; }
+
+/* =====================================================================
+   AJUSTEMENTS 2026 — PAGES A4 PLEINES (210 x 297 / 297 x 210 mm)
+   Le modèle Excel officiel imprime en A4 sans marge de dépôt. Les
+   dimensions ci-dessous remplacent la zone utile 188 x 281 / 275 x 194
+   pour ce type uniquement (les autres rapports ne changent pas).
+   ===================================================================== */
+.pdf-page.gm-a4 { width: 210mm; height: 297mm; }
+.pdf-page.gm-a4.landscape { width: 297mm; height: 210mm; }
+.pdf-page.gm-a4.portrait { width: 210mm; height: 297mm; }
+
+.gm-page {
+  padding: 5mm 7mm 9mm;
+  font-size: 8.2pt;
+  line-height: 1.16;
+}
+.gm-page.gm-paysage { padding: 4mm 7mm 8mm; }
+
+/* En-tête institutionnel */
+.gm-entete-officiel { gap: 3mm; margin-bottom: 2mm; }
+.gm-entete-officiel .rep { font-size: 10pt; }
+.gm-entete-officiel .devise { font-size: 8pt; }
+.gm-entete-officiel .niv { font-size: 8.2pt; }
+.gm-entete-officiel .logo-box,
+.gm-entete-officiel .logo-img { width: 18mm; height: 11.5mm; }
+.drapeau-img { width: 17mm; height: 11.5mm; }
+
+/* Ligne établissement */
+.gm-topline {
+  font-size: 8pt; padding-bottom: .8mm; margin-bottom: 1.4mm;
+}
+
+/* Titres */
+.gm-titre-page {
+  font-size: 16pt; padding: 1.5mm 1mm; margin: 1mm 0 1.8mm;
+  letter-spacing: .4pt;
+}
+.gm-titre-page.petit { font-size: 13.5pt; padding: 1.2mm; margin-bottom: 1.4mm; }
+.gm-titre-page .annee { font-size: 8.5pt; }
+
+/* Intertitres de section */
+.gm-h {
+  font-size: 7.8pt; padding: .7mm 1.1mm; margin-top: 1.5mm;
+}
+
+/* Grilles libellé / valeur */
+table.gm-kv td { padding: .7mm 1.2mm .35mm .3mm; font-size: 8pt; }
+table.gm-kv td.kv-l { font-size: 7.2pt; padding-bottom: 1.5mm; }
+table.gm-kv td.kv-v,
+table.gm-kv .val {
+  min-height: 5.1mm; font-size: 8.1pt; padding: 0 1mm .5mm;
+}
+table.gm-kv .lbl { font-size: 7.2pt; }
+table.gm-kv2 { table-layout: fixed; }
+table.gm-kv2 td.kv-l {
+  width: 43%; text-align: right; padding-right: 1.6mm;
+  white-space: normal; line-height: 1.05;
+}
+table.gm-kv2 td.kv-v { width: 57%; text-align: left; }
+table.gm-tice-infos { table-layout: fixed; margin-top: .8mm; }
+table.gm-tice-infos td.kv-l { width: 30%; text-align: left; }
+table.gm-tice-infos td.kv-v { width: 20%; text-align: left; }
+
+/* Tableaux */
+table.gm-t th, table.gm-t td { font-size: 7.4pt; padding: .55mm .7mm; }
+table.gm-t th { line-height: 1.08; }
+table.gm-t td.lbl-cell { font-size: 7.2pt; }
+table.gm-t.tres-compact th, table.gm-t.tres-compact td {
+  font-size: 6.8pt; padding: .4mm .45mm;
+}
+table.gm-t.compact th, table.gm-t.compact td {
+  font-size: 7.2pt; padding: .5mm .55mm;
+}
+table.gm-t.serre th, table.gm-t.serre td { padding: .3mm .4mm; }
+
+/* Cases à cocher */
+.gm-checks { gap: 1.2mm 5mm; padding: 1.2mm .5mm; font-size: 8pt; }
+.gm-check { gap: 1.1mm; }
+.gm-cb {
+  width: 3.6mm; height: 3.6mm; font-size: 7pt; line-height: 3.2mm;
+}
+
+/* Tableaux nominatifs */
+table.gm-pers th, table.gm-pers td {
+  padding: .45mm .6mm; font-size: 7.1pt;
+}
+table.gm-pers th { font-size: 6.7pt; line-height: 1.05; }
+
+/* Observations */
+.gm-obs-box {
+  min-height: 229mm; padding: 4mm 5mm; font-size: 10.5pt; line-height: 1.55;
+}
+.gm-sign { margin-top: 3mm; font-size: 8pt; }
+.gm-sign .cadre { width: 80mm; height: 30mm; padding: 1.5mm 2.5mm; }
+.gm-sign .cadre b { font-size: 8pt; }
+
+/* Pied de page */
+.gm-pied {
+  left: 7mm; right: 7mm; bottom: 2.5mm; font-size: 6.4pt;
+  padding-top: .6mm;
+}
+.gm-page.gm-paysage .gm-pied { left: 7mm; right: 7mm; bottom: 2mm; }
+
+/* Questions / réponses libres */
+.gm-question { font-size: 8.1pt; margin: 1.8mm 0 .8mm; }
+.gm-rep {
+  min-height: 26mm; padding: 1.5mm 2mm; font-size: 8.5pt; line-height: 1.4;
+}
+
+.gm-note { font-size: 7pt; margin: .6mm 0; }
+
+/* Variantes par page : densité verticale adaptée au modèle Excel. */
+.gm-page.gm-p1 .gm-titre-page {
+  font-size: 14.3pt; letter-spacing: .15pt; white-space: nowrap;
+}
+.gm-page.gm-p1 table.gm-t.compact th,
+.gm-page.gm-p1 table.gm-t.compact td { padding: .7mm .8mm; }
+.gm-page.gm-p1 table.gm-t.compact td:first-child { font-size: 6.55pt; }
+.gm-page.gm-p2 .gm-cols2 { gap: 4mm; }
+.gm-page.gm-p4 table.gm-t th { height: 5.4mm; padding: .5mm .55mm; font-size: 7.6pt; }
+.gm-page.gm-p4 table.gm-t td { height: 5.9mm; padding: .5mm .55mm; font-size: 7.7pt; }
+.gm-page.gm-p4 table.gm-t td.lbl-cell {
+  font-size: 7pt; white-space: nowrap; line-height: 1.02;
+}
+.gm-page.gm-p5 table.gm-t th,
+.gm-page.gm-p5 table.gm-t td { height: 7mm; padding: .55mm .45mm; font-size: 7.7pt; }
+.gm-page.gm-p5 table.gm-t.compact th,
+.gm-page.gm-p5 table.gm-t.compact td { height: 7mm; }
+.gm-page.gm-p6 table.gm-pers td,
+.gm-page.gm-p7 table.gm-pers td { height: 6.55mm; }
+.gm-page.gm-p8 table.gm-pers td { height: 6.75mm; }
+.gm-page.gm-p9 table.gm-pers td,
+.gm-page.gm-p10 table.gm-pers td { height: 6.55mm; }

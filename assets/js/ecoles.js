@@ -3,6 +3,7 @@
    -------------------------------------------------------------------------
    • RR_ECOLES : les écoles de l'IEF de KEUR MADIABEL (liste officielle).
    • RR_ECOLES_PRESCOLAIRE : les écoles préscolaires (CPE/CPCE/CTP/EM).
+   • RR_ECOLES_MOYEN : les établissements moyens (CEM, lycées, CFA).
    • RR_CODECS : les CODEC rattachés (facultatif, mais fermé s'il est saisi).
 
    Ces tableaux alimentent les champs « combo » du formulaire :
@@ -147,6 +148,30 @@
     "CTP WACK NGOUNA",
     "EM KEUR MADIABEL",
     "EM SABOYA"
+  ];
+
+  /* --- Établissements MOYENS (17) — liste fermée du rapport général
+         moyen & secondaire : CEM, lycées et CFA de l'inspection.
+         Alimente le champ « Nom de l'établissement » du formulaire
+         general-moyen.html (saisie hors liste REFUSÉE). --- */
+  global.RR_ECOLES_MOYEN = [
+    "CEM KEUR MADIABEL",
+    "CEM KEUR MADIABEL COMMUNE",
+    "CEM KEUR MADY YACINE",
+    "CEM KEUR MANDONGO",
+    "CEM KEUR YORO KHODIA",
+    "CEM KOUTANGO",
+    "CEM MATAR KALLA DRAME",
+    "CEM NDIAYENE POSTE",
+    "CEM NDRAME ESCALE",
+    "CEM SABOYA",
+    "CEM THILLAGRAND",
+    "CFA WACK NGOUNA",
+    "LYCEE FA KEUR MADIABEL",
+    "LYCEE KEUR MABA DIAKHOU",
+    "LYCEE KEUR MADIABEL",
+    "LYCEE VELINGARA WALO",
+    "LYCEE WACK NGOUNA"
   ];
 
   /* --- Communes de l'IEF (5) — liste officielle, fermée --- */

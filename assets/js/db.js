@@ -250,6 +250,7 @@
     if (type === "codec") { return global.RR_CODECS; }
     if (type === "commune") { return global.RR_COMMUNES; }
     if (type === "ecole_prescolaire") { return global.RR_ECOLES_PRESCOLAIRE; }
+    if (type === "ecole_moyen") { return global.RR_ECOLES_MOYEN; }
     return global.RR_ECOLES;
   }
 
@@ -258,6 +259,7 @@
     if (type === "codec") { return "CODEC"; }
     if (type === "commune") { return "communes"; }
     if (type === "ecole_prescolaire") { return "écoles préscolaires"; }
+    if (type === "ecole_moyen") { return "établissements moyens"; }
     return "écoles";
   }
 
@@ -266,7 +268,8 @@
       localStorage.setItem(LS_LISTES, JSON.stringify({
         t: Date.now(), ecoles: donnees.ecoles, codecs: donnees.codecs,
         communes: donnees.communes,
-        prescolaires: donnees.prescolaires || []
+        prescolaires: donnees.prescolaires || [],
+        moyens: donnees.moyens || []
       }));
     } catch (e) { /* stockage plein : on ignore */ }
   }
@@ -286,16 +289,19 @@
     if (!c) { throw new Error("Supabase non configuré"); }
     var res = await c.from("listes").select("type, valeur");
     if (res.error) { throw new Error(res.error.message); }
-    var ecoles = [], codecs = [], communes = [], prescolaires = [];
+    var ecoles = [], codecs = [], communes = [], prescolaires = [],
+        moyens = [];
     (res.data || []).forEach(function (r) {
       if (r.type === "codec") { codecs.push(r.valeur); }
       else if (r.type === "commune") { communes.push(r.valeur); }
       else if (r.type === "ecole_prescolaire") { prescolaires.push(r.valeur); }
+      else if (r.type === "ecole_moyen") { moyens.push(r.valeur); }
       else { ecoles.push(r.valeur); }
     });
     trier(ecoles); trier(codecs); trier(communes); trier(prescolaires);
+    trier(moyens);
     return { ecoles: ecoles, codecs: codecs, communes: communes,
-             prescolaires: prescolaires };
+             prescolaires: prescolaires, moyens: moyens };
   }
 
   /**
@@ -324,11 +330,15 @@
       if (donnees.prescolaires && donnees.prescolaires.length) {
         poserTableau(global.RR_ECOLES_PRESCOLAIRE, donnees.prescolaires);
       }
+      if (donnees.moyens && donnees.moyens.length) {
+        poserTableau(global.RR_ECOLES_MOYEN, donnees.moyens);
+      }
       ecrireCache(donnees);
       return { source: "serveur", ecoles: donnees.ecoles.length,
                codecs: donnees.codecs.length,
                communes: (donnees.communes || []).length,
-               prescolaires: (donnees.prescolaires || []).length };
+               prescolaires: (donnees.prescolaires || []).length,
+               moyens: (donnees.moyens || []).length };
     }
     var cache = lireCache();
     if (cache) {
@@ -340,15 +350,20 @@
       if (cache.prescolaires && cache.prescolaires.length) {
         poserTableau(global.RR_ECOLES_PRESCOLAIRE, cache.prescolaires);
       }
+      if (cache.moyens && cache.moyens.length) {
+        poserTableau(global.RR_ECOLES_MOYEN, cache.moyens);
+      }
       return { source: "cache", ecoles: cache.ecoles.length,
                codecs: (cache.codecs || []).length,
                communes: (cache.communes || []).length,
-               prescolaires: (cache.prescolaires || []).length };
+               prescolaires: (cache.prescolaires || []).length,
+               moyens: (cache.moyens || []).length };
     }
     return { source: "fallback", ecoles: (global.RR_ECOLES || []).length,
              codecs: (global.RR_CODECS || []).length,
              communes: (global.RR_COMMUNES || []).length,
-             prescolaires: (global.RR_ECOLES_PRESCOLAIRE || []).length };
+             prescolaires: (global.RR_ECOLES_PRESCOLAIRE || []).length,
+             moyens: (global.RR_ECOLES_MOYEN || []).length };
   }
 
   /** Ajoute une valeur (doublon normalisé refusé côté client ET serveur). */
@@ -359,7 +374,7 @@
       .replace(/\s+/g, " ").trim();
     if (!v) { throw new Error("Merci de saisir une valeur."); }
     if (type !== "ecole" && type !== "codec" && type !== "commune" &&
-        type !== "ecole_prescolaire") {
+        type !== "ecole_prescolaire" && type !== "ecole_moyen") {
       throw new Error("Type de liste inconnu.");
     }
     var cible = tableauDe(type);
@@ -379,7 +394,9 @@
           "liste : exécutez `" +
           (type === "ecole_prescolaire"
             ? "supabase/migration_listes_prescolaire.sql"
-            : "supabase/listes.sql") +
+            : type === "ecole_moyen"
+              ? "supabase/migration_listes_moyen.sql"
+              : "supabase/listes.sql") +
           "` dans le SQL Editor.");
       }
       throw new Error(res.error.message);
@@ -391,7 +408,8 @@
     trier(cible);
     ecrireCache({ ecoles: global.RR_ECOLES, codecs: global.RR_CODECS,
                   communes: global.RR_COMMUNES,
-                  prescolaires: global.RR_ECOLES_PRESCOLAIRE });
+                  prescolaires: global.RR_ECOLES_PRESCOLAIRE,
+                  moyens: global.RR_ECOLES_MOYEN });
     return v;
   }
 
@@ -413,7 +431,8 @@
     }
     ecrireCache({ ecoles: global.RR_ECOLES, codecs: global.RR_CODECS,
                   communes: global.RR_COMMUNES,
-                  prescolaires: global.RR_ECOLES_PRESCOLAIRE });
+                  prescolaires: global.RR_ECOLES_PRESCOLAIRE,
+                  moyens: global.RR_ECOLES_MOYEN });
     return true;
   }
 
