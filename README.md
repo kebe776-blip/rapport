@@ -13,7 +13,7 @@ Cinq types de rapports sont disponibles à ce jour (plus les types
 | Type | Formulaire | PDF |
 |---|---|---|
 | **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
-| **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → L) | **5 pages A4 paysage** |
+| **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → M) | **5 pages A4 paysage** |
 | **Rapport général de rentrée moyen & secondaire** | `general-moyen.html` (11 feuilles officielles) | **14 pages A4 mixtes** : 6 portraits + 8 paysages |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
 | **Rapport des évaluations (T1 / T2 / T3)** | `evaluations.html` (sections A → G) | **2 pages A4 portrait** (210 × 297 mm, marges 0) |
@@ -88,21 +88,21 @@ SheetJS restent, eux, chargés uniquement au clic.
 ### Le rapport général préscolaire — 5 pages strictes
 
 `general-prescolaire.html` applique le modèle officiel **« RAPPORT GÉNÉRAL
-DE RENTRÉE PRÉSCOLAIRE »**, relevé verbatim sur le `.docx` 2024/2025 et
-confronté aux captures du modèle 2026/2027 (`RG 1-5 prescolaire.PNG`).
-Le PDF contient **exactement 5 pages A4 paysage** (sections **A → L**) :
+DE RENTRÉE PRÉSCOLAIRE »**, relevé sur le `.docx` officiel et la capture de
+la page 4 fournie pour le modèle 2026/2027 (`RG 1-5 prescolaire.PNG`).
+Le PDF contient **exactement 5 pages A4 paysage** (sections **A → M**) :
 
 | Page | Contenu |
 |---|---|
 | **1** | En-tête officiel + **A** Identification (sans le CODEC) + **B** Classes pédagogiques (3 colonnes) + **C** Classes physiques (ETAT/ANCTP/COM./PLAN/PRIVE/APE + Total auto + abris + à réhabiliter + note *« Ne mettez pas de croix… »*) + **D** Directeur (avec WhatsApp) |
 | **2** | **E** Ouvrages annexes (cabines adaptées/non adaptées, *Bloc administratif*, Senelec + plaques solaires seuls, robinet/puits Oui-Non + État + Bailleur) + **F** Activités (ligne « 2 » du modèle Word non reproduite) + **G** Observations + *LE DIRECTEUR (signature et cachet)* |
 | **3** | **H** Personnel enseignant **10 lignes** (colonne *Section tenue*) + **MALADES 2 lignes** + récapitulation FR/AR + **SERVICE 5 lignes** |
-| **4** | **I** Effectifs **10 lignes libres** (EFFECTIF / HANDICAPÉ / SANS ÉTAT CIVIL × G F T + *Type : Simple/  /CMG* + ligne **TOTAL** calculée, sans colonne N°Maître) + **J** **MOBLIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) |
-| **5** | **K** **RECENSEMENT DES MANUELS 10 lignes** (*Désignation / Quantité / Provenances / Besoins / Observations*) + **L** **RECENSEMENT DU MATÉRIEL 14 lignes** (*Désignation / Quantité / Provenance / Besoins / Observations*) — tableaux sans colonne N° + pied de page |
+| **4** | **I** Effectifs **3 lignes fixes P.S / M.S / G.S** (EFFECTIF / PASSANTS / REDOUBLANTS / TRANSFERTS ENTRANTS / TRANSFERTS SORTANTS / SANS ÉTAT CIVIL × G F T + ligne **TOTAL** calculée) + **J** **SITUATION DES HANDICAPÉS** (8 catégories × G F T + TOTAL) + **K** **MOBILIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) |
+| **5** | **L** **RECENSEMENT DES MANUELS 10 lignes** (*Désignation / Quantité / Provenances / Besoins / Observations*) + **M** **RECENSEMENT DU MATÉRIEL 14 lignes** (*Désignation / Quantité / Provenance / Besoins / Observations*) — tableaux sans colonne N° + pied de page |
 
-Décisions de conformité (modèle 2026/2027) : **page 5 = K + L** ajoutée
-sur demande (libellés verbatim du `.docx` : « Provenances » au pluriel pour
-K, « Provenance » au singulier pour L), **CODEC facultatif non
+Décisions de conformité (modèle 2026/2027) : **page 4 = I + J + K** et
+**page 5 = L + M** (libellés verbatim du `.docx` : « Provenances » au
+pluriel pour L, « Provenance » au singulier pour M), **CODEC facultatif non
 imprimé** sur le PDF (il sert uniquement au groupement de l'Analyse),
 colonne **« N°Maître » non reprise**.
 
@@ -261,7 +261,7 @@ index.html              Page d'accueil : menu des rapports (succinct/général �
                         + Espace Inspection (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
 general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
-                        PRÉSCOLAIRE » (A → L) + soumission + PDF 5 pages paysage
+                        PRÉSCOLAIRE » (A → M) + soumission + PDF 5 pages paysage
 general-moyen.html      ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE —
                         ENSEIGNEMENT MOYEN & SECONDAIRE » (11 feuilles)
                         + soumission + PDF 14 pages (6 portraits + 8 paysages)
@@ -291,7 +291,7 @@ assets/js/rapport.js    Génération HTML des 6 pages officielles (élémentaire
 assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
                         (paysage + portrait), registre RR_MODELES[type]
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
-                        5 pages paysage (A → L), registre RR_MODELES[type]
+                        5 pages paysage (A → M), registre RR_MODELES[type]
 assets/js/rapport-general-moyen.js  ★ Modèle du général moyen & secondaire :
                         14 pages A4 (6 portraits + 8 paysages), 11 feuilles,
                         feuilles 8/9/10 sur plusieurs pages, RR_MODELES[type]
@@ -306,8 +306,9 @@ assets/js/champs-succinct.js   ★ Définition du modèle succinct (sections + t
 assets/js/champs-evaluations.js  ★ Définition des évaluations (A/B, classes
                         CI → CM2, 3 matières × 3 statistiques, commentaires)
 assets/js/champs-general-prescolaire.js  ★ Définition du général préscolaire
-                        (sections A → L, personnel 10/2/5, effectifs 10,
-                        mobiliers 16, recensements K 10 / L 14 lignes,
+                        (sections A → M, personnel 10/2/5, effectifs I et
+                        handicapés J à lignes fixes, mobiliers K 16,
+                        recensements L 10 / M 14 lignes,
                         CODEC facultatif non imprimé)
 assets/js/champs-general-moyen.js  ★ Définition du général moyen & secondaire
                         (11 feuilles, 52 administratifs / 69 enseignants /
@@ -319,8 +320,9 @@ assets/js/form.js       Rendu, collecte, brouillon hors-ligne, soumission
 assets/js/form-succinct.js     ★ Moteur DÉDIÉ du succinct : rendu, combos,
                         validation minimale, brouillon, soumission 2 pages
 assets/js/form-general-prescolaire.js  ★ Moteur DÉDIÉ du général préscolaire :
-                        rendu A → L, calculs (T=G+F, totaux I, Total mobilier),
-                        brouillon dédié, soumission 5 pages + anti-doublon
+                        rendu A → M, calculs (T=G+F, totaux I et J,
+                        Total mobilier), brouillon dédié, soumission
+                        5 pages + anti-doublon
 assets/js/form-general-moyen.js  ★ Moteur DÉDIÉ du général moyen & secondaire :
                         rendu 11 sections, 52/69/20 lignes nominatives,
                         calculs moyen/secondaire, brouillon dédié,

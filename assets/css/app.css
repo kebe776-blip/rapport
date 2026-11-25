@@ -429,6 +429,39 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .table-saisie[data-repeat="manuels"] input.fixe { width: 320px; }
   .table-saisie select { width: auto; max-width: 180px; }
 
+  /* I effectifs et J handicapés du préscolaire : 18 / 24 colonnes numériques,
+     compactées à 44 px pour limiter la largeur du défilement horizontal. */
+  table[data-table="effectifs"] input[data-type="num"],
+  table[data-table="handicapes"] input[data-type="num"] {
+    width: 44px;
+    min-width: 44px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+  table[data-table="effectifs"] th,
+  table[data-table="effectifs"] td,
+  table[data-table="handicapes"] th,
+  table[data-table="handicapes"] td {
+    padding: 4px 3px;
+    font-size: 12px;
+  }
+  /* Les en-têtes de groupe peuvent passer à la ligne et les colonnes
+     numériques sont bornées à 50 px (input 44 px + bordures) : le tableau
+     reste lisible sans devenir démesurément large au téléphone. */
+  table[data-table="effectifs"] thead th.grp,
+  table[data-table="handicapes"] thead th.grp {
+    white-space: normal;
+    vertical-align: bottom;
+  }
+  table[data-table="effectifs"] thead tr:nth-child(2) th,
+  table[data-table="effectifs"] tbody td:not(:first-child),
+  table[data-table="handicapes"] thead tr:nth-child(2) th,
+  table[data-table="handicapes"] tbody td:not(:first-child) {
+    width: 50px !important;
+    min-width: 50px !important;
+    max-width: 50px !important;
+  }
+
   /* ---------- Grands tableaux d'effectifs et d'examens (general-moyen) ----------
      Les champs calculés `.gm-calc` n'ont pas de largeur propre : au téléphone,
      leur largeur intrinsèque (183 px) gonflait chaque colonne et repoussait

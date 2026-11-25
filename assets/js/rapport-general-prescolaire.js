@@ -4,12 +4,12 @@
      • page 1 → en-tête + A identification + B classes + C physique + D directeur
      • page 2 → E ouvrages annexes + F activités + G observations + signature
      • page 3 → H personnel (enseignants + malades) + récapitulation + service
-     • page 4 → I effectifs + J mobiliers
-     • page 5 → K recensement des manuels + L recensement du matériel
+     • page 4 → I effectifs + J situation des handicapés + K mobiliers
+     • page 5 → L recensement des manuels + M recensement du matériel
    Se register dans le registre RR_MODELES[type] : les appelants
    (admin.html, general-prescolaire.html, apercu.html) dispatchent vers ce
    modèle ; rapport.js / lib.js restent intacts (défaut = élémentaire).
-   Libellés relevés verbatim sur le .docx officiel 2024/2025 (page 5 = K + L) ;
+   Libellés relevés verbatim sur le .docx officiel (page 5 = L + M) ;
    ========================================================================= */
 (function (global) {
   "use strict";
@@ -25,8 +25,8 @@
     "En-tête + A identification + B classes pédagogiques + C classes physiques + D directeur",
     "E ouvrages annexes + F activités péri et para scolaires + G observations + signature",
     "H personnel enseignant + malades + récapitulation + personnel de service",
-    "I situation des effectifs + J mobiliers",
-    "K recensement des manuels + L recensement du matériel"
+    "I situation des effectifs + J situation des handicapés + K mobiliers",
+    "L recensement des manuels + M recensement du matériel"
   ];
 
   /* -----------------------------------------------------------------------
@@ -294,27 +294,78 @@
       recap_ar[k] = num(val(f, k, "recap_personnel/recap_arabe/"));
     });
 
-    /* --- I. Effectifs : 10 sections libres + ligne TOTAL calculée --- */
+    /* --- I. Effectifs : 3 lignes fixes P.S / M.S / G.S + TOTAL --- */
+    var SECTIONS_FIXES = [
+      { code: "PS", l: "P.S" },
+      { code: "MS", l: "M.S" },
+      { code: "GS", l: "G.S" }
+    ];
     var effCols = ["eff_g", "eff_f", "eff_t",
-                   "hand_g", "hand_f", "hand_t",
+                   "pass_g", "pass_f", "pass_t",
+                   "red_g", "red_f", "red_t",
+                   "te_g", "te_f", "te_t",
+                   "ts_g", "ts_f", "ts_t",
                    "sec_g", "sec_f", "sec_t"];
-    var totaux = {};
-    effCols.forEach(function (k) { totaux[k] = 0; });
 
-    var effectifs = rows(f, "effectifs").filter(nonVide).map(function (item) {
-      var r = { section: txt(item.section) };
-      effCols.forEach(function (k) {
-        r[k] = num(item[k]);
-        totaux[k] += r[k];
+    /** Ligne fixe : reprise par libellé (PS / MS / GS, ou Petite / Moyenne /
+     *  Grande section), sinon par position. */
+    function ligneFixe(index, code, label, list) {
+      var cible = code.toUpperCase();
+      var trouve = null;
+      list.forEach(function (item) {
+        if (trouve) { return; }
+        var s = txt(item.section).toUpperCase().replace(/[\s.\-]/g, "");
+        if (!s) { return; }
+        if (s === cible ||
+            (cible === "PS" && s.indexOf("PETITE") === 0) ||
+            (cible === "MS" && s.indexOf("MOYENNE") === 0) ||
+            (cible === "GS" && s.indexOf("GRANDE") === 0)) {
+          trouve = item;
+        }
       });
-      r.type = txt(item.type);
-      return r;
+      var item = trouve || list[index] || {};
+      var r = { section: label };
+      return { item: item, ligne: r };
+    }
+
+    var effRows = rows(f, "effectifs");
+    var effectifs = SECTIONS_FIXES.map(function (s, i) {
+      var fixe = ligneFixe(i, s.code, s.l, effRows);
+      effCols.forEach(function (k) { fixe.ligne[k] = num(fixe.item[k]); });
+      return fixe.ligne;
     });
 
     var effectifs_total = { section: "TOTAL" };
-    effCols.forEach(function (k) { effectifs_total[k] = totaux[k]; });
+    effCols.forEach(function (k) {
+      effectifs_total[k] = effectifs.reduce(function (somme, r) {
+        return somme + r[k];
+      }, 0);
+    });
 
-    /* --- J. Mobiliers : 16 lignes fixes du modèle --- */
+    /* --- J. Situation des handicapés : 3 lignes fixes + TOTAL --- */
+    var handCols = ["mot_g", "mot_f", "mot_t",
+                    "nv_g", "nv_f", "nv_t",
+                    "mv_g", "mv_f", "mv_t",
+                    "sd_g", "sd_f", "sd_t",
+                    "me_g", "me_f", "me_t",
+                    "di_g", "di_f", "di_t",
+                    "aut_g", "aut_f", "aut_t",
+                    "poly_g", "poly_f", "poly_t"];
+    var handRows = rows(f, "handicapes");
+    var handicapes = SECTIONS_FIXES.map(function (s, i) {
+      var fixe = ligneFixe(i, s.code, s.l, handRows);
+      handCols.forEach(function (k) { fixe.ligne[k] = num(fixe.item[k]); });
+      return fixe.ligne;
+    });
+
+    var handicapes_total = { section: "TOTAL" };
+    handCols.forEach(function (k) {
+      handicapes_total[k] = handicapes.reduce(function (somme, r) {
+        return somme + r[k];
+      }, 0);
+    });
+
+    /* --- K. Mobiliers : 16 lignes fixes du modèle --- */
     var MOB_LIGNES = [
       ["mob_tables_bancs", "Tables bancs"],
       ["mob_tables_bureaux_maitres", "Tables bureaux Maîtres"],
@@ -394,6 +445,8 @@
       recap_ar: recap_ar,
       effectifs: effectifs,
       effectifs_total: effectifs_total,
+      handicapes: handicapes,
+      handicapes_total: handicapes_total,
       mobilier: mobilier,
       manuels: manuels,
       materiel: materiel
@@ -737,84 +790,99 @@ persTable(ctx.malades, 2) +
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 4 : I (effectifs, sans colonne N°Maître) + J (mobiliers)
+     PAGE 4 : I effectifs + J situation des handicapés + K mobiliers
      ----------------------------------------------------------------------- */
-  function typeEff(v) {
-    var s = String(v === null || v === undefined ? "" : v).trim().toLowerCase();
-    if (s === "simple") { return "SIMPLE"; }
-    if (s === "cmg") { return "CMG"; }
-    return s ? s.toUpperCase() : "";
-  }
-
   function page4(ctx) {
     var t = ctx.effectifs_total;
+    var th = ctx.handicapes_total;
 
-    var html =
-'<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>' +
-'<table class="grid">' +
-  "<tr>" +
-    '<th rowspan="2" style="width:16%;">SECTIONS</th>' +
-    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">' +
-      'EFFECTIF</th>' +
-    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">' +
-      'HANDICAPÉ</th>' +
-    '<th colspan="3" class="cat" style="border-right:1.2pt solid #000;">' +
-      'Nbre d\'élèves qui n\'ont<br>pas de pièces d\'état civil</th>' +
-    '<th rowspan="2" style="width:12%;">Type : Simple/<br>&nbsp;/CMG</th>' +
-  "</tr>" +
-  "<tr>" +
-    '<th>G</th><th>F</th>' +
-    '<th style="border-right:1.2pt solid #000;">T</th>' +
-    '<th>G</th><th>F</th>' +
-    '<th style="border-right:1.2pt solid #000;">T</th>' +
-    '<th>G</th><th>F</th>' +
-    '<th style="border-right:1.2pt solid #000;">T</th>' +
-  "</tr>";
+    var groupesEff = ["eff", "pass", "red", "te", "ts", "sec"];
+    var titresEff = [
+      "EFFECTIF", "PASSANTS", "REDOUBLANTS", "TRANSFERTS ENTRANTS",
+      "TRANSFERTS SORTANTS",
+      "Nbre d'élèves qui n'ont<br>pas de pièces d'état civil"
+    ];
+    var categoriesHand = [
+      ["mot", "Handicapés<br>moteur"],
+      ["nv", "Élèves<br>non-voyants"],
+      ["mv", "Élèves<br>malvoyants"],
+      ["sd", "Élèves<br>sourds"],
+      ["me", "Élèves<br>malentendants"],
+      ["di", "Déficients<br>intellectuels"],
+      ["aut", "Élèves<br>autistes"],
+      ["poly", "Élèves<br>polyhandicapés"]
+    ];
 
-    /* 10 lignes fixes : données saisies, puis lignes vides du modèle. */
-    for (var i = 0; i < 10; i++) {
-      var r = ctx.effectifs[i];
-      html += "<tr>";
-      if (!r) {
-        html += '<td>&nbsp;</td>' +
-                '<td colspan="9">&nbsp;</td>' +
-                "<td>&nbsp;</td>";
-      } else {
-        html += '<td class="c">' + u(r.section) + "</td>" +
-          '<td class="n">' + r.eff_g + "</td>" +
-          '<td class="n">' + r.eff_f + "</td>" +
-          '<td class="n" style="border-right:1.2pt solid #000;">' + r.eff_t + "</td>" +
-          '<td class="n">' + r.hand_g + "</td>" +
-          '<td class="n">' + r.hand_f + "</td>" +
-          '<td class="n" style="border-right:1.2pt solid #000;">' + r.hand_t + "</td>" +
-          '<td class="n">' + r.sec_g + "</td>" +
-          '<td class="n">' + r.sec_f + "</td>" +
-          '<td class="n" style="border-right:1.2pt solid #000;">' + r.sec_t + "</td>" +
-          '<td class="c">' + u(typeEff(r.type)) + "</td>";
-      }
-      html += "</tr>";
+    function celluleT(r, pre, derniere) {
+      return '<td class="n">' + r[pre + "_g"] + "</td>" +
+             '<td class="n">' + r[pre + "_f"] + "</td>" +
+             '<td class="n"' + (derniere ? ' style="border-right:1.2pt solid #000;"' : "") +
+             ">" + r[pre + "_t"] + "</td>";
     }
 
-    html +=
-  '<tr class="totale">' +
-    '<td class="c">TOTAL</td>' +
-    '<td class="n">' + t.eff_g + "</td>" +
-    '<td class="n">' + t.eff_f + "</td>" +
-    '<td class="n" style="border-right:1.2pt solid #000;">' + t.eff_t + "</td>" +
-    '<td class="n">' + t.hand_g + "</td>" +
-    '<td class="n">' + t.hand_f + "</td>" +
-    '<td class="n" style="border-right:1.2pt solid #000;">' + t.hand_t + "</td>" +
-    '<td class="n">' + t.sec_g + "</td>" +
-    '<td class="n">' + t.sec_f + "</td>" +
-    '<td class="n" style="border-right:1.2pt solid #000;">' + t.sec_t + "</td>" +
-    "<td></td>" +
-  "</tr>" +
-"</table>";
+    function ligne(r, prefixes) {
+      var out = '<td class="c">' + u(r.section) + "</td>";
+      prefixes.forEach(function (pre, i) {
+        out += celluleT(r, pre, i < prefixes.length - 1);
+      });
+      return out;
+    }
 
-    /* ---- J. Mobiliers (16 lignes fixes) ---- */
+    var html = '<div class="pres-p4">';
+
+    /* ---- I. Situation des effectifs ---- */
     html +=
-'<h2 class="section">J. &nbsp; MOBLIERS</h2>' +
-'<table class="grid">' +
+'<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>' +
+'<table class="grid p4-eff">' +
+  "<tr>" +
+    '<th rowspan="2" style="width:8%;">SECTIONS</th>';
+    titresEff.forEach(function (titre, i) {
+      html += '<th colspan="3" class="cat' + (i < titresEff.length - 1 ? " sep" : "") +
+              '">' + titre + "</th>";
+    });
+    html += "</tr><tr>";
+    groupesEff.forEach(function (pre, i) {
+      html += "<th>G</th><th>F</th>" +
+        '<th' + (i < groupesEff.length - 1 ? ' class="sep"' : "") + ">T</th>";
+    });
+    html += "</tr>";
+
+    ctx.effectifs.forEach(function (r) {
+      html += "<tr>" + ligne(r, groupesEff) + "</tr>";
+    });
+    html += '<tr class="totale">' + ligne(t, groupesEff) + "</tr>" +
+            "</table>";
+
+    /* ---- J. Situation des handicapés ---- */
+    html +=
+'<h2 class="section">J. &nbsp; SITUATION DES HANDICAPÉS</h2>' +
+'<table class="grid p4-hand">' +
+  "<tr>" +
+    '<th rowspan="2" style="width:7%;">SECTIONS</th>';
+    categoriesHand.forEach(function (c, i) {
+      html += '<th colspan="3" class="cat' +
+              (i < categoriesHand.length - 1 ? " sep" : "") + '">' +
+              c[1] + "</th>";
+    });
+    html += "</tr><tr>";
+    categoriesHand.forEach(function (c, i) {
+      html += "<th>G</th><th>F</th>" +
+        '<th' + (i < categoriesHand.length - 1 ? ' class="sep"' : "") + ">T</th>";
+    });
+    html += "</tr>";
+
+    ctx.handicapes.forEach(function (r) {
+      html += "<tr>" + ligne(r, categoriesHand.map(function (c) { return c[0]; })) +
+              "</tr>";
+    });
+    html += '<tr class="totale">' +
+            ligne(th, categoriesHand.map(function (c) { return c[0]; })) +
+            "</tr></table>";
+
+    /* ---- K. Mobiliers (16 lignes fixes) ---- */
+    html +=
+'<h2 class="section">K. &nbsp; MOBILIERS</h2>' +
+'<table class="grid p4-mob">' +
   "<tr>" +
     '<th style="width:40%;">Mobilier</th>' +
     '<th style="width:15%;">Bon</th>' +
@@ -832,16 +900,16 @@ persTable(ctx.malades, 2) +
         '<td class="n">' + p2(m.deficit) + "</td>" +
       "</tr>";
     });
-    html += "</table>";
+    html += "</table></div>";
 
     return html;
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 5 : K (recensement des manuels, 10 lignes) +
-              L (recensement du matériel, 14 lignes)
+     PAGE 5 : L (recensement des manuels, 10 lignes) +
+              M (recensement du matériel, 14 lignes)
      Tableaux sans colonne N°, en-têtes en italique — verbatim du .docx :
-     K « Provenances » (pluriel), L « Provenance » (singulier).
+     L « Provenances » (pluriel), M « Provenance » (singulier).
      ----------------------------------------------------------------------- */
   function page5(ctx) {
     function recTable(titre, enTeteProvenance, list, min) {
@@ -875,9 +943,9 @@ persTable(ctx.malades, 2) +
     }
 
     var html =
-      recTable("K. &nbsp; RECENSEMENT DES MANUELS", "Provenances",
+      recTable('L. &nbsp; RECENSEMENT DES MANUELS', "Provenances",
                ctx.manuels, 10) +
-      recTable("L. &nbsp; RECENSEMENT DU MATERIEL", "Provenance",
+      recTable('M. &nbsp; RECENSEMENT DU MATERIEL', "Provenance",
                ctx.materiel, 14);
 
     html += '<div class="pied">Généré le ' + u(ctx.meta.soumission) +

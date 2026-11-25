@@ -1,10 +1,10 @@
 /* =========================================================================
    form-general-prescolaire.js — Moteur de saisie DÉDIÉ du « RAPPORT
    GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (general-prescolaire.html).
-   • Rendu des sections A → L, combos filtrables, tableaux officiels
-     (personnel 10/2/5, effectifs à sections libres + TOTAL, mobiliers
-     16 lignes, recensements K 10 / L 14 lignes), validation minimale,
-     brouillon hors-ligne dédié et
+   • Rendu des sections A → M, combos filtrables, tableaux officiels
+     (personnel 10/2/5, effectifs I et handicapés J à lignes fixes P.S /
+      M.S / G.S + TOTAL, mobiliers K 16 lignes, recensements L 10 / M 14
+      lignes), validation minimale, brouillon hors-ligne dédié et
      soumission (enregistrement typé + PDF 5 pages via RR_MODELES).
    • Copie autonome adaptée de form.js : form.js et champs.js ne sont ni
      modifiés ni chargés par cette page (zéro risque pour l'élémentaire).
@@ -22,7 +22,7 @@
            "rr_brouillon_general_prescolaire_v1";
 
   var conteneur = null;   /* élément qui reçoit le HTML du formulaire */
-  var donnees = {};       /* objet en cours de saisie (sections A → L) */
+  var donnees = {};       /* objet en cours de saisie (sections A → M) */
   var minuteur = null;
 
   /* -----------------------------------------------------------------------
@@ -150,7 +150,7 @@
 
   /* --- Tableau officiel à lignes fixes (personnel / service / recensements) --- */
   function tableauRepeatHTML(def) {
-    var sansNum = !!def.sansNum;   /* K / L : le modèle n'a pas de colonne N° */
+    var sansNum = !!def.sansNum;   /* L / M : le modèle n'a pas de colonne N° */
     var html =
       '<details class="section-form" open>' +
         "<summary>" + (def.lettre ? def.lettre + ". " : "") + esc(def.titre) +
@@ -239,66 +239,76 @@
   }
 
   /* -----------------------------------------------------------------------
-     I — EFFECTIFS : 10 sections libres + colonnes G / F / T (3 groupes)
-     + colonne Type + ligne TOTAL calculée.
+     I / J — TABLEAUX À LIGNES FIXES (P.S / M.S / G.S) : colonnes G / F / T
+     par groupe, ligne TOTAL calculée. Utilisé par les effectifs (I) et la
+     situation des handicapés (J).
      ----------------------------------------------------------------------- */
-  function effectifsHTML() {
-    var def = D.EFFECTIFS;
+  function tableauFixeHTML(def, cleTable) {
+    var groupes = def.groupes || def.categories;
     var html = '<details class="section-form" open>' +
-      '<summary>I. ' + esc(def.titre) +
-      '<span class="badge" data-badge="I">0</span></summary><div class="corps">' +
+      '<summary>' + esc(def.lettre) + '. ' + esc(def.titre) +
+      '<span class="badge" data-badge="' + esc(def.lettre) + '">0</span>' +
+      '</summary><div class="corps">' +
       '<div class="petit mb">' + esc(def.aide) + "</div>" +
+      '<div class="gm-aide-defilement">↔ Faites glisser le tableau ' +
+        'horizontalement pour voir toutes les colonnes.</div>' +
       '<div class="table-defilement"><table class="table-saisie" ' +
-      'data-table="effectifs"><thead>' +
+      'data-table="' + cleTable + '"><thead>' +
       '<tr>' +
-        '<th rowspan="2" style="width:16%;">SECTIONS</th>' +
-        '<th colspan="3" class="grp eff">EFFECTIF</th>' +
-        '<th colspan="3" class="grp hand">HANDICAPÉ</th>' +
-        '<th colspan="3" class="grp etat">Nbre d\'élèves qui n\'ont<br>' +
-          'pas de pièces d\'état civil</th>' +
-        '<th rowspan="2" style="width:11%;">' +
-          esc(def.type_colonne.l) + '</th>' +
-      '</tr><tr>';
-    ["eff", "hand", "sec"].forEach(function () {});
-    def.colonnes.forEach(function (c) {
-      var cls = c.n.indexOf("eff") === 0 ? "eff"
-              : c.n.indexOf("hand") === 0 ? "hand" : "etat";
-      html += '<th class="' + cls + '">' + esc(c.l) + "</th>";
+        '<th rowspan="2" style="width:10%;">SECTIONS</th>';
+
+    groupes.forEach(function (g) {
+      html += '<th colspan="3" class="grp">' + esc(g[1]) + "</th>";
     });
-    html += '</tr></thead><tbody>';
-    for (var i = 0; i < def.nb_lignes; i++) {
+    html += "</tr><tr>";
+    groupes.forEach(function () {
+      html += "<th>G</th><th>F</th><th>T</th>";
+    });
+    html += "</tr></thead><tbody>";
+
+    def.lignes_fixes.forEach(function (label, i) {
       html += '<tr data-ligne="' + i + '">' +
-        '<td><input type="text" data-type="text" data-n="section"' +
-          ' data-path="effectifs[' + i + '].section" value=""></td>';
+        '<td class="libelle-ligne"><b>' + esc(label) + "</b>" +
+          '<input type="hidden" data-type="text" data-n="section"' +
+          ' data-path="' + cleTable + "[" + i + '].section" value="' +
+          esc(label) + '"></td>';
       def.colonnes.forEach(function (c) {
         html += '<td><input type="number" min="0" data-type="num"' +
-          ' data-n="' + c.n + '" data-path="effectifs[' + i + '].' + c.n + '"' +
+          ' data-n="' + c.n + '" data-path="' + cleTable + "[" + i + "]." +
+          c.n + '"' +
           (c.calc ? ' data-calc="' + c.calc + '"' : "") +
           (c.auto ? ' data-auto="1"' : "") + ' value="0"></td>';
       });
-      html += '<td><select data-type="text" data-n="type"' +
-        ' data-path="effectifs[' + i + '].type">' +
-        optionsHTML(def.type_colonne.opts, "") + "</select></td></tr>";
-    }
-    /* Ligne TOTAL : calculée (somme des 10 lignes), non modifiable. */
+      html += "</tr>";
+    });
+
+    /* Ligne TOTAL : calculée (somme des trois sections), non modifiable. */
     html += '<tr data-ligne="total" class="totale">' +
       '<td class="libelle-ligne"><b>TOTAL</b></td>';
     def.colonnes.forEach(function (c) {
       html += '<td><input type="number" readonly class="fixe" data-type="num"' +
-        ' data-n="' + c.n + '" data-path="effectifs_total.' + c.n +
+        ' data-n="' + c.n + '" data-path="' + cleTable + "_total." + c.n +
         '" data-auto="1" value="0"></td>';
     });
-    html += '<td></td></tr>';
-    html += "</tbody></table></div></div></details>";
+    html += "</tr></tbody></table></div></div></details>";
     return html;
   }
 
-  /* --- J — Mobiliers (16 lignes fixes) --- */
+  function effectifsHTML() {
+    return tableauFixeHTML(D.EFFECTIFS, "effectifs");
+  }
+
+  function handicapesHTML() {
+    return tableauFixeHTML(D.HANDICAPES, "handicapes");
+  }
+
+  /* --- K — Mobiliers (16 lignes fixes) --- */
   function mobilierHTML() {
     var def = D.MOBILIER;
     var html = '<details class="section-form" open>' +
-      '<summary>J. ' + esc(def.titre) +
-      '<span class="badge" data-badge="J">0</span></summary><div class="corps">' +
+      '<summary>' + esc(def.lettre) + '. ' + esc(def.titre) +
+      '<span class="badge" data-badge="' + esc(def.lettre) + '">0</span>' +
+      '</summary><div class="corps">' +
       '<div class="petit mb">' + esc(def.aide) + "</div>" +
       '<div class="table-defilement"><table class="table-saisie">' +
       '<thead><tr><th style="width:40%;">Mobilier</th>';
@@ -320,15 +330,15 @@
   }
 
   /* -----------------------------------------------------------------------
-     CONSTRUCTION GLOBALE (ordre du modèle : A → L, 5 pages)
+     CONSTRUCTION GLOBALE (ordre du modèle : A → M, 5 pages)
      ----------------------------------------------------------------------- */
   function construire(el) {
     conteneur = el;
     var html = "";
 
-    /* Navigation rapide A → L */
+    /* Navigation rapide A → M */
     html += '<div class="carte"><div style="display:flex; gap:6px; flex-wrap:wrap;">';
-    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"].forEach(function (l) {
+    ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M"].forEach(function (l) {
       html += '<a class="btn gris petit" href="#sec_' + l + '" ' +
               'data-aller="' + l + '">' + l + "</a>";
     });
@@ -348,13 +358,14 @@
     /* Personnel de service (5 lignes) */
     html += '<div id="sec_service">' + tableauRepeatHTML(D.PERSONNEL[2]) + "</div>";
 
-    /* I — Effectifs, J — Mobiliers */
+    /* I — Effectifs, J — Handicapés, K — Mobiliers */
     html += '<div id="sec_I">' + effectifsHTML() + "</div>";
-    html += '<div id="sec_J">' + mobilierHTML() + "</div>";
+    html += '<div id="sec_J">' + handicapesHTML() + "</div>";
+    html += '<div id="sec_K">' + mobilierHTML() + "</div>";
 
-    /* K / L — Recensements (page 5) */
-    html += '<div id="sec_K">' + tableauRepeatHTML(D.RECENSEMENTS[0]) + "</div>";
-    html += '<div id="sec_L">' + tableauRepeatHTML(D.RECENSEMENTS[1]) + "</div>";
+    /* L / M — Recensements (page 5) */
+    html += '<div id="sec_L">' + tableauRepeatHTML(D.RECENSEMENTS[0]) + "</div>";
+    html += '<div id="sec_M">' + tableauRepeatHTML(D.RECENSEMENTS[1]) + "</div>";
 
     conteneur.innerHTML = html;
     attacherEvenements();
@@ -559,10 +570,12 @@
     var sommeDe = el.getAttribute("data-somme");
     if (sommeDe) { recalculerSomme(sommeDe); }
 
-    /* Effectifs : T recalculé par data-calc, puis ligne TOTAL */
-    var table = el.closest && el.closest('table[data-table="effectifs"]');
-    if (table && nomChamp && nomChamp !== "section" && nomChamp !== "type") {
-      sommerEffectifs();
+    /* Effectifs / handicapés : T recalculé par data-calc, puis ligne TOTAL */
+    var table = el.closest && el.closest("table[data-table]");
+    if (table && nomChamp && nomChamp !== "section") {
+      var nomTable = table.getAttribute("data-table");
+      if (nomTable === "effectifs") { sommerTable("effectifs", D.EFFECTIFS); }
+      if (nomTable === "handicapes") { sommerTable("handicapes", D.HANDICAPES); }
     }
 
     /* Liste déroulante filtrable : on filtre à chaque frappe, mais seulement
@@ -576,7 +589,7 @@
     sauverBrouillon();
   }
 
-  /** T = G + F sur la ligne courante (groupes eff / hand / sec). */
+  /** T = G + F sur la ligne courante (tout groupe de colonnes). */
   function calcTotalLigne(el, pre) {
     var tr = el.closest("tr");
     if (!tr) { return; }
@@ -630,13 +643,13 @@
     setPath(donnees, cible.getAttribute("data-path"), somme);
   }
 
-  /** Ligne TOTAL des effectifs = somme des 10 lignes (9 colonnes). */
-  function sommerEffectifs() {
-    var table = conteneur.querySelector('table[data-table="effectifs"]');
+  /** Ligne TOTAL d'un tableau fixe = somme de ses lignes. */
+  function sommerTable(cleTable, def) {
+    var table = conteneur.querySelector('table[data-table="' + cleTable + '"]');
     if (!table) { return; }
-    var cols = D.EFFECTIFS.colonnes.map(function (c) { return c.n; });
+    var cols = def.colonnes.map(function (c) { return c.n; });
     var lignes = [];
-    for (var i = 0; i < D.EFFECTIFS.nb_lignes; i++) {
+    for (var i = 0; i < def.lignes_fixes.length; i++) {
       var tr = table.querySelector('tr[data-ligne="' + i + '"]');
       if (tr) { lignes.push(tr); }
     }
@@ -657,24 +670,29 @@
 
   /** Recalcule tous les dérivés après une reprise (brouillon / modification). */
   function recalculerTout() {
-    /* Effectifs : T = G + F par ligne, puis TOTAL */
-    var table = conteneur.querySelector('table[data-table="effectifs"]');
-    if (table) {
-      Array.prototype.forEach.call(
-        table.querySelectorAll("tbody tr[data-ligne]"), function (tr) {
-          if (tr.getAttribute("data-ligne") === "total") { return; }
-          ["eff", "hand", "sec"].forEach(function (pre) {
-            var g = tr.querySelector('[data-n="' + pre + '_g"]');
-            var f = tr.querySelector('[data-n="' + pre + '_f"]');
-            var t = tr.querySelector('[data-n="' + pre + '_t"]');
-            if (!g || !f || !t) { return; }
-            var somme = nombre(g) + nombre(f);
-            t.value = somme;
-            setPath(donnees, t.getAttribute("data-path"), somme);
+    /* Effectifs (I) et handicapés (J) : T = G + F par ligne, puis TOTAL */
+    [["effectifs", D.EFFECTIFS], ["handicapes", D.HANDICAPES]]
+      .forEach(function (paire) {
+        var table = conteneur.querySelector(
+          'table[data-table="' + paire[0] + '"]');
+        if (!table) { return; }
+        var prefixes = (paire[1].groupes || paire[1].categories)
+          .map(function (g) { return g[0]; });
+        Array.prototype.forEach.call(
+          table.querySelectorAll("tbody tr[data-ligne]"), function (tr) {
+            if (tr.getAttribute("data-ligne") === "total") { return; }
+            prefixes.forEach(function (pre) {
+              var g = tr.querySelector('[data-n="' + pre + '_g"]');
+              var f = tr.querySelector('[data-n="' + pre + '_f"]');
+              var t = tr.querySelector('[data-n="' + pre + '_t"]');
+              if (!g || !f || !t) { return; }
+              var somme = nombre(g) + nombre(f);
+              t.value = somme;
+              setPath(donnees, t.getAttribute("data-path"), somme);
+            });
           });
-        });
-      sommerEffectifs();
-    }
+        sommerTable(paire[0], paire[1]);
+      });
     /* Mobiliers : Total = Bon + A réparer */
     Array.prototype.forEach.call(
       conteneur.querySelectorAll('table [data-n="total"][data-auto]'),
@@ -743,10 +761,42 @@
   /* -----------------------------------------------------------------------
      REMPLISSAGE À PARTIR D'UN OBJET
      ----------------------------------------------------------------------- */
+  /** Replace les trois lignes fixes d'un ancien brouillon dans l'ordre
+   *  P.S / M.S / G.S : reprise par libellé, sinon par position. */
+  function normaliserTableFixe(obj, cle, libelles) {
+    if (!obj || !Array.isArray(obj[cle])) { return; }
+    var copie = obj[cle].slice();
+    function norm(s) {
+      return String(s === null || s === undefined ? "" : s)
+        .toUpperCase().replace(/[\s.\-]/g, "");
+    }
+    obj[cle] = libelles.map(function (libelle, index) {
+      var cible = norm(libelle);
+      var trouve = null;
+      copie.forEach(function (row) {
+        if (trouve) { return; }
+        var s = norm(row && row.section);
+        if (!s) { return; }
+        if (s === cible ||
+            (cible === "PS" && s.indexOf("PETITE") === 0) ||
+            (cible === "MS" && s.indexOf("MOYENNE") === 0) ||
+            (cible === "GS" && s.indexOf("GRANDE") === 0)) {
+          trouve = row;
+        }
+      });
+      var ligne = trouve || copie[index] || {};
+      if (typeof ligne !== "object") { ligne = {}; }
+      ligne.section = libelle;
+      return ligne;
+    });
+  }
+
   function remplir(obj) {
     donnees = obj || {};
+    normaliserTableFixe(donnees, "effectifs", D.EFFECTIFS.lignes_fixes);
+    normaliserTableFixe(donnees, "handicapes", D.HANDICAPES.lignes_fixes);
     Array.prototype.forEach.call(conteneur.querySelectorAll("[data-path]"), function (el) {
-      if (el.readOnly) { return; }        /* lignes TOTAL : recalculées */
+      if (el.readOnly || el.type === "hidden") { return; } /* TOTAL + libellés fixes */
       var path = el.getAttribute("data-path");
       var v = getPath(donnees, path);
       if (v === undefined || v === null) { v = el.type === "number" ? 0 : ""; }
@@ -769,8 +819,9 @@
       setPath(out, el.getAttribute("data-path"), v);
     });
     /* Lignes entièrement vides écartées : le PDF renumérote lui-même les
-       lignes de saisie restantes (et complète le tableau officiel). */
-    ["enseignant", "malade", "service", "effectifs",
+       lignes de saisie restantes (et complète le tableau officiel).
+       Les tableaux I et J gardent leurs trois lignes fixes P.S / M.S / G.S. */
+    ["enseignant", "malade", "service",
      "manuels", "materiel"].forEach(function (cle) {
       if (!Array.isArray(out[cle])) { return; }
       out[cle] = out[cle].filter(function (row) {
@@ -792,12 +843,15 @@
         var badge = det.querySelector("[data-badge]");
         if (!badge) { return; }
         var champs = det.querySelectorAll("[data-path]");
+        var total = 0;
         var remplis = 0;
         Array.prototype.forEach.call(champs, function (el) {
+          if (el.readOnly || el.type === "hidden") { return; }
+          total++;
           if (el.value !== "" && el.value !== "0" && el.value !== null) { remplis++; }
         });
-        badge.textContent = remplis + "/" + champs.length;
-        badge.style.background = (remplis >= champs.length && champs.length > 0)
+        badge.textContent = remplis + "/" + total;
+        badge.style.background = (remplis >= total && total > 0)
           ? "#1e7a3c" : "#1f4e79";
       });
   }

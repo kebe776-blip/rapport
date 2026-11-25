@@ -97,6 +97,29 @@ table.grid td.c { text-align: center; }
 table.grid td.n { text-align: center; font-weight: bold; color: #1F4E79; }
 table.grid tr.totale td { font-weight: bold; }
 
+/* ---------- PAGE 4 PRÉSCOLAIRE : I + J + K ---------- */
+.pres-p4 h2.section {
+  margin: 5pt 0 2pt 0;
+  font-size: 10pt;
+}
+.pres-p4 table.grid { margin-bottom: 3pt; }
+.pres-p4 table.p4-eff th, .pres-p4 table.p4-eff td,
+.pres-p4 table.p4-hand th, .pres-p4 table.p4-hand td {
+  padding: 1.4pt 2.5pt;
+  font-size: 7.6pt;
+  line-height: 1.18;
+}
+.pres-p4 table.p4-eff th,
+.pres-p4 table.p4-hand th { font-size: 7pt; }
+.pres-p4 table.p4-eff th.cat,
+.pres-p4 table.p4-hand th.cat { font-size: 7pt; }
+.pres-p4 th.sep, .pres-p4 td.sep { border-right: 1.2pt solid #000; }
+.pres-p4 table.p4-mob th, .pres-p4 table.p4-mob td {
+  padding: 1.5pt 4pt;
+  font-size: 8.1pt;
+}
+.pres-p4 table.p4-mob th { font-size: 7.9pt; }
+
 /* Version compacte (H, K, L, M, N) */
 table.grid.compact th, table.grid.compact td {
   padding: 1.3pt 4pt; font-size: 8.1pt;

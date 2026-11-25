@@ -1,10 +1,11 @@
 /* =========================================================================
    champs-general-prescolaire.js — Définition déclarative du « RAPPORT
-   GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (sections A → L, 5 pages A4 paysage).
-   Libellés relevés verbatim sur le .docx officiel 2024/2025 et confrontés
-   aux captures du modèle 2026/2027 (RG 1-5 prescolaire.PNG) :
-     • sections K et L (manuels / matériel) : page 5 ajoutée sur demande
-       (ancien périmètre A → J, 4 pages) ;
+   GÉNÉRAL DE RENTRÉE PRÉSCOLAIRE » (sections A → M, 5 pages A4 paysage).
+   Libellés relevés verbatim sur le .docx officiel et confrontés aux
+   captures du modèle 2026/2027 (RG 1-5 prescolaire.PNG) :
+     • page 4 : I effectifs (P.S / M.S / G.S) + J situation des handicapés
+       + K mobiliers ;
+     • page 5 : L manuels + M matériel ;
      • colonne « N°Maître » de I : absente des captures → non reprise ;
      • ligne « 2 » de F : artefact de liste Word → rendue sans le numéro.
    Les noms de champs (n) correspondent à l'objet brut enregistré dans la
@@ -26,8 +27,6 @@
                     ["interimaire", "INTÉRIMAIRE"]];
   var DISCIPLINE = [["", "—"], ["francais", "FRANÇAIS"], ["arabe", "ARABE"],
                     ["anglais", "ANGLAIS"]];
-  /* Colonne « Type » du tableau I : Simple ou CMG (case à cocher modèle). */
-  var TYPE_SECTION = [["", "—"], ["simple", "SIMPLE"], ["cmg", "CMG"]];
 
   /* -----------------------------------------------------------------------
      SECTIONS A → G (champs simples)
@@ -264,42 +263,103 @@
   };
 
   /* -----------------------------------------------------------------------
-     I — EFFECTIFS (page 4) : 10 lignes de SECTIONS libres (le libellé est
-     saisi librement : PS, MS, GS… selon la section), 3 groupes G / F / T,
-     colonne « Type : Simple / CMG », puis ligne TOTAL (calculée).
-     Pas de colonne « N°Maître » : absente du modèle 2026/2027 (captures).
+     I — EFFECTIFS (page 4) : 3 lignes fixes P.S / M.S / G.S du modèle,
+     6 groupes G / F / T (effectif, passants, redoublants, transferts
+     entrants, transferts sortants, pièces d'état civil) et ligne TOTAL
+     calculée. Pas de colonne « Type » ni « N°Maître » (absentes du modèle).
      ----------------------------------------------------------------------- */
+  var LIGNES_SECTIONS = ["P.S", "M.S", "G.S"];
+
   var EFFECTIFS = {
     lettre: "I", groupe: "effectifs",
     titre: "SITUATION DES EFFECTIFS",
-    nb_lignes: 10,
-    aide: "Sections libres (PS, MS, GS…) — Total (T) = G + F par ligne, " +
-          "la ligne TOTAL additionne les 10 lignes.",
+    lignes_fixes: LIGNES_SECTIONS,
+    aide: "P.S / M.S / G.S — Total (T) = G + F par ligne, la ligne TOTAL " +
+          "additionne les trois sections.",
     groupes: [
       ["eff", "EFFECTIF"],
-      ["hand", "HANDICAPÉ"],
+      ["pass", "PASSANTS"],
+      ["red", "REDOUBLANTS"],
+      ["te", "TRANSFERTS ENTRANTS"],
+      ["ts", "TRANSFERTS SORTANTS"],
       ["sec", "Nbre d'élèves qui n'ont pas de pièces d'état civil"]
     ],
     colonnes: [
       { n: "eff_g", l: "G", calc: "eff" },
       { n: "eff_f", l: "F", calc: "eff" },
       { n: "eff_t", l: "T", auto: true },
-      { n: "hand_g", l: "G", calc: "hand" },
-      { n: "hand_f", l: "F", calc: "hand" },
-      { n: "hand_t", l: "T", auto: true },
+      { n: "pass_g", l: "G", calc: "pass" },
+      { n: "pass_f", l: "F", calc: "pass" },
+      { n: "pass_t", l: "T", auto: true },
+      { n: "red_g", l: "G", calc: "red" },
+      { n: "red_f", l: "F", calc: "red" },
+      { n: "red_t", l: "T", auto: true },
+      { n: "te_g", l: "G", calc: "te" },
+      { n: "te_f", l: "F", calc: "te" },
+      { n: "te_t", l: "T", auto: true },
+      { n: "ts_g", l: "G", calc: "ts" },
+      { n: "ts_f", l: "F", calc: "ts" },
+      { n: "ts_t", l: "T", auto: true },
       { n: "sec_g", l: "G", calc: "sec" },
       { n: "sec_f", l: "F", calc: "sec" },
       { n: "sec_t", l: "T", auto: true }
-    ],
-    type_colonne: { n: "type", l: "Type : Simple/  /CMG", opts: TYPE_SECTION }
+    ]
   };
 
   /* -----------------------------------------------------------------------
-     J — MOBLIERS (page 4) : 16 lignes fixes du modèle officiel.
+     J — SITUATION DES HANDICAPÉS (page 4) : 3 lignes fixes P.S / M.S / G.S,
+     8 catégories en G / F / T + ligne TOTAL calculée.
+     ----------------------------------------------------------------------- */
+  var HANDICAPES = {
+    lettre: "J", groupe: "handicapes",
+    titre: "SITUATION DES HANDICAPÉS",
+    lignes_fixes: LIGNES_SECTIONS,
+    aide: "P.S / M.S / G.S — 8 catégories ; Total (T) = G + F, la ligne " +
+          "TOTAL additionne les trois sections.",
+    categories: [
+      ["mot", "Handicapés moteur"],
+      ["nv", "Élèves non-voyants"],
+      ["mv", "Élèves malvoyants"],
+      ["sd", "Élèves sourds"],
+      ["me", "Élèves malentendants"],
+      ["di", "Déficients intellectuels"],
+      ["aut", "Élèves autistes"],
+      ["poly", "Élèves polyhandicapés"]
+    ],
+    colonnes: [
+      { n: "mot_g", l: "G", calc: "mot" },
+      { n: "mot_f", l: "F", calc: "mot" },
+      { n: "mot_t", l: "T", auto: true },
+      { n: "nv_g", l: "G", calc: "nv" },
+      { n: "nv_f", l: "F", calc: "nv" },
+      { n: "nv_t", l: "T", auto: true },
+      { n: "mv_g", l: "G", calc: "mv" },
+      { n: "mv_f", l: "F", calc: "mv" },
+      { n: "mv_t", l: "T", auto: true },
+      { n: "sd_g", l: "G", calc: "sd" },
+      { n: "sd_f", l: "F", calc: "sd" },
+      { n: "sd_t", l: "T", auto: true },
+      { n: "me_g", l: "G", calc: "me" },
+      { n: "me_f", l: "F", calc: "me" },
+      { n: "me_t", l: "T", auto: true },
+      { n: "di_g", l: "G", calc: "di" },
+      { n: "di_f", l: "F", calc: "di" },
+      { n: "di_t", l: "T", auto: true },
+      { n: "aut_g", l: "G", calc: "aut" },
+      { n: "aut_f", l: "F", calc: "aut" },
+      { n: "aut_t", l: "T", auto: true },
+      { n: "poly_g", l: "G", calc: "poly" },
+      { n: "poly_f", l: "F", calc: "poly" },
+      { n: "poly_t", l: "T", auto: true }
+    ]
+  };
+
+  /* -----------------------------------------------------------------------
+     K — MOBILIERS (page 4) : 16 lignes fixes du modèle officiel.
      ----------------------------------------------------------------------- */
   var MOBILIER = {
-    lettre: "J", groupe: "mobilier",
-    titre: "MOBLIERS",
+    lettre: "K", groupe: "mobilier",
+    titre: "MOBILIERS",
     aide: "Total = Bon + A réparer (calcul automatique, modifiable).",
     lignes: [
       ["mob_tables_bancs", "Tables bancs"],
@@ -328,10 +388,10 @@
   };
 
   /* -----------------------------------------------------------------------
-     K / L — RECENSEMENTS (page 5) : tableaux à lignes libres, sans colonne
+     L / M — RECENSEMENTS (page 5) : tableaux à lignes libres, sans colonne
      N° (absente du modèle). Libellés verbatim du .docx :
-       K « RECENSEMENT DES MANUELS »  → Provenances (pluriel)
-       L « RECENSEMENT DU MATERIEL »   → Provenance (singulier)
+       L « RECENSEMENT DES MANUELS »  → Provenances (pluriel)
+       M « RECENSEMENT DU MATERIEL »   → Provenance (singulier)
      ----------------------------------------------------------------------- */
   var COLONNES_RECENSEMENT = [
     { n: "designation", l: "Désignation", t: "text", w: "28%" },
@@ -351,12 +411,12 @@
   }
 
   var RECENSEMENTS = [
-    { cle: "manuels", lettre: "K", sansNum: true,
+    { cle: "manuels", lettre: "L", sansNum: true,
       titre: "RECENSEMENT DES MANUELS",
       soustitre: "10 lignes — laisser vide s'il n'y en a pas",
       colonnes: colonnesRecensement("Provenances"),
       min: 10, fixe: true },
-    { cle: "materiel", lettre: "L", sansNum: true,
+    { cle: "materiel", lettre: "M", sansNum: true,
       titre: "RECENSEMENT DU MATERIEL",
       soustitre: "14 lignes — laisser vide s'il n'y en a pas",
       colonnes: colonnesRecensement("Provenance"),
@@ -378,13 +438,13 @@
     COLONNES_SERVICE: COLONNES_SERVICE,
     RECAP: RECAP,
     EFFECTIFS: EFFECTIFS,
+    HANDICAPES: HANDICAPES,
     MOBILIER: MOBILIER,
     RECENSEMENTS: RECENSEMENTS,
     OBLIGATOIRES: OBLIGATOIRES,
     OPTIONS: {
       OUI_NON: OUI_NON, STATUT: STATUT, ETAT: ETAT,
-      STATUT_DIR: STATUT_DIR, DISCIPLINE: DISCIPLINE,
-      TYPE_SECTION: TYPE_SECTION
+      STATUT_DIR: STATUT_DIR, DISCIPLINE: DISCIPLINE
     }
   };
 
