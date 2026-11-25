@@ -461,6 +461,12 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     min-width: 44px;
     padding: 5px 2px;
   }
+  /* Feuille 1 — les saisies Garçons/Filles ont la même largeur que les totaux. */
+  table[data-p1p] input[data-type="num"],
+  table[data-p1e] input[data-type="num"] {
+    width: 44px;
+    min-width: 44px;
+  }
   .gm-table-saisie input.gm-calc {
     background: #fff8e1;
     color: #1f4e79;
