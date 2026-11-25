@@ -1021,7 +1021,9 @@
       }).join("") +
       '<th style="width:42px;">Action</th></tr></thead><tbody data-pers-body="' + type + '">';
     for (var i = 0; i < init; i++) { html += persLigneHTML(type, i); }
-    html += "</tbody></table></div>" + finSection();
+    html += "</tbody></table></div>" +
+      aideDefilement("Faites glisser le tableau horizontalement pour voir toutes les colonnes.") +
+      finSection();
     return html;
   }
 
