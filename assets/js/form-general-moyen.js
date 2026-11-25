@@ -213,6 +213,11 @@
     return "</div></details>";
   }
 
+  /* Conseil de défilement : masqué en CSS sur ordinateur, visible au téléphone. */
+  function aideDefilement(texte) {
+    return '<div class="gm-aide-defilement">↔ ' + esc(texte) + "</div>";
+  }
+
   /* -----------------------------------------------------------------------
      SECTION 1 — PAGE D'ENTRÉE
      ----------------------------------------------------------------------- */
@@ -667,6 +672,7 @@
     var html = enteteSection("5", "EFFECTIFS ÉLÈVES — ENSEIGNEMENT MOYEN", "S5");
     html += tableMoyenNb();
     html += '<div class="gm-note">Renseignez les garçons, les filles et la part « Dont Franco-arabe ». Les totaux par niveau et par cycle se calculent automatiquement.</div>';
+    html += aideDefilement("Faites glisser chaque tableau horizontalement. Les colonnes Total et Total FA restent visibles à droite.");
     html += tableMoyen("effectifs", "EFFECTIFS");
     html += tableMoyen("passants", "PASSANTS");
     html += tableMoyen("redoublants", "REDOUBLANTS");
@@ -790,6 +796,7 @@
     var html = enteteSection("6", "EFFECTIFS ÉLÈVES — SECONDAIRE", "S6");
     html += tableSecondaireNb();
     html += '<div class="gm-note">Renseignez les garçons et les filles par série. Les totaux par série et par cycle se calculent automatiquement.</div>';
+    html += aideDefilement("Faites glisser chaque tableau horizontalement. Le bloc et le sexe restent visibles à gauche pendant la saisie.");
     html += tableSecondaire("effectifs", "EFFECTIFS");
     html += tableSecondaire("passants", "PASSANTS");
     html += tableSecondaire("redoublants", "REDOUBLANTS");
@@ -967,6 +974,7 @@
 
   function section7HTML() {
     var html = enteteSection("7", "RÉSULTATS EXAMENS — 2025/2026", "S7");
+    html += aideDefilement("Faites glisser chaque tableau horizontalement. Les colonnes de synthèse (ETAB, totaux) restent visibles à droite.");
     html += bfemHTML() + bacHTML() + mentionsHTML();
     return html + finSection();
   }
