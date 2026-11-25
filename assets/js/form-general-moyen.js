@@ -672,7 +672,7 @@
     var html = enteteSection("5", "EFFECTIFS ÉLÈVES — ENSEIGNEMENT MOYEN", "S5");
     html += tableMoyenNb();
     html += '<div class="gm-note">Renseignez les garçons, les filles et la part « Dont Franco-arabe ». Les totaux par niveau et par cycle se calculent automatiquement.</div>';
-    html += aideDefilement("Faites glisser chaque tableau horizontalement. Les colonnes Total et Total FA restent visibles à droite.");
+    html += aideDefilement("Faites glisser chaque tableau horizontalement pour voir toutes les colonnes, notamment les totaux.");
     html += tableMoyen("effectifs", "EFFECTIFS");
     html += tableMoyen("passants", "PASSANTS");
     html += tableMoyen("redoublants", "REDOUBLANTS");
@@ -684,7 +684,7 @@
      SECTION 6 — EFFECTIFS ÉLÈVES : SECONDAIRE
      ----------------------------------------------------------------------- */
   function enteteSecondaire() {
-    var html = '<thead><tr><th rowspan="2" class="gm-eff-label">CLASSES &amp; ÉLÈVES</th>';
+    var html = '<thead><tr><th rowspan="2" colspan="2" class="gm-eff-label">CLASSES &amp; ÉLÈVES</th>';
     D.EFFECTIFS_SECONDAIRE_GROUPES.forEach(function (gr) {
       html += '<th colspan="' + (gr.series.length + 1) + '" class="grp">' +
         esc(gr.l) + "</th>";
@@ -974,7 +974,7 @@
 
   function section7HTML() {
     var html = enteteSection("7", "RÉSULTATS EXAMENS — 2025/2026", "S7");
-    html += aideDefilement("Faites glisser chaque tableau horizontalement. Les colonnes de synthèse (ETAB, totaux) restent visibles à droite.");
+    html += aideDefilement("Faites glisser chaque tableau horizontalement pour voir toutes les colonnes, notamment les totaux.");
     html += bfemHTML() + bacHTML() + mentionsHTML();
     return html + finSection();
   }

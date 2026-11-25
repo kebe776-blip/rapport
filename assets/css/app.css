@@ -432,8 +432,8 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   /* ---------- Grands tableaux d'effectifs et d'examens (general-moyen) ----------
      Les champs calculés `.gm-calc` n'ont pas de largeur propre : au téléphone,
      leur largeur intrinsèque (183 px) gonflait chaque colonne et repoussait
-     les totaux hors de l'écran. On compacte les cellules, on fige le contexte
-     à gauche (secondaire) et les colonnes de totaux à droite. */
+     les totaux hors de l'écran. On compacte les cellules et on fige seulement
+     le contexte à gauche du tableau secondaire. */
   .table-defilement {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
@@ -473,40 +473,6 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     font-weight: 700;
   }
 
-  /* Section 5 — Total / Total FA du cycle, toujours visibles à droite. */
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) tbody tr > *:nth-last-child(-n+2),
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(2) > *:nth-last-child(-n+2),
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(3) > *:nth-last-child(-n+2) {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    width: 54px !important;
-    min-width: 54px;
-    max-width: 54px;
-    background: #fff !important;
-    white-space: normal;
-  }
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) tbody tr > *:nth-last-child(2),
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(2) > *:nth-last-child(2),
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(3) > *:nth-last-child(2) {
-    right: 54px;
-  }
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(2) > *:nth-last-child(-n+2),
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:nth-child(3) > *:nth-last-child(-n+2) {
-    background: #eef3f9 !important;
-    z-index: 4;
-  }
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) thead tr:first-child > *:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 4;
-    background: #eef3f9 !important;
-  }
-  table.gm-effm[data-effm-table]:not([data-effm-table="nb"]) tbody tr > *:nth-last-child(2) {
-    border-left: 2px solid #cfdcee;
-    box-shadow: -6px 0 6px -4px rgba(0, 0, 0, .3);
-  }
-
   /* Section 6 — contexte (bloc + sexe) figé à gauche pendant le défilement. */
   table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) tbody td.gm-eff-bloc,
   table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) tbody td.c {
@@ -514,12 +480,17 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     z-index: 2;
     background: #fff !important;
   }
-  table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) tbody td.gm-eff-bloc,
-  table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) thead th.gm-eff-label {
+  table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) tbody td.gm-eff-bloc {
     left: 0;
     width: 74px !important;
     min-width: 74px;
     max-width: 74px;
+    white-space: normal;
+    z-index: 3;
+  }
+  /* L'en-tête couvre les deux colonnes figées (bloc + sexe). */
+  table.gm-effs[data-effs-table]:not([data-effs-table="nb"]) thead th.gm-eff-label {
+    left: 0;
     white-space: normal;
     z-index: 3;
   }
@@ -539,53 +510,4 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     color: #fff;
   }
 
-  /* Section 7 — % ETAB figé à droite (BFEM, baccalauréat). */
-  table.gm-examens[data-exam-table] tbody tr > *:last-child,
-  table.gm-examens[data-exam-table] thead tr:last-child > *:last-child {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    width: 54px !important;
-    min-width: 54px;
-    max-width: 54px;
-    background: #fff !important;
-    white-space: normal;
-  }
-  table.gm-examens[data-exam-table] thead tr:last-child > *:last-child {
-    background: #eef3f9 !important;
-    z-index: 4;
-  }
-  table.gm-examens[data-exam-table] tbody tr > *:last-child {
-    border-left: 2px solid #cfdcee;
-    box-shadow: -6px 0 6px -4px rgba(0, 0, 0, .3);
-  }
-
-  /* Mentions — total Garçons / Filles / ETAB figé à droite. */
-  table.gm-examens[data-mentions-table] tbody tr > *:nth-last-child(-n+3),
-  table.gm-examens[data-mentions-table] thead tr:last-child > *:nth-last-child(-n+3) {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    width: 54px !important;
-    min-width: 54px;
-    max-width: 54px;
-    background: #fff !important;
-    white-space: normal;
-  }
-  table.gm-examens[data-mentions-table] tbody tr > *:nth-last-child(2),
-  table.gm-examens[data-mentions-table] thead tr:last-child > *:nth-last-child(2) {
-    right: 54px;
-  }
-  table.gm-examens[data-mentions-table] tbody tr > *:nth-last-child(3),
-  table.gm-examens[data-mentions-table] thead tr:last-child > *:nth-last-child(3) {
-    right: 108px;
-  }
-  table.gm-examens[data-mentions-table] thead tr:last-child > *:nth-last-child(-n+3) {
-    background: #eef3f9 !important;
-    z-index: 4;
-  }
-  table.gm-examens[data-mentions-table] tbody tr > *:nth-last-child(3) {
-    border-left: 2px solid #cfdcee;
-    box-shadow: -6px 0 6px -4px rgba(0, 0, 0, .3);
-  }
 }
