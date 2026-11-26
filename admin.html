@@ -181,7 +181,7 @@
     <div class="carte" id="zone-apercu" style="display:none;">
       <h2 id="titre-apercu">Aperçu</h2>
       <div style="display:flex; gap:10px; flex-wrap:wrap;" class="mb">
-        <button class="btn vert" id="btn-pdf">⬇ Télécharger le PDF (6 pages)</button>
+        <button class="btn vert" id="btn-pdf">⬇ Télécharger le PDF (7 pages)</button>
         <button class="btn gris" id="btn-fermer">Fermer l'aperçu</button>
       </div>
       <div class="apercu-wrap" id="apercu"></div>
@@ -286,7 +286,7 @@
     }
     /* Libellé du bouton PDF : nombre de pages du gabarit du type */
     $("btn-pdf").textContent = "⬇ Télécharger le PDF (" +
-      (typeInfo.pages || 6) + " pages)";
+      (typeInfo.pages || 7) + " pages)";
     /* Export XLSX : classeur câblé sur le modèle général élémentaire.
        Pour le rapport général moyen & secondaire, l'export XLSX est
        volontairement supprimé (le PDF officiel 14 pages le remplace) :
@@ -679,7 +679,7 @@
   async function ouvrirApercu(ligne) {
     var M = await modelePret();
     /* Rapports généraux enregistrés avant la correction des titres fixes
-       (K / M) : on complete les libellés officiels avant le rendu.
+       (M / O) : on complete les libellés officiels avant le rendu.
        Les types à gabarit dédié (succinct) ont leurs propres listes. */
     if (!typeInfo.modele && window.RR_CHAMPS &&
         window.RR_CHAMPS.completerTitresFixes) {

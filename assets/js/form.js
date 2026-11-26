@@ -11,7 +11,7 @@
   var esc = R.esc;
 
   var conteneur = null;   /* élément qui reçoit le HTML du formulaire */
-  var donnees = {};       /* objet en cours de saisie (sections A → N) */
+  var donnees = {};       /* objet en cours de saisie (sections A → P) */
   var minuteur = null;
 
   /* -----------------------------------------------------------------------
@@ -188,8 +188,122 @@
     return html;
   }
 
-  /* --- Récapitulation H --- */
-  /* --- Récapitulation H (FRANÇAIS / ARABE) --- */
+  /* --- H. Classes double-flux --- */
+  function doubleFluxHTML() {
+    var html = '<details class="section-form" open>' +
+      '<summary>H. CLASSES DOUBLE-FLUX' +
+      '<span class="badge" data-badge="H">0</span></summary><div class="corps">' +
+      '<div class="petit mb">Une ligne par niveau — le Total (T) se calcule ' +
+      'automatiquement (G + F).</div>' +
+      '<div class="table-defilement"><table class="table-saisie df" data-table="double_flux">' +
+      '<thead><tr>';
+    D.DOUBLE_FLUX.niveaux.forEach(function (n) {
+      html += '<th colspan="4" class="grp df">' + esc(n[1]) + '</th>';
+    });
+    html += '</tr><tr>';
+    D.DOUBLE_FLUX.niveaux.forEach(function () {
+      html += '<th class="df">Nb Cl</th><th class="df">G</th>' +
+              '<th class="df">F</th><th class="df">T</th>';
+    });
+    html += '</tr></thead><tbody><tr>';
+    D.DOUBLE_FLUX.niveaux.forEach(function (n) {
+      var cle = n[0];
+      ["nb_classes", "g", "f"].forEach(function (champ) {
+        html += '<td><input type="number" min="0" inputmode="numeric"' +
+          ' data-type="num" data-path="double_flux.' + cle + '.' + champ + '"' +
+          ' data-n="' + champ + '" data-niveau="' + cle + '"' +
+          ' data-recalc="df" value="0"></td>';
+      });
+      html += '<td><input type="number" min="0" inputmode="numeric"' +
+        ' data-type="num" readonly class="calc"' +
+        ' data-path="double_flux.' + cle + '.t"' +
+        ' data-n="t" data-niveau="' + cle + '" value="0"></td>';
+    });
+    html += '</tr></tbody></table></div></div></details>';
+    return html;
+  }
+
+  /* --- I. Classes multigrades --- */
+  function multigradesHTML() {
+    var combos = D.MULTIGRADES.combinaisons;
+    var html = '<details class="section-form" open>' +
+      '<summary>I. CLASSES MULTIGRADES' +
+      '<span class="badge" data-badge="I">0</span></summary><div class="corps">' +
+      '<div class="petit mb">15 combinaisons — saisir le nombre de classes et les ' +
+      'effectifs GP1 / GP2 (G et F). Les totaux (T et TOTAL) se calculent ' +
+      'automatiquement.</div>' +
+      '<div class="table-defilement"><table class="table-saisie mg" data-table="multigrades">' +
+      '<thead>' +
+      '<tr>' +
+        '<th rowspan="2" colspan="2" class="grp mg">Nombre de classes et effectifs ' +
+          'des groupes pédagogiques (GP)</th>' +
+        '<th colspan="3" class="grp mg-etapes">Combinaisons d\'étapes</th>' +
+        '<th colspan="2" class="grp mg-contigues">Combinaisons contigües</th>' +
+        '<th colspan="10" class="grp mg-eloignees">Combinaisons éloignées</th>' +
+        '<th rowspan="2" class="grp mg-total">TOTAL</th>' +
+      '</tr><tr>';
+    combos.forEach(function (c) {
+      html += '<th class="mg">' + esc(c[1]) + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+
+    /* Nombre de classes */
+    html += '<tr><td colspan="2" class="lbl-mg">Nombre de classes</td>';
+    combos.forEach(function (c) {
+      html += '<td><input type="number" min="0" inputmode="numeric"' +
+        ' data-type="num" data-path="multigrades.' + c[0] + '.nb_classes"' +
+        ' data-n="nb_classes" data-combo="' + c[0] + '"' +
+        ' data-recalc="mg" value="0"></td>';
+    });
+    html += '<td class="total-mg"><input type="number" readonly class="calc"' +
+      ' data-total-col="nb_classes" value="0"></td></tr>';
+
+    /* Blocs GP1, GP2 et total GP1+GP2 */
+    function bloc(titre, prefixe, cls, lecture) {
+      var ro = lecture ? ' readonly class="calc"' : '';
+      var out = '<tr><td rowspan="3" class="cat-mg ' + cls + '">' + titre + '</td>' +
+                '<td class="lbl-mg">Garçons</td>';
+      combos.forEach(function (c) {
+        out += '<td><input type="number" min="0" inputmode="numeric"' +
+          ' data-type="num"' + ro +
+          ' data-path="multigrades.' + c[0] + '.' + prefixe + '_g"' +
+          ' data-n="' + prefixe + '_g" data-combo="' + c[0] + '"' +
+          (lecture ? '' : ' data-recalc="mg"') + ' value="0"></td>';
+      });
+      out += '<td class="total-mg"><input type="number" readonly class="calc"' +
+        ' data-total-col="' + prefixe + '_g" value="0"></td></tr>';
+
+      out += '<tr><td class="lbl-mg">Filles</td>';
+      combos.forEach(function (c) {
+        out += '<td><input type="number" min="0" inputmode="numeric"' +
+          ' data-type="num"' + ro +
+          ' data-path="multigrades.' + c[0] + '.' + prefixe + '_f"' +
+          ' data-n="' + prefixe + '_f" data-combo="' + c[0] + '"' +
+          (lecture ? '' : ' data-recalc="mg"') + ' value="0"></td>';
+      });
+      out += '<td class="total-mg"><input type="number" readonly class="calc"' +
+        ' data-total-col="' + prefixe + '_f" value="0"></td></tr>';
+
+      out += '<tr><td class="lbl-mg">Total</td>';
+      combos.forEach(function (c) {
+        out += '<td><input type="number" min="0" inputmode="numeric"' +
+          ' data-type="num" readonly class="calc"' +
+          ' data-path="multigrades.' + c[0] + '.' + prefixe + '_t"' +
+          ' data-n="' + prefixe + '_t" data-combo="' + c[0] + '" value="0"></td>';
+      });
+      out += '<td class="total-mg"><input type="number" readonly class="calc"' +
+        ' data-total-col="' + prefixe + '_t" value="0"></td></tr>';
+      return out;
+    }
+
+    html += bloc("Effectif GP1", "gp1", "gp1", false) +
+            bloc("Effectif GP2", "gp2", "gp2", false) +
+            bloc("Effectif total GP1 et GP2", "gp12", "gp12", true);
+    html += '</tbody></table></div></div></details>';
+    return html;
+  }
+
+  /* --- Récapitulation J (FRANÇAIS / ARABE) --- */
   var RECAP_CATS = [
     { cls: "inst", titre: "INSTITUTEURS" },
     { cls: "adj", titre: "INSTITUTEURS ADJOINTS" },
@@ -198,8 +312,8 @@
 
   function recapHTML() {
     var html = '<details class="section-form" open>' +
-      '<summary>H. RÉCAPITULATION DU PERSONNEL (FRANÇAIS / ARABE)' +
-      '<span class="badge" data-badge="H">0</span></summary><div class="corps">' +
+      '<summary>J. RÉCAPITULATION DU PERSONNEL (FRANÇAIS / ARABE)' +
+      '<span class="badge" data-badge="J">0</span></summary><div class="corps">' +
       '<div class="petit mb">Totaux H / F / T — le Total se calcule automatiquement ' +
       '(H + F).</div>';
     D.RECAP.groupes.forEach(function (g) {
@@ -233,12 +347,12 @@
     return html;
   }
 
-  /* --- Effectifs I --- */
+  /* --- Effectifs K --- */
   function effectifsHTML() {
     var cols = D.EFFECTIFS.colonnes;
     var html = '<details class="section-form" open>' +
-      '<summary>I. SITUATION DES EFFECTIFS' +
-      '<span class="badge" data-badge="I">0</span></summary><div class="corps">' +
+      '<summary>K. SITUATION DES EFFECTIFS' +
+      '<span class="badge" data-badge="K">0</span></summary><div class="corps">' +
       '<div class="petit mb">Les totaux (T) se calculent automatiquement : G + F.</div>' +
       '<div class="table-defilement"><table class="table-saisie">' +
       '<thead>' +
@@ -279,12 +393,12 @@
     return html;
   }
 
-  /* --- Mobilier J --- */
+  /* --- Mobilier L --- */
   function mobilierHTML() {
     var cols = D.MOBILIER.colonnes;
     var html = '<details class="section-form" open>' +
-      '<summary>J. MOBILIER SCOLAIRE' +
-      '<span class="badge" data-badge="J">0</span></summary><div class="corps">' +
+      '<summary>L. MOBILIER SCOLAIRE' +
+      '<span class="badge" data-badge="L">0</span></summary><div class="corps">' +
       '<div class="petit mb">Total = Bon + À réparer (calcul automatique, modifiable).</div>' +
       '<div class="table-defilement"><table class="table-saisie">' +
       '<thead><tr><th style="width:34%;">Désignation</th>';
@@ -312,13 +426,13 @@
     conteneur = el;
     var html = "";
 
-    /* Navigation rapide A → N */
+    /* Navigation rapide A → P */
     html += '<div class="carte"><div style="display:flex; gap:6px; flex-wrap:wrap;">';
     D.SECTIONS.forEach(function (s) {
       html += '<a class="btn gris petit" href="#sec_' + s.lettre + '" ' +
               'data-aller="' + s.lettre + '">' + s.lettre + "</a>";
     });
-    ["H", "I", "J", "K", "L", "M", "N"].forEach(function (l) {
+    ["H", "I", "J", "K", "L", "M", "N", "O", "P"].forEach(function (l) {
       html += '<a class="btn gris petit" href="#sec_' + l + '" data-aller="' + l + '">' +
               l + "</a>";
     });
@@ -328,8 +442,11 @@
       html += '<div id="sec_' + s.lettre + '">' + sectionHTML(s) + "</div>";
     });
 
-    html += '<div id="sec_H">' + tableauRepeatHTML({
-      lettre: "H", cle: "enseignant", titre: "H. SITUATION DU PERSONNEL ENSEIGNANT",
+    html += '<div id="sec_H">' + doubleFluxHTML() + "</div>";
+    html += '<div id="sec_I">' + multigradesHTML() + "</div>";
+
+    html += '<div id="sec_J">' + tableauRepeatHTML({
+      lettre: "J", cle: "enseignant", titre: "SITUATION DU PERSONNEL ENSEIGNANT",
       colonnes: D.PERSONNEL[0].colonnes, min: D.PERSONNEL[0].min, fixe: true,
       soustitre: "20 lignes — inscrire le Directeur en première ligne"
     }) + "</div>";
@@ -343,12 +460,12 @@
     });
 
     html += '<div id="sec_recap">' + recapHTML() + "</div>";
-    html += '<div id="sec_I">' + effectifsHTML() + "</div>";
-    html += '<div id="sec_J">' + mobilierHTML() + "</div>";
+    html += '<div id="sec_K">' + effectifsHTML() + "</div>";
+    html += '<div id="sec_L">' + mobilierHTML() + "</div>";
 
     D.LISTES.forEach(function (L) {
       html += '<div id="sec_' + L.lettre + '">' + tableauRepeatHTML({
-        lettre: L.lettre, cle: L.cle, titre: L.lettre + ". " + L.titre,
+        lettre: L.lettre, cle: L.cle, titre: L.titre,
         colonnes: D.COLONNES_LISTE, min: L.min,
         cle_titre: L.cle_titre, soustitre: L.soustitre,
         fixe: !!L.fixe, valeurs: L.valeurs
@@ -544,6 +661,9 @@
     setPath(donnees, path, v);
 
     /* --- Calculs automatiques --- */
+    var recalc = el.getAttribute("data-recalc");
+    if (recalc === "df") { recalcDoubleFlux(); }
+    else if (recalc === "mg") { recalcMultigrades(); }
     var calc = el.getAttribute("data-calc");
     if (calc) { calcTotalLigne(el, calc); }
     if (el.getAttribute("data-n") === "bon" || el.getAttribute("data-n") === "a_reparer") {
@@ -594,7 +714,70 @@
     setPath(donnees, total.getAttribute("data-path"), somme);
   }
 
-  /** Récapitulation H : Total = H + F. */
+  /** H — Double-flux : T = G + F pour chaque niveau. */
+  function recalcDoubleFlux() {
+    if (!D.DOUBLE_FLUX) { return; }
+    D.DOUBLE_FLUX.niveaux.forEach(function (n) {
+      var cle = n[0];
+      var g = valeurChamp("double_flux." + cle + ".g");
+      var f = valeurChamp("double_flux." + cle + ".f");
+      var t = g + f;
+      var el = conteneur.querySelector(
+        'input[data-path="double_flux.' + cle + '.t"]');
+      if (el) { el.value = t; }
+      setPath(donnees, "double_flux." + cle + ".t", t);
+    });
+  }
+
+  /** I — Multigrades : totaux de ligne, total GP1+GP2 et colonne TOTAL. */
+  function recalcMultigrades() {
+    if (!D.MULTIGRADES) { return; }
+    var combos = D.MULTIGRADES.combinaisons;
+    var cumuls = {};
+
+    function lire(cle, n) {
+      var el = conteneur.querySelector(
+        'input[data-combo="' + cle + '"][data-n="' + n + '"]');
+      return el ? (parseFloat(el.value) || 0) : 0;
+    }
+    function ecrire(cle, n, v) {
+      var el = conteneur.querySelector(
+        'input[data-combo="' + cle + '"][data-n="' + n + '"]');
+      if (el) { el.value = v; }
+      setPath(donnees, "multigrades." + cle + "." + n, v);
+    }
+
+    combos.forEach(function (c) {
+      var cle = c[0];
+      var gp1g = lire(cle, "gp1_g"), gp1f = lire(cle, "gp1_f");
+      var gp2g = lire(cle, "gp2_g"), gp2f = lire(cle, "gp2_f");
+      var gp1t = gp1g + gp1f, gp2t = gp2g + gp2f;
+      ecrire(cle, "gp1_t", gp1t);
+      ecrire(cle, "gp2_t", gp2t);
+      ecrire(cle, "gp12_g", gp1g + gp2g);
+      ecrire(cle, "gp12_f", gp1f + gp2f);
+      ecrire(cle, "gp12_t", gp1t + gp2t);
+
+      ["nb_classes", "gp1_g", "gp1_f", "gp1_t", "gp2_g", "gp2_f", "gp2_t",
+       "gp12_g", "gp12_f", "gp12_t"].forEach(function (n) {
+        if (!cumuls[n]) { cumuls[n] = 0; }
+        cumuls[n] += lire(cle, n);
+      });
+    });
+
+    Object.keys(cumuls).forEach(function (n) {
+      var el = conteneur.querySelector('[data-total-col="' + n + '"]');
+      if (el) { el.value = cumuls[n]; }
+    });
+  }
+
+  /** Valeur numérique d'un champ identifié par son data-path. */
+  function valeurChamp(path) {
+    var el = conteneur.querySelector('[data-path="' + path + '"]');
+    return el ? (parseFloat(el.value) || 0) : 0;
+  }
+
+  /** Récapitulation J : Total = H + F. */
   function calcRecap(el, base) {
     var tr = el.closest("tr");
     if (!tr) { return; }
@@ -759,11 +942,17 @@
     /* effectifs / mobilier / récap */
     Array.prototype.forEach.call(
       conteneur.querySelectorAll('table [data-path][data-n]'), function (el) {
-        if (el.readOnly) { return; }   /* titres officiels (K, M) : ne pas effacer */
+        if (el.readOnly) { return; }   /* titres officiels (M, O) : ne pas effacer */
         var v = getPath(donnees, el.getAttribute("data-path"));
         if (v === undefined || v === null) { v = el.type === "number" ? 0 : ""; }
         el.value = v;
       });
+
+    /* Les nouveaux tableaux H / I ont des cellules calculées : on les
+       remplit après coup, y compris pour les anciens brouillons qui ne
+       contiennent pas encore ces totaux. */
+    recalcDoubleFlux();
+    recalcMultigrades();
 
     mettreAJourBadges();
   }
@@ -790,7 +979,7 @@
       }
       setPath(out, el.getAttribute("data-path"), v);
     });
-    /* Lignes fixes du modèle (K : titres, M : désignations) : le libellé
+    /* Lignes fixes du modèle (M : titres, O : désignations) : le libellé
        officiel est garanti, même si un DOM antérieur l'avait vidé. */
     D.LISTES.forEach(function (def) {
       if (!def.valeurs || !Array.isArray(out[def.cle])) { return; }
@@ -825,9 +1014,13 @@
       conteneur.querySelectorAll("details.section-form"), function (det) {
         var badge = det.querySelector("[data-badge]");
         if (!badge) { return; }
-        var champs = det.querySelectorAll("[data-path]");
+        /* Les cellules calculées (readonly) ne comptent pas dans la
+           progression : seules les vraies saisies sont dénombrées. */
+        var champs = Array.prototype.filter.call(
+          det.querySelectorAll("[data-path]"),
+          function (el) { return !el.readOnly; });
         var remplis = 0;
-        Array.prototype.forEach.call(champs, function (el) {
+        champs.forEach(function (el) {
           if (el.value !== "" && el.value !== "0" && el.value !== null) { remplis++; }
         });
         badge.textContent = remplis + "/" + champs.length;
@@ -923,7 +1116,7 @@
         });
       if (vide) {
         erreurs.push("Ajoutez au moins un enseignant (prénom et nom) " +
-                     "dans la section H.");
+                     "dans la section J.");
       }
     }
     return erreurs;

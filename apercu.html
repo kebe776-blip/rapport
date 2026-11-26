@@ -25,7 +25,7 @@
 
   <div class="carte" id="carte-actions">
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-      <button class="btn vert" id="btn-pdf" disabled>⬇ Télécharger le PDF officiel (6 pages)</button>
+      <button class="btn vert" id="btn-pdf" disabled>⬇ Télécharger le PDF officiel (7 pages)</button>
       <span class="petit" id="info-fichier"></span>
       <span class="spacer" style="flex:1"></span>
       <a class="btn gris petit" id="lien-modifier" href="general-elementaire.html">Modifier la saisie</a>
@@ -87,7 +87,7 @@
     return t.id === CFG.TYPE_DEFAUT;
   })[0] || {};
   var TYPE = typeInfo.id || CFG.TYPE_DEFAUT || "general-elementaire";
-  var NB_PAGES = typeInfo.pages || 6;
+  var NB_PAGES = typeInfo.pages || 7;
   /* Orientation du gabarit du type : portrait (rapport des évaluations),
      paysage (types historiques) ou mixte (rapport général moyen :
      6 pages portrait + 8 pages paysage). */
@@ -163,7 +163,7 @@
       var p = params();
       var id = charge.id || p.ref || (charge.brut && charge.brut._id) || "—";
 
-      /* Titres fixes K / M absents des rapports élémentaires enregistrés
+      /* Titres fixes M / O absents des rapports élémentaires enregistrés
          avant la correction : on complete la liste officielle avant le
          rendu. Les types à gabarit dédié ont leurs propres listes. */
       if (!typeInfo.modele && window.RR_CHAMPS &&
@@ -184,7 +184,7 @@
         "<b>Rapport prêt.</b> " + NB_PAGES + " pages A4 " + ORIENTATION + " — " +
         (typeInfo.modele
           ? "gabarit officiel du type « " + window.RR.esc(TYPE) + " »."
-          : "en-tête officiel + A-D / E-G / H / I-J / K / L-N et signature."));
+          : "en-tête officiel + A-D / E-G / H-I / J / K-L / M / N-O-P et signature."));
 
       /* Téléchargement automatique si ?auto=1 (après une soumission) */
       if (p.auto === "1") { telecharger(); }

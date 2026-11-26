@@ -1,6 +1,6 @@
 /* =========================================================================
    champs.js — Définition déclarative du formulaire officiel
-   Sections A → N du « RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE ».
+   Sections A → P du « RAPPORT GÉNÉRAL DE RENTRÉE ÉLÉMENTAIRE ».
    Les noms de champs (n) correspondent à l'objet brut enregistré dans la
    colonne `donnees`, ce que buildContext() attend pour produire le PDF.
    ========================================================================= */
@@ -197,7 +197,7 @@
   ];
 
   /* -----------------------------------------------------------------------
-     H — PERSONNEL ENSEIGNANT (3 tableaux répétables)
+     J — PERSONNEL ENSEIGNANT (3 tableaux répétables)
      ----------------------------------------------------------------------- */
   var COLONNES_PERSONNEL = [
     { n: "prenom", l: "Prénom", t: "text", maj: "upper", w: "11%" },
@@ -222,7 +222,7 @@
       min: 3, fixe: true }
   ];
 
-  /* --- Récapitulation FR / AR (section H) --- */
+  /* --- Récapitulation FR / AR (section J) --- */
   var RECAP = {
     groupes: [
       { cle: "recap_francais", titre: "FRANÇAIS", cles: [
@@ -242,7 +242,7 @@
   };
 
   /* -----------------------------------------------------------------------
-     I — EFFECTIFS (6 lignes fixes : CI → CM2)
+     K — EFFECTIFS (6 lignes fixes : CI → CM2)
      ----------------------------------------------------------------------- */
   var EFFECTIFS = {
     groupes: [
@@ -267,7 +267,58 @@
   };
 
   /* -----------------------------------------------------------------------
-     J — MOBILIER SCOLAIRE (11 lignes fixes)
+     H — CLASSES DOUBLE-FLUX (6 niveaux)
+     I — CLASSES MULTIGRADES (15 combinaisons officielles)
+     ----------------------------------------------------------------------- */
+  var DOUBLE_FLUX = {
+    niveaux: [
+      ["ci", "CI"], ["cp", "CP"], ["ce1", "CE1"],
+      ["ce2", "CE2"], ["cm1", "CM1"], ["cm2", "CM2"]
+    ],
+    colonnes: [
+      { n: "nb_classes", l: "Nb Cl", t: "num" },
+      { n: "g", l: "G", t: "num" },
+      { n: "f", l: "F", t: "num" },
+      { n: "t", l: "T", t: "num", auto: true }
+    ]
+  };
+
+  /* L'ordre des 15 combinaisons est celui du modèle officiel :
+     3 combinaisons d'étapes, 2 contiguës, 10 éloignées. */
+  var MULTIGRADES = {
+    combinaisons: [
+      ["ci_cp", "CI/CP", "etapes"],
+      ["ce1_ce2", "CE1/CE2", "etapes"],
+      ["cm1_cm2", "CM1/CM2", "etapes"],
+      ["cp_ce1", "CP/CE1", "contigues"],
+      ["ce2_cm1", "CE2/CM1", "contigues"],
+      ["ci_ce1", "CI/CE1", "eloignees"],
+      ["ci_ce2", "CI/CE2", "eloignees"],
+      ["ci_cm1", "CI/CM1", "eloignees"],
+      ["ci_cm2", "CI/CM2", "eloignees"],
+      ["cp_ce2", "CP/CE2", "eloignees"],
+      ["cp_cm1", "CP/CM1", "eloignees"],
+      ["cp_cm2", "CP/CM2", "eloignees"],
+      ["ce1_cm1", "CE1/CM1", "eloignees"],
+      ["ce1_cm2", "CE1/CM2", "eloignees"],
+      ["ce2_cm2", "CE2/CM2", "eloignees"]
+    ],
+    colonnes: [
+      { n: "nb_classes", l: "Nombre de classes", t: "num" },
+      { n: "gp1_g", l: "GP1 Garçons", t: "num" },
+      { n: "gp1_f", l: "GP1 Filles", t: "num" },
+      { n: "gp1_t", l: "GP1 Total", t: "num", auto: true },
+      { n: "gp2_g", l: "GP2 Garçons", t: "num" },
+      { n: "gp2_f", l: "GP2 Filles", t: "num" },
+      { n: "gp2_t", l: "GP2 Total", t: "num", auto: true },
+      { n: "gp12_g", l: "Total GP1+GP2 Garçons", t: "num", auto: true },
+      { n: "gp12_f", l: "Total GP1+GP2 Filles", t: "num", auto: true },
+      { n: "gp12_t", l: "Total GP1+GP2", t: "num", auto: true }
+    ]
+  };
+
+  /* -----------------------------------------------------------------------
+     L — MOBILIER SCOLAIRE (11 lignes fixes)
      ----------------------------------------------------------------------- */
   var MOBILIER_FORM = {
     lignes: [
@@ -292,9 +343,9 @@
   };
 
   /* -----------------------------------------------------------------------
-     K, L, M, N — LISTES DE MANUELS / MATÉRIEL
-     K et M : titres fixes du modèle officiel (pas de bouton d'ajout).
-     L : 7 lignes libres — N : 4 lignes libres.
+     M, N, O, P — LISTES DE MANUELS / MATÉRIEL
+     M et O : titres fixes du modèle officiel (pas de bouton d'ajout).
+     N : 7 lignes libres — P : 4 lignes libres.
      ----------------------------------------------------------------------- */
   var TITRES_MANUELS = [
     "Langue et communication CI", "Guide L C CI", "Mathematiques CI",
@@ -320,17 +371,17 @@
   ];
 
   var LISTES = [
-    { lettre: "K", cle: "manuels", titre: "RECENSESEMENT DES MANUELS",
+    { lettre: "M", cle: "manuels", titre: "RECENSESEMENT DES MANUELS",
       colonne_titre: "Titre", min: TITRES_MANUELS.length, fixe: true,
       valeurs: TITRES_MANUELS, soustitre: "Titres officiels du modèle" },
-    { lettre: "L", cle: "autre_manuel", titre: "AUTRES MANUELS DISPONIBLES A L'ÉCOLE",
+    { lettre: "N", cle: "autre_manuel", titre: "AUTRES MANUELS DISPONIBLES A L'ÉCOLE",
       colonne_titre: "Titre", min: 7, fixe: true,
       soustitre: "7 lignes — titre libre (donnés, prêtés…)" },
-    { lettre: "M", cle: "materiel", titre: "RECENSESEMENT DU MATÉRIEL DIDACTIQUE",
+    { lettre: "O", cle: "materiel", titre: "RECENSESEMENT DU MATÉRIEL DIDACTIQUE",
       colonne_titre: "Désignation", min: DESIGNATIONS_MATERIEL.length,
       cle_titre: "designation", fixe: true, valeurs: DESIGNATIONS_MATERIEL,
       soustitre: "Désignations officielles du modèle" },
-    { lettre: "N", cle: "autre_materiel", titre: "AUTRES MATÉRIEL DISPONIBLE A L'ÉCOLE",
+    { lettre: "P", cle: "autre_materiel", titre: "AUTRES MATÉRIEL DISPONIBLE A L'ÉCOLE",
       colonne_titre: "Désignation", min: 4, cle_titre: "designation", fixe: true,
       soustitre: "4 lignes — désignation libre" }
   ];
@@ -345,16 +396,16 @@
 
   /* -----------------------------------------------------------------------
      COMPLÉMENT DES LIGNES FIXES (aperçu / rapports déjà enregistrés)
-     Les titres K et désignations M vivent dans le DOM du formulaire sous
+     Les titres M et désignations O vivent dans le DOM du formulaire sous
      forme de champs readonly : un rapport enregistré AVANT cette correction
-     partait sans libellé (brouillon ou Supabase), d'où des pages 5 et 6
+     partait sans libellé (brouillon ou Supabase), d'où des pages 6 et 7
      sans titres. On injecte ici le libellé officiel manquant — et on crée
      les lignes absentes pour que l'aperçu affiche la liste complète.
      ----------------------------------------------------------------------- */
   function completerTitresFixes(raw) {
     if (!raw || typeof raw !== "object") { return raw; }
     LISTES.forEach(function (def) {
-      if (!def.valeurs) { return; }          /* L et N : lignes libres */
+      if (!def.valeurs) { return; }          /* N et P : lignes libres */
       var cleTitre = def.cle_titre || "titre";
       var lignes = Array.isArray(raw[def.cle]) ? raw[def.cle] : [];
       for (var i = 0; i < def.valeurs.length; i++) {
@@ -375,6 +426,8 @@
     PERSONNEL: PERSONNEL,
     RECAP: RECAP,
     EFFECTIFS: EFFECTIFS,
+    DOUBLE_FLUX: DOUBLE_FLUX,
+    MULTIGRADES: MULTIGRADES,
     MOBILIER: MOBILIER_FORM,
     LISTES: LISTES,
     COLONNES_LISTE: COLONNES_LISTE,

@@ -353,7 +353,7 @@
       });
     });
 
-    /* TOTAL GENERAL ECOLE = effectifs de l'école (section I). */
+    /* TOTAL GENERAL ECOLE = effectifs de l'école (section K). */
     l[TC_TOT_G] = x.effectifs_total.eff_g;
     l[TC_TOT_F] = x.effectifs_total.eff_f;
     l[TC_TOT_T] = x.effectifs_total.eff_t;
@@ -572,7 +572,7 @@
         0 N° | 1 Etablissement | 2 Année de création | 3 Statut |
         4-29  26 colonnes de manuels | 30-43 14 désignations de matériel.
 
-        Appariement des titres de notre formulaire (section K) sur les
+        Appariement des titres de notre formulaire (section M) sur les
         colonnes du modèle :
           - « Mathematiques CI » → « Maths CI », « Langue et
             communication CI » → « Français CI », idem CP ;

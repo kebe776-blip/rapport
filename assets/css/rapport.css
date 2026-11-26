@@ -120,7 +120,39 @@ table.grid tr.totale td { font-weight: bold; }
 }
 .pres-p4 table.p4-mob th { font-size: 7.9pt; }
 
-/* Version compacte (H, K, L, M, N) */
+/* ---------- PAGE 3 ÉLÉMENTAIRE : H DOUBLE-FLUX + I MULTIGRADES ---------- */
+.p3-stats h2.p3-titre {
+  text-align: center;
+  font-style: normal;
+  text-decoration: none;
+  margin: 0 0 4pt 0;
+  font-size: 11.5pt;
+}
+.p3-stats h2.p3-titre .p3-lettre { font-size: 11.5pt; }
+.p3-stats h2.p3-titre .p3-note { font-size: 9pt; font-weight: normal; }
+.p3-stats .p3-soustitre {
+  font-weight: bold;
+  font-size: 10pt;
+  margin: 3pt 0 3pt 0;
+}
+.p3-stats table.p3-df { table-layout: fixed; margin-bottom: 0; }
+.p3-stats table.p3-df th,
+.p3-stats table.p3-df td { padding: 5pt 1.5pt; font-size: 9pt; }
+.p3-stats table.p3-df th { font-size: 8.2pt; }
+.p3-stats table.p3-df th.cat { font-size: 9pt; }
+.p3-stats table.p3-mg { table-layout: fixed; margin-bottom: 0; }
+.p3-stats table.p3-mg th,
+.p3-stats table.p3-mg td { padding: 4.2pt 1.5pt; font-size: 8.2pt; }
+.p3-stats table.p3-mg th { font-size: 7.7pt; }
+.p3-stats table.p3-mg th.cat { font-size: 8.4pt; }
+.p3-stats table.p3-mg td.p3-lbl { text-align: left; }
+.p3-stats table.p3-mg td.p3-cat {
+  font-size: 7.8pt;
+  text-align: center;
+}
+.p3-stats .p3-mt { margin-top: 14pt; }
+
+/* Version compacte (J, K, L, M, N, O, P) */
 table.grid.compact th, table.grid.compact td {
   padding: 1.3pt 4pt; font-size: 8.1pt;
 }

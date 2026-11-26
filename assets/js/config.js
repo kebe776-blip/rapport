@@ -66,7 +66,7 @@ window.RR_CONFIG = {
       modele: "assets/js/rapport-general-prescolaire.js" },
     { id: "general-elementaire",   nom: "Rapport général de rentrée élémentaire",
       form: "general-elementaire.html", pdf: true, xlsx: true, analyse: true,
-      pages: 6, ecoles: "RR_ECOLES", modif: "RR_MODIF",
+      pages: 7, ecoles: "RR_ECOLES", modif: "RR_MODIF",
       brouillon: "rr_brouillon_v1" },
     { id: "general-moyen",         nom: "Rapport général de rentrée moyen & secondaire",
       form: "general-moyen.html", pdf: true, xlsx: false, analyse: false,

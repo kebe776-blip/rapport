@@ -77,7 +77,7 @@
 
       /* Orientation PAR PAGE : data-orientation="portrait" (rapport succinct
          préscolaire : page 2). Sans attribut → paysage : comportement
-         strictement identique à avant pour les 6 pages élémentaires. */
+         strictement identique à avant pour les 7 pages élémentaires. */
       var portrait = el.getAttribute("data-orientation") === "portrait";
       var orient = portrait ? "portrait" : "landscape";
 

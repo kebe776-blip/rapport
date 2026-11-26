@@ -1,5 +1,5 @@
 /* =========================================================================
-   rapport.js — Générateur HTML du rapport officiel (6 pages A4 PAYSAGE)
+   rapport.js — Générateur HTML du rapport officiel (7 pages A4 PAYSAGE)
    Mise en page fidèle du modèle administratif papier.
    Chaque page est isolée dans <div class="pdf-page"> (275 x 194 mm),
    ce qui garantit qu'aucune section n'est jamais coupée.
@@ -346,7 +346,106 @@
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 3 : H (personnel + suppléants + malades + récapitulation)
+     PAGE 3 : H (double-flux) + I (multigrades)
+     ----------------------------------------------------------------------- */
+  function page3(ctx) {
+    var df = ctx.double_flux || [];
+    var mg = ctx.multigrades || [];
+    var tot = ctx.multigrades_total || {
+      nb_classes: 0,
+      gp1_g: 0, gp1_f: 0, gp1_t: 0,
+      gp2_g: 0, gp2_f: 0, gp2_t: 0,
+      gp12_g: 0, gp12_f: 0, gp12_t: 0
+    };
+
+    var html = '<div class="p3-stats">';
+
+    /* ---- H. Double-flux ---- */
+    html +=
+'<h2 class="p3-titre">' +
+  '<span class="p3-lettre">H.</span> CLASSES DOUBLE-FLUX ' +
+  '<span class="p3-note">(toutes les cohortes réunies)</span>' +
+'</h2>' +
+'<div class="p3-soustitre">Statistiques :</div>' +
+'<table class="grid p3-df"><colgroup>';
+    df.forEach(function () { html += '<col style="width:4.1667%;">'; });
+    html += '</colgroup><tr>';
+    df.forEach(function (d) {
+      html += '<th colspan="4" class="cat">' + u(d.niveau) + '</th>';
+    });
+    html += '</tr><tr>';
+    df.forEach(function () {
+      html += '<th>Nb Cl</th><th>G</th><th>F</th><th>T</th>';
+    });
+    html += '</tr><tr>';
+    df.forEach(function (d) {
+      html += '<td class="n">' + p2(d.nb_classes) + '</td>' +
+              '<td class="n">' + p2(d.g) + '</td>' +
+              '<td class="n">' + p2(d.f) + '</td>' +
+              '<td class="n">' + p2(d.t) + '</td>';
+    });
+    html += '</tr></table>';
+
+    /* ---- I. Multigrades ---- */
+    html +=
+'<h2 class="p3-titre p3-mt">' +
+  '<span class="p3-lettre">I.</span> CLASSES MULTIGRADES' +
+'</h2>' +
+'<div class="p3-soustitre">Statistiques</div>' +
+'<table class="grid p3-mg"><colgroup>' +
+  '<col style="width:9%"><col style="width:8%">';
+    mg.forEach(function () { html += '<col style="width:5%">'; });
+    html += '<col style="width:8%"></colgroup>' +
+'<tr>' +
+  '<th rowspan="2" colspan="2" class="cat">' +
+    'Nombre de classes et effectifs des groupes pédagogiques (GP)</th>' +
+  '<th colspan="3" class="cat">Combinaisons d\'étapes</th>' +
+  '<th colspan="2" class="cat">Combinaisons contigües</th>' +
+  '<th colspan="10" class="cat">Combinaisons éloignées</th>' +
+  '<th rowspan="2" class="cat">TOTAL</th>' +
+'</tr><tr>';
+    mg.forEach(function (m) {
+      html += '<th>' + u(m.combinaison) + '</th>';
+    });
+    html += '</tr>';
+
+    /* Nombre de classes */
+    html += '<tr><td colspan="2" class="p3-lbl">Nombre de classes</td>';
+    mg.forEach(function (m) {
+      html += '<td class="n">' + p2(m.nb_classes) + '</td>';
+    });
+    html += '<td class="n">' + p2(tot.nb_classes) + '</td></tr>';
+
+    /* Bloc GP1 / GP2 / total GP1+GP2 */
+    function bloc(titre, prefixe) {
+      var out = '<tr><td rowspan="3" class="p3-cat">' + titre + '</td>' +
+                '<td class="p3-lbl">Garçons</td>';
+      mg.forEach(function (m) {
+        out += '<td class="n">' + p2(m[prefixe + "_g"]) + '</td>';
+      });
+      out += '<td class="n">' + p2(tot[prefixe + "_g"]) + '</td></tr>' +
+             '<tr><td class="p3-lbl">Filles</td>';
+      mg.forEach(function (m) {
+        out += '<td class="n">' + p2(m[prefixe + "_f"]) + '</td>';
+      });
+      out += '<td class="n">' + p2(tot[prefixe + "_f"]) + '</td></tr>' +
+             '<tr><td class="p3-lbl">Total</td>';
+      mg.forEach(function (m) {
+        out += '<td class="n">' + p2(m[prefixe + "_t"]) + '</td>';
+      });
+      out += '<td class="n">' + p2(tot[prefixe + "_t"]) + '</td></tr>';
+      return out;
+    }
+    html += bloc("Effectif GP1", "gp1") +
+            bloc("Effectif GP2", "gp2") +
+            bloc("Effectif total GP1 et GP2", "gp12");
+
+    html += '</table></div>';
+    return html;
+  }
+
+  /* -----------------------------------------------------------------------
+     PAGE 4 : J (personnel + suppléants + malades + récapitulation)
      ----------------------------------------------------------------------- */
   var PERS_HEAD =
 '<tr>' +
@@ -389,11 +488,11 @@
     return html;
   }
 
-  function page3(ctx) {
+  function page4(ctx) {
     var rf = ctx.recap_fr, ra = ctx.recap_ar;
 
     var html =
-'<h2 class="section">H. &nbsp; SITUATION DU PERSONNEL ENSEIGNANT ' +
+'<h2 class="section">J. &nbsp; SITUATION DU PERSONNEL ENSEIGNANT ' +
   '<span style="font-size:7.5pt; font-style:italic; text-decoration:none;">' +
   '(Inscrire le Directeur et mettre le titre qu\'il tient ou s\'il est déchargé)</span>' +
 '</h2>' +
@@ -452,13 +551,13 @@ persTable(ctx.malades, 3) +
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 4 : I + J
+     PAGE 5 : K + L
      ----------------------------------------------------------------------- */
-  function page4(ctx) {
+  function page5(ctx) {
     var t = ctx.effectifs_total;
 
     var html =
-'<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>' +
+'<h2 class="section">K. &nbsp; SITUATION DES EFFECTIFS</h2>' +
 '<table class="grid">' +
   '<tr>' +
     '<th rowspan="2" class="cat plain" style="width:6%;">COURS</th>' +
@@ -505,9 +604,9 @@ persTable(ctx.malades, 3) +
   '</tr>' +
 '</table>';
 
-    /* ---- J. Mobilier ---- */
+    /* ---- L. Mobilier ---- */
     html +=
-'<h2 class="section">J. &nbsp; MOBILIER SCOLAIRE</h2>' +
+'<h2 class="section">L. &nbsp; MOBILIER SCOLAIRE</h2>' +
 '<table class="grid">' +
   '<tr>' +
     '<th style="width:40%;">Moblier</th>' +
@@ -532,7 +631,7 @@ persTable(ctx.malades, 3) +
   }
 
   /* -----------------------------------------------------------------------
-     TABLEAU 5 COLONNES RÉUTILISABLE (K, L, M, N)
+     TABLEAU 5 COLONNES RÉUTILISABLE (M, N, O, P)
      ----------------------------------------------------------------------- */
   function stuffTable(list, min, titreEntete) {
     var html =
@@ -564,23 +663,23 @@ persTable(ctx.malades, 3) +
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 5 : K
+     PAGE 6 : M
      ----------------------------------------------------------------------- */
-  function page5(ctx) {
-    return '<h2 class="section">K. &nbsp; RECENSESEMENT DES MANUELS</h2>' +
+  function page6(ctx) {
+    return '<h2 class="section">M. &nbsp; RECENSESEMENT DES MANUELS</h2>' +
            stuffTable(ctx.manuels, 6, "Titre");
   }
 
   /* -----------------------------------------------------------------------
-     PAGE 6 : L + M + N + signature
+     PAGE 7 : N + O + P + signature
      ----------------------------------------------------------------------- */
-  function page6(ctx) {
+  function page7(ctx) {
     var html =
-'<h2 class="section">L. &nbsp; AUTRES MANUELS DISPONIBLES A L\'ÉCOLE</h2>' +
+'<h2 class="section">N. &nbsp; AUTRES MANUELS DISPONIBLES A L\'ÉCOLE</h2>' +
 stuffTable(ctx.autres_manuels, 6, "Titre") +
-'<h2 class="section">M. &nbsp; RECENSESEMENT DU MATÉRIEL DIDACTIQUE</h2>' +
+'<h2 class="section">O. &nbsp; RECENSESEMENT DU MATÉRIEL DIDACTIQUE</h2>' +
 stuffTable(ctx.materiel, 14, "Désignation") +
-'<h2 class="section">N. &nbsp; AUTRES MATÉRIEL DISPONIBLE A L\'ÉCOLE</h2>' +
+'<h2 class="section">P. &nbsp; AUTRES MATÉRIEL DISPONIBLE A L\'ÉCOLE</h2>' +
 stuffTable(ctx.autres_materiels, 4, "Désignation") +
 '<div class="signature">Le Directeur</div>' +
 '<div class="pied">Généré le ' + u(ctx.meta.soumission) +
@@ -595,19 +694,20 @@ stuffTable(ctx.autres_materiels, 4, "Désignation") +
   var TITRES_PAGES = [
     "En-tête + A + B + C + D",
     "E + F + G",
-    "H — Personnel",
-    "I + J",
-    "K — Manuels",
-    "L + M + N + signature"
+    "H + I — Double-flux et multigrades",
+    "J — Personnel",
+    "K + L — Effectifs et mobilier",
+    "M — Manuels",
+    "N + O + P + signature"
   ];
 
-  /** Renvoie le tableau des 6 contenus de page (sans le conteneur). */
+  /** Renvoie le tableau des 7 contenus de page (sans le conteneur). */
   function pageContents(ctx) {
-    return [page1(ctx), page2(ctx), page3(ctx),
-            page4(ctx), page5(ctx), page6(ctx)];
+    return [page1(ctx), page2(ctx), page3(ctx), page4(ctx),
+            page5(ctx), page6(ctx), page7(ctx)];
   }
 
-  /** Renvoie le HTML complet des 6 <div class="pdf-page">. */
+  /** Renvoie le HTML complet des 7 <div class="pdf-page">. */
   function buildPages(ctx) {
     return pageContents(ctx).map(function (content, i) {
       return '<div class="pdf-page" data-page="' + (i + 1) + '">' +
@@ -640,7 +740,10 @@ stuffTable(ctx.autres_materiels, 4, "Désignation") +
         slot.style.height = Math.ceil(hauteurPx * scale) + 26 + "px";
       }
       var leg = slot && slot.querySelector(".apercu-legende");
-      if (leg) { leg.textContent = "Page " + (i + 1) + " / 6 — " + TITRES_PAGES[i]; }
+      if (leg) {
+        leg.textContent = "Page " + (i + 1) + " / " + pages.length +
+                          " — " + TITRES_PAGES[i];
+      }
     });
     container.style.setProperty("--apercu-echelle", scale);
   }

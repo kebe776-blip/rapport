@@ -12,7 +12,7 @@ Cinq types de rapports sont disponibles à ce jour (plus les types
 
 | Type | Formulaire | PDF |
 |---|---|---|
-| **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → N) | **6 pages A4 paysage** |
+| **Rapport général de rentrée élémentaire** | `general-elementaire.html` (sections A → P) | **7 pages A4 paysage** |
 | **Rapport général de rentrée préscolaire** | `general-prescolaire.html` (sections A → M) | **5 pages A4 paysage** |
 | **Rapport général de rentrée moyen & secondaire** | `general-moyen.html` (11 feuilles officielles) | **14 pages A4 mixtes** : 6 portraits + 8 paysages |
 | **Rapport succinct de rentrée préscolaire** | `succinct-prescolaire.html` (modèle condensé) | **2 pages A4 mixtes** : page 1 **paysage**, page 2 **portrait** |
@@ -27,7 +27,7 @@ Cinq types de rapports sont disponibles à ce jour (plus les types
 
 | Étape | Ce qui se passe |
 |---|---|
-| **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` (menu des rapports), choisit **Rapport général de rentrée élémentaire** et remplit les sections **A → N**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
+| **1. Saisie** | Le directeur ouvre la page d'accueil `index.html` (menu des rapports), choisit **Rapport général de rentrée élémentaire** et remplit les sections **A → P**. Fonctionne **sans réseau** : la saisie est enregistrée en permanence sur l'appareil (brouillon). |
 | **2. Soumission** | Un clic sur **Soumettre** : les données partent vers Supabase, ou — si le réseau est absent — sont mises en **file d'attente** et envoyées automatiquement au prochain accès. **Anti-doublon** : si l'école a déjà déposé son rapport, un message demande de confirmer — *OK* remplace le rapport (mise à jour), *Annuler* abandonne **sans envoi ni PDF**. |
 | **3. PDF automatique** | Le PDF est construit **dans le navigateur** (html2canvas + jsPDF) puis téléchargé immédiatement. Aucun serveur n'est nécessaire pour le téléchargement. Ces deux bibliothèques (≈ 550 Ko) ne sont téléchargées qu'au 1er clic sur un bouton PDF, pas à l'ouverture de la page (gain important sur connexion lente, type 2G). |
 | **4. Suivi** | L'Inspection se connecte à `admin.html` pour voir les écoles ayant soumis et, pour chacune : **Voir / PDF**, **Modifier** (corrige le rapport puis régénère le PDF) ou **Supprimer**. |
@@ -36,16 +36,17 @@ Cinq types de rapports sont disponibles à ce jour (plus les types
 ### Mise en page du PDF (conforme au modèle)
 
 * Format **A4 PAYSAGE** (297 × 210 mm), zone utile 275 × 194 mm
-* **6 pages, exactement comme le modèle** — aucune section n'est coupée :
+* **7 pages, exactement comme le modèle** — aucune section n'est coupée :
 
 | Page | Contenu |
 |---|---|
 | **1** | En-tête officiel (République du Sénégal, MEN, IA de Kaolack, IEF de KEUR MADIABEL) + **A** Identification + **B** Classes pédagogiques + **C** Classes physiques + **D** Directeur |
 | **2** | **E** Ouvrages annexes + **F** Activités péri/para scolaires + **F**/**G** Observations |
-| **3** | **H** Personnel enseignant (20 lignes numérotées) + suppléants + malades + récapitulation FR/AR |
-| **4** | **I** Effectifs + **J** Mobilier scolaire |
-| **5** | **K** Recensement des manuels |
-| **6** | **L** Autres manuels + **M** Matériel didactique + **N** Autres matériels + signature *Le Directeur* |
+| **3** | **H** Classes double-flux (6 niveaux) + **I** Classes multigrades (15 combinaisons) |
+| **4** | **J** Personnel enseignant (20 lignes numérotées) + suppléants + malades + récapitulation FR/AR |
+| **5** | **K** Effectifs + **L** Mobilier scolaire |
+| **6** | **M** Recensement des manuels |
+| **7** | **N** Autres manuels + **O** Matériel didactique + **P** Autres matériels + signature *Le Directeur* |
 
 Le nom de fichier généré est toujours :
 `Rapport_Rentree_NOM_ECOLE_2026-2027.pdf`
@@ -259,7 +260,7 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
 index.html              Page d'accueil : menu des rapports (succinct/général ×
                         préscolaire/élémentaire/moyen + 📝 évaluations)
                         + Espace Inspection (chaque carte possède ses liens 🔒 Espace / 📊 Analyse)
-general-elementaire.html  Formulaire du directeur (A → N) + soumission + PDF 6 pages
+general-elementaire.html  Formulaire du directeur (A → P) + soumission + PDF 7 pages
 general-prescolaire.html  ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE
                         PRÉSCOLAIRE » (A → M) + soumission + PDF 5 pages paysage
 general-moyen.html      ★ Formulaire du « RAPPORT GÉNÉRAL DE RENTRÉE —
@@ -287,7 +288,7 @@ assets/css/analyse.css  Styles de la page d'analyse (filtres, graphiques, mini-b
 assets/js/config.js     ★ CONFIGURATION (URL Supabase, clé, année scolaire, TYPES
                         avec capacités pdf/xlsx/analyse/pages/ecoles/form/modif/modele)
 assets/js/lib.js        Construction du contexte du rapport (portage de build_context)
-assets/js/rapport.js    Génération HTML des 6 pages officielles (élémentaire)
+assets/js/rapport.js    Génération HTML des 7 pages officielles (élémentaire)
 assets/js/rapport-succinct.js  ★ Modèle du succinct préscolaire : 2 pages
                         (paysage + portrait), registre RR_MODELES[type]
 assets/js/rapport-general-prescolaire.js  ★ Modèle du général préscolaire :
@@ -301,7 +302,7 @@ assets/js/pdf.js        Génération du PDF A4 dans le navigateur (orientation
                         PAR PAGE : paysage par défaut, portrait sur demande ;
                         dimensions/marges surchargeables par page via
                         data-mm-* / data-marge-*, défauts inchangés)
-assets/js/champs.js     Définition déclarative du formulaire (sections A → N)
+assets/js/champs.js     Définition déclarative du formulaire (sections A → P)
 assets/js/champs-succinct.js   ★ Définition du modèle succinct (sections + tableaux)
 assets/js/champs-evaluations.js  ★ Définition des évaluations (A/B, classes
                         CI → CM2, 3 matières × 3 statistiques, commentaires)
@@ -474,7 +475,7 @@ python -m http.server 8099
 ## 4. Utilisation quotidienne
 
 **Directeur** : ouvrir le lien → choisir son école dans la **liste
-déroulante** (tapez pour filtrer) → remplir A → N → **Soumettre et
+déroulante** (tapez pour filtrer) → remplir A → P → **Soumettre et
 télécharger le PDF officiel** → remettre le fichier à l'Inspecteur (ou
 l'envoyer par WhatsApp dès que le réseau le permet).
 
@@ -484,7 +485,7 @@ ayant soumis. Trois actions par école (selon les capacités du type, voir
 
 | Action | Effet |
 |---|---|
-| **Voir / PDF** | aperçu des pages du gabarit + téléchargement du PDF officiel (6 pages pour l'élémentaire, 5 pour le général préscolaire, 2 pour le succinct préscolaire, **2 pages portrait pour les évaluations**) — le gabarit dédié du type est chargé à la demande (`typeInfo.modele`) |
+| **Voir / PDF** | aperçu des pages du gabarit + téléchargement du PDF officiel (7 pages pour l'élémentaire, 5 pour le général préscolaire, 2 pour le succinct préscolaire, **2 pages portrait pour les évaluations**) — le gabarit dédié du type est chargé à la demande (`typeInfo.modele`) |
 | **✏ Modifier** | charge le rapport enregistré dans le formulaire de **ce** type ; l'Inspection corrige puis re-soumet — le rapport existant est **remplacé** et le nouveau PDF téléchargé (clé de reprise dédiée par type : `RR_MODIF`, `RR_MODIF_SUCCINCT`, `RR_MODIF_GENERAL_PRESCOLAIRE`, `RR_MODIF_EVALUATIONS`, …) |
 | **🗑 Supprimer** | confirmation native, puis suppression définitive du rapport de l'école |
 
@@ -519,7 +520,7 @@ admin.html?type=evaluations             analyse.html?type=evaluations
   `brouillon` (clé du brouillon local), `modele` (gabarit dédié),
   `analyse_js` (module d'analyse dédié), `xlsx_js` (classeur dédié).
   À ce jour **Voir / PDF** et **✏ Modifier** sont actifs pour
-  `general-elementaire` (6 pages), `succinct-prescolaire` (2 pages),
+  `general-elementaire` (7 pages), `succinct-prescolaire` (2 pages),
   `general-prescolaire` (5 pages), `general-moyen` (14 pages mixtes)
   **et `evaluations`** (2 pages portrait) ;
   **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
@@ -586,7 +587,7 @@ la page d'accueil — **pour tous les visiteurs** :
 - **Quantité** et **Besoins** sont des **champs numériques** :
   sur mobile, le **pavé numérique** s'ouvre automatiquement
   (`inputmode="numeric"` + `min="0"`) et la valeur est stockée comme un
-  nombre — sections K/L/M/N du général élémentaire comme recensements du
+  nombre — sections M/N/O/P du général élémentaire comme recensements du
   général préscolaire ;
 - la liste déroulante **Provenance** propose désormais **MAIRIE, APE,
   NEBEDAY** ; **ONU** et **BAILLEUR** ont été retirés de la liste
@@ -594,9 +595,9 @@ la page d'accueil — **pour tous les visiteurs** :
 - les rapports déjà enregistrés avec ONU / BAILLEUR restent lisibles :
   leurs libellés sont conservés en legacy (`lib.js`) — seuls les *choix
   proposés* à la saisie ont changé ;
-- le **PDF officiel est inchangé** : `rapport.js` non modifié, aperçu
-  toujours à **6 pages**, l'intitulé imprimé vient de
-  `LABELS.provenance` (MAIRIE / APE / NEBEDAY ajoutés).
+- le **PDF officiel** n'est pas affecté par ce changement de liste :
+  l'intitulé imprimé vient de `LABELS.provenance` (MAIRIE / APE / NEBEDAY
+  ajoutés).
 
 ### Exploitation des données — la page « 📊 Analyse »
 

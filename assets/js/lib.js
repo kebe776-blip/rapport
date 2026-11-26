@@ -1,6 +1,6 @@
 /* =========================================================================
    lib.js — Construction du contexte du rapport
-   Transforme les données brutes du formulaire (sections A → N)
+   Transforme les données brutes du formulaire (sections A → P)
    en contexte prêt à être rendu par rapport.js.
    ========================================================================= */
 (function (global) {
@@ -59,6 +59,32 @@
   var COURS = [
     ["eff_ci", "CI"], ["eff_cp", "CP"], ["eff_ce1", "CE1"],
     ["eff_ce2", "CE2"], ["eff_cm1", "CM1"], ["eff_cm2", "CM2"]
+  ];
+
+  /* H — Classes double-flux : 6 niveaux. */
+  var NIVEAUX_DF = [
+    ["ci", "CI"], ["cp", "CP"], ["ce1", "CE1"],
+    ["ce2", "CE2"], ["cm1", "CM1"], ["cm2", "CM2"]
+  ];
+
+  /* I — Classes multigrades : ordre officiel des 15 combinaisons
+     (3 d'étapes, 2 contiguës, 10 éloignées). */
+  var COMBOS_MG = [
+    ["ci_cp", "CI/CP", "etapes"],
+    ["ce1_ce2", "CE1/CE2", "etapes"],
+    ["cm1_cm2", "CM1/CM2", "etapes"],
+    ["cp_ce1", "CP/CE1", "contigues"],
+    ["ce2_cm1", "CE2/CM1", "contigues"],
+    ["ci_ce1", "CI/CE1", "eloignees"],
+    ["ci_ce2", "CI/CE2", "eloignees"],
+    ["ci_cm1", "CI/CM1", "eloignees"],
+    ["ci_cm2", "CI/CM2", "eloignees"],
+    ["cp_ce2", "CP/CE2", "eloignees"],
+    ["cp_cm1", "CP/CM1", "eloignees"],
+    ["cp_cm2", "CP/CM2", "eloignees"],
+    ["ce1_cm1", "CE1/CM1", "eloignees"],
+    ["ce1_cm2", "CE1/CM2", "eloignees"],
+    ["ce2_cm2", "CE2/CM2", "eloignees"]
   ];
 
   /* -----------------------------------------------------------------------
@@ -284,7 +310,50 @@
       obs_pedagogique: txt(val(f, "obs_pedagogique"))
     };
 
-    /* --- H. Personnel --- */
+    /* --- H. Classes double-flux --- */
+    var double_flux = NIVEAUX_DF.map(function (pair) {
+      var cle = pair[0], label = pair[1];
+      var o = (raw.double_flux && typeof raw.double_flux === "object" &&
+               raw.double_flux[cle]) || {};
+      var g = num(o.g), f = num(o.f);
+      return {
+        niveau: label,
+        nb_classes: num(o.nb_classes),
+        g: g,
+        f: f,
+        t: g + f
+      };
+    });
+
+    /* --- I. Classes multigrades --- */
+    var mgTotal = {
+      nb_classes: 0,
+      gp1_g: 0, gp1_f: 0, gp1_t: 0,
+      gp2_g: 0, gp2_f: 0, gp2_t: 0,
+      gp12_g: 0, gp12_f: 0, gp12_t: 0
+    };
+    var multigrades = COMBOS_MG.map(function (c) {
+      var cle = c[0], label = c[1], groupe = c[2];
+      var o = (raw.multigrades && typeof raw.multigrades === "object" &&
+               raw.multigrades[cle]) || {};
+      var gp1g = num(o.gp1_g), gp1f = num(o.gp1_f);
+      var gp2g = num(o.gp2_g), gp2f = num(o.gp2_f);
+      var row = {
+        cle: cle,
+        combinaison: label,
+        groupe: groupe,
+        nb_classes: num(o.nb_classes),
+        gp1_g: gp1g, gp1_f: gp1f, gp1_t: gp1g + gp1f,
+        gp2_g: gp2g, gp2_f: gp2f, gp2_t: gp2g + gp2f,
+        gp12_g: gp1g + gp2g,
+        gp12_f: gp1f + gp2f,
+        gp12_t: gp1g + gp1f + gp2g + gp2f
+      };
+      Object.keys(mgTotal).forEach(function (k) { mgTotal[k] += row[k]; });
+      return row;
+    });
+
+    /* --- J. Personnel --- */
     function pers(item, idx) {
       return {
         num: num(item.num_ligne) || (idx + 1),
@@ -324,7 +393,7 @@
     rfKeys.forEach(function (k) { recap_fr[k] = num(val(f, k, "recap_francais/")); });
     raKeys.forEach(function (k) { recap_ar[k] = num(val(f, k, "recap_arabe/")); });
 
-    /* --- I. Effectifs --- */
+    /* --- K. Effectifs --- */
     var totalKeys = ["eff_g", "eff_f", "eff_t", "red_g", "red_f", "red_t",
                      "hand_g", "hand_f", "hand_t",
                      "sans_etat_g", "sans_etat_f", "sans_etat_t"];
@@ -346,7 +415,7 @@
     var total_row = { cours: "TOTAL", nb_classes: totalClasses };
     totalKeys.forEach(function (k) { total_row[k] = total[k]; });
 
-    /* --- J. Mobilier --- */
+    /* --- L. Mobilier --- */
     var mobilier = MOBILIER.map(function (pair) {
       var grp = pair[0], label = pair[1];
       var inside = grp + "/";
@@ -359,7 +428,7 @@
       };
     });
 
-    /* --- K, L, M, N. Manuels & matériel --- */
+    /* --- M, N, O, P. Manuels & matériel --- */
     function stuff(item) {
       return {
         titre: txt(item.titre || item.designation),
@@ -406,6 +475,9 @@
       malades: malades,
       recap_fr: recap_fr,
       recap_ar: recap_ar,
+      double_flux: double_flux,
+      multigrades: multigrades,
+      multigrades_total: mgTotal,
       effectifs: effectifs,
       effectifs_total: total_row,
       mobilier: mobilier,
