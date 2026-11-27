@@ -41,9 +41,10 @@ window.RR_CONFIG = {
                Inspection ("" = gabarit de rapport.js, rien à charger)
       analyse_js : JS du module d'analyse DÉDIÉ au type, chargé à la
                demande par analyse.js ("" = moteur élémentaire, inchangé)
-      xlsx_js : JS du classeur du modèle officiel du type, chargé à la
-               demande par l'Espace Inspection au clic sur « Export
-               XLSX » ("" = classeur élémentaire 8 feuilles)
+      xlsx_js : JS du classeur du modèle officiel du type (une URL ou un
+               tableau d'URL chargées dans l'ordre), chargé à la demande
+               par l'Espace Inspection au clic sur « Export XLSX »
+               ("" = classeur élémentaire 8 feuilles)
      La page active choisit son type avec ?type=<id> (défaut : le 1er). */
   TYPES: [
     { id: "succinct-prescolaire",  nom: "Rapport succinct de rentrée préscolaire",
@@ -59,10 +60,12 @@ window.RR_CONFIG = {
     { id: "succinct-moyen",        nom: "Rapport succinct de rentrée moyen",
       form: "", pdf: false, xlsx: false, analyse: false, pages: 0 },
     { id: "general-prescolaire",   nom: "Rapport général de rentrée préscolaire",
-      form: "general-prescolaire.html", pdf: true, xlsx: false, analyse: false,
+      form: "general-prescolaire.html", pdf: true, xlsx: true, analyse: false,
       pages: 5, ecoles: "RR_ECOLES_PRESCOLAIRE",
       modif: "RR_MODIF_GENERAL_PRESCOLAIRE",
       brouillon: "rr_brouillon_general_prescolaire_v1",
+      xlsx_js: ["assets/js/xlsx-modele-general-prescolaire.js",
+                "assets/js/xlsx-general-prescolaire.js"],
       modele: "assets/js/rapport-general-prescolaire.js" },
     { id: "general-elementaire",   nom: "Rapport général de rentrée élémentaire",
       form: "general-elementaire.html", pdf: true, xlsx: true, analyse: true,

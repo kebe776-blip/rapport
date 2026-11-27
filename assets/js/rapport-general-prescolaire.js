@@ -134,7 +134,7 @@
 
     function v(name, within) { return val(f, name, within); }
 
-    /* --- A. Identification (CODEC facultatif NON imprimé sur le PDF) --- */
+    /* --- A. Identification (CODEC retiré du formulaire) --- */
     var a = {
       nom_ecole: txt(v("nom_ecole", "identification"), "—").toUpperCase(),
       statut: lab("statut", v("statut", "identification"), "—"),
@@ -192,10 +192,24 @@
 
     /* --- E. Ouvrages annexes (Senelec + plaques solaires seuls ;
           robinet/puits Oui-Non + Etat + Bailleur ; « Bloc administratif ») --- */
-    function on(k) { return lab("oui_non", v(k, "ouvrages_annexes"), "—"); }
-    function et(k) { return lab("etat", v(k, "ouvrages_annexes"), "—"); }
-    function ba(k) { return txt(v(k, "ouvrages_annexes"), "NÉANT"); }
-    function nn(k) { return num(v(k, "ouvrages_annexes")); }
+    /** Valeur du formulaire, avec repli sur l'ancienne clé si nécessaire. */
+    function brut(k, ancienne) {
+      var x = v(k, "ouvrages_annexes");
+      if ((x === undefined || x === null || x === "") && ancienne) {
+        x = v(ancienne, "ouvrages_annexes");
+      }
+      return x;
+    }
+    function on(k, ancienne) { return lab("oui_non", brut(k, ancienne), "—"); }
+    function et(k, ancienne) { return lab("etat", brut(k, ancienne), "—"); }
+    function ba(k, ancienne) { return txt(brut(k, ancienne), "NÉANT"); }
+    function nn(k, ancienne) {
+      var x = brut(k, ancienne);
+      var s = String(x === null || x === undefined ? "" : x).trim().toLowerCase();
+      if (s === "oui") { return 1; }
+      if (s === "non") { return 0; }
+      return num(x);
+    }
 
     var e = {
       toilettes: on("toilettes"),
@@ -207,18 +221,18 @@
       cabines_non_adaptees: nn("cabines_non_adaptees"),
       bailleur_toilettes: ba("bailleur_toilettes"),
       point_eau: on("point_eau"),
-      robinet: on("robinet"),
-      etat_robinet: et("etat_robinet"),
-      bailleur_robinet: ba("bailleur_robinet"),
+      robinet: nn("nb_robinets", "robinet"),
+      etat_robinet: et("etat_point_eau", "etat_robinet"),
+      bailleur_robinet: ba("bailleur_point_eau", "bailleur_robinet"),
       puits: on("puits"),
       etat_puits: et("etat_puits"),
       bailleur_puits: ba("bailleur_puits"),
       senelec: on("senelec"),
-      etat_senelec: et("etat_senelec"),
+      etat_senelec: et("etat_electricite", "etat_senelec"),
       plaques_solaires: on("plaques_solaires"),
       etat_plaques_solaires: et("etat_plaques_solaires"),
-      bloc_admin: on("bloc_admin"),
-      bailleur_bloc_admin: ba("bailleur_bloc_admin"),
+      bloc_admin: on("bureau", "bloc_admin"),
+      bailleur_bloc_admin: ba("bailleur_bureau", "bailleur_bloc_admin"),
       magasin: on("magasin"),
       bailleur_magasin: ba("bailleur_magasin"),
       cloture: on("cloture"),
@@ -261,7 +275,9 @@
         date_entree: txt(item.date_entree),
         date_affectation: txt(item.date_affectation),
         section_tenu: txt(item.section_tenu).toUpperCase(),
-        contact: txt(item.contact)
+        contact: txt(item.contact),
+        sexe: txt(item.sexe).toUpperCase(),
+        fonction: txt(item.fonction).toUpperCase()
       };
     }
 
@@ -272,7 +288,8 @@
         noms: txt(item.noms).toUpperCase(),
         cni: txt(item.cni),
         date_affectation: txt(item.date_affectation),
-        employeur: txt(item.employeur)
+        employeur: txt(item.employeur),
+        sexe: txt(item.sexe).toUpperCase()
       };
     }
 
@@ -300,7 +317,8 @@
       { code: "MS", l: "M.S" },
       { code: "GS", l: "G.S" }
     ];
-    var effCols = ["eff_g", "eff_f", "eff_t",
+    var effCols = ["nb_classes",
+                   "eff_g", "eff_f", "eff_t",
                    "pass_g", "pass_f", "pass_t",
                    "red_g", "red_f", "red_t",
                    "te_g", "te_f", "te_t",
@@ -820,8 +838,11 @@ persTable(ctx.malades, 2) +
              ">" + r[pre + "_t"] + "</td>";
     }
 
-    function ligne(r, prefixes) {
+    function ligne(r, prefixes, avecNb) {
       var out = '<td class="c">' + u(r.section) + "</td>";
+      if (avecNb) {
+        out += '<td class="n">' + (r.nb_classes || 0) + "</td>";
+      }
       prefixes.forEach(function (pre, i) {
         out += celluleT(r, pre, i < prefixes.length - 1);
       });
@@ -835,10 +856,11 @@ persTable(ctx.malades, 2) +
 '<h2 class="section">I. &nbsp; SITUATION DES EFFECTIFS</h2>' +
 '<table class="grid p4-eff">' +
   "<tr>" +
-    '<th rowspan="2" style="width:8%;">SECTIONS</th>';
+    '<th rowspan="2" style="width:8%;">SECTIONS</th>' +
+    '<th rowspan="2" style="width:6%;">Nbr Classe</th>';
     titresEff.forEach(function (titre, i) {
       html += '<th colspan="3" class="cat' + (i < titresEff.length - 1 ? " sep" : "") +
-              '">' + titre + "</th>";
+              '" style="width:14.333%;">' + titre + "</th>";
     });
     html += "</tr><tr>";
     groupesEff.forEach(function (pre, i) {
@@ -848,9 +870,9 @@ persTable(ctx.malades, 2) +
     html += "</tr>";
 
     ctx.effectifs.forEach(function (r) {
-      html += "<tr>" + ligne(r, groupesEff) + "</tr>";
+      html += "<tr>" + ligne(r, groupesEff, true) + "</tr>";
     });
-    html += '<tr class="totale">' + ligne(t, groupesEff) + "</tr>" +
+    html += '<tr class="totale">' + ligne(t, groupesEff, true) + "</tr>" +
             "</table>";
 
     /* ---- J. Situation des handicapés ---- */
@@ -861,8 +883,8 @@ persTable(ctx.malades, 2) +
     '<th rowspan="2" style="width:7%;">SECTIONS</th>';
     categoriesHand.forEach(function (c, i) {
       html += '<th colspan="3" class="cat' +
-              (i < categoriesHand.length - 1 ? " sep" : "") + '">' +
-              c[1] + "</th>";
+              (i < categoriesHand.length - 1 ? " sep" : "") +
+              '" style="width:11.625%;">' + c[1] + "</th>";
     });
     html += "</tr><tr>";
     categoriesHand.forEach(function (c, i) {
@@ -884,11 +906,11 @@ persTable(ctx.malades, 2) +
 '<h2 class="section">K. &nbsp; MOBILIERS</h2>' +
 '<table class="grid p4-mob">' +
   "<tr>" +
-    '<th style="width:40%;">Mobilier</th>' +
-    '<th style="width:15%;">Bon</th>' +
-    '<th style="width:15%;">A réparer</th>' +
-    '<th style="width:15%;">Total</th>' +
-    '<th style="width:15%;">Déficit</th>' +
+    '<th style="width:48%; text-align:left; font-style:italic;">Mobilier</th>' +
+    '<th style="width:13%; font-style:italic;">Bon</th>' +
+    '<th style="width:13%; font-style:italic;">A réparer</th>' +
+    '<th style="width:13%; font-style:italic;">Total</th>' +
+    '<th style="width:13%; font-style:italic;">Déficit</th>' +
   "</tr>";
 
     ctx.mobilier.forEach(function (m) {

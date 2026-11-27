@@ -27,6 +27,10 @@
                     ["interimaire", "INTÉRIMAIRE"]];
   var DISCIPLINE = [["", "—"], ["francais", "FRANÇAIS"], ["arabe", "ARABE"],
                     ["anglais", "ANGLAIS"]];
+  var SEXE = [["", "—"], ["m", "M"], ["f", "F"]];
+  var FONCTION = [["", "—"], ["directeur", "DIRECTEUR"],
+                  ["directrice", "DIRECTRICE"], ["adjoint", "ADJOINT"],
+                  ["adjointe", "ADJOINTE"]];
 
   /* -----------------------------------------------------------------------
      SECTIONS A → G (champs simples)
@@ -47,11 +51,7 @@
         { n: "commune", l: "Commune", t: "combo", maj: "upper",
           liste: global.RR_COMMUNES,
           aide: "Tapez pour filtrer, puis choisissez dans la liste." },
-        { n: "district", l: "District", t: "text", maj: "upper" },
-        { n: "codec", l: "CODEC", t: "combo", maj: "upper",
-          liste: global.RR_CODECS,
-          aide: "Facultatif et non imprimé sur le PDF — il sert au " +
-                "regroupement dans l'Analyse." }
+        { n: "district", l: "District", t: "text", maj: "upper" }
       ]
     },
     {
@@ -206,25 +206,28 @@
      d'affectation, Employeur).
      ----------------------------------------------------------------------- */
   var COLONNES_PERSONNEL = [
-    { n: "prenom", l: "Prénom", t: "text", maj: "upper", w: "10%" },
-    { n: "nom", l: "Nom", t: "text", maj: "upper", w: "10%" },
-    { n: "grade", l: "Grade", t: "text", w: "7%" },
-    { n: "matricule", l: "Matricule", t: "text", w: "9%" },
-    { n: "discipline", l: "Discipline", t: "select", opts: DISCIPLINE, w: "9%" },
-    { n: "diplome_acad", l: "Dipl. acad.", t: "text", w: "8%" },
-    { n: "diplome_prof", l: "Dipl. prof.", t: "text", w: "8%" },
-    { n: "date_entree", l: "Date entrée ens.", t: "date", w: "9%" },
-    { n: "date_affectation", l: "Date affectation", t: "date", w: "9%" },
-    { n: "section_tenu", l: "Section tenue", t: "text", w: "9%" },
-    { n: "contact", l: "Contact", t: "text", tel: true, w: "12%" }
+    { n: "prenom", l: "Prénom", t: "text", maj: "upper", w: "9%" },
+    { n: "nom", l: "Nom", t: "text", maj: "upper", w: "9%" },
+    { n: "sexe", l: "Sexe M/F", t: "select", opts: SEXE, w: "6%" },
+    { n: "fonction", l: "Fonction", t: "select", opts: FONCTION, w: "10%" },
+    { n: "grade", l: "Grade", t: "text", w: "6%" },
+    { n: "matricule", l: "Matricule", t: "text", w: "8%" },
+    { n: "discipline", l: "Discipline", t: "select", opts: DISCIPLINE, w: "8%" },
+    { n: "diplome_acad", l: "Dipl. acad.", t: "text", w: "7%" },
+    { n: "diplome_prof", l: "Dipl. prof.", t: "text", w: "7%" },
+    { n: "date_entree", l: "Date entrée ens.", t: "date", w: "8%" },
+    { n: "date_affectation", l: "Date affectation", t: "date", w: "8%" },
+    { n: "section_tenu", l: "Section tenue", t: "text", w: "7%" },
+    { n: "contact", l: "Contact", t: "text", tel: true, w: "9%" }
   ];
 
   var COLONNES_SERVICE = [
-    { n: "prenoms", l: "Prénoms", t: "text", maj: "upper", w: "24%" },
-    { n: "noms", l: "Noms", t: "text", maj: "upper", w: "24%" },
-    { n: "cni", l: "N° CNI", t: "text", w: "18%" },
-    { n: "date_affectation", l: "Date affectation", t: "date", w: "16%" },
-    { n: "employeur", l: "Employeur", t: "text", w: "18%" }
+    { n: "prenoms", l: "Prénoms", t: "text", maj: "upper", w: "21%" },
+    { n: "noms", l: "Noms", t: "text", maj: "upper", w: "21%" },
+    { n: "sexe", l: "Sexe M/F", t: "select", opts: SEXE, w: "8%" },
+    { n: "cni", l: "N° CNI", t: "text", w: "16%" },
+    { n: "date_affectation", l: "Date affectation", t: "date", w: "14%" },
+    { n: "employeur", l: "Employeur", t: "text", w: "20%" }
   ];
 
   var PERSONNEL = [
@@ -264,9 +267,10 @@
 
   /* -----------------------------------------------------------------------
      I — EFFECTIFS (page 4) : 3 lignes fixes P.S / M.S / G.S du modèle,
-     6 groupes G / F / T (effectif, passants, redoublants, transferts
-     entrants, transferts sortants, pièces d'état civil) et ligne TOTAL
-     calculée. Pas de colonne « Type » ni « N°Maître » (absentes du modèle).
+     1 colonne « Nbr Classe » + 6 groupes G / F / T (effectif, passants,
+     redoublants, transferts entrants, transferts sortants, pièces d'état
+     civil) et ligne TOTAL calculée. Pas de colonne « Type » ni « N°Maître »
+     (absentes du modèle).
      ----------------------------------------------------------------------- */
   var LIGNES_SECTIONS = ["P.S", "M.S", "G.S"];
 
@@ -274,6 +278,7 @@
     lettre: "I", groupe: "effectifs",
     titre: "SITUATION DES EFFECTIFS",
     lignes_fixes: LIGNES_SECTIONS,
+    nb_classes: true,
     aide: "P.S / M.S / G.S — Total (T) = G + F par ligne, la ligne TOTAL " +
           "additionne les trois sections.",
     groupes: [
@@ -444,7 +449,8 @@
     OBLIGATOIRES: OBLIGATOIRES,
     OPTIONS: {
       OUI_NON: OUI_NON, STATUT: STATUT, ETAT: ETAT,
-      STATUT_DIR: STATUT_DIR, DISCIPLINE: DISCIPLINE
+      STATUT_DIR: STATUT_DIR, DISCIPLINE: DISCIPLINE,
+      SEXE: SEXE, FONCTION: FONCTION
     }
   };
 

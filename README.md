@@ -98,14 +98,20 @@ Le PDF contient **exactement 5 pages A4 paysage** (sections **A → M**) :
 | **1** | En-tête officiel + **A** Identification (sans le CODEC) + **B** Classes pédagogiques (3 colonnes) + **C** Classes physiques (ETAT/ANCTP/COM./PLAN/PRIVE/APE + Total auto + abris + à réhabiliter + note *« Ne mettez pas de croix… »*) + **D** Directeur (avec WhatsApp) |
 | **2** | **E** Ouvrages annexes (cabines adaptées/non adaptées, *Bloc administratif*, Senelec + plaques solaires seuls, robinet/puits Oui-Non + État + Bailleur) + **F** Activités (ligne « 2 » du modèle Word non reproduite) + **G** Observations + *LE DIRECTEUR (signature et cachet)* |
 | **3** | **H** Personnel enseignant **10 lignes** (colonne *Section tenue*) + **MALADES 2 lignes** + récapitulation FR/AR + **SERVICE 5 lignes** |
-| **4** | **I** Effectifs **3 lignes fixes P.S / M.S / G.S** (EFFECTIF / PASSANTS / REDOUBLANTS / TRANSFERTS ENTRANTS / TRANSFERTS SORTANTS / SANS ÉTAT CIVIL × G F T + ligne **TOTAL** calculée) + **J** **SITUATION DES HANDICAPÉS** (8 catégories × G F T + TOTAL) + **K** **MOBILIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) |
+| **4** | **I** Effectifs **3 lignes fixes P.S / M.S / G.S** (**Nbr Classe** + EFFECTIF / PASSANTS / REDOUBLANTS / TRANSFERTS ENTRANTS / TRANSFERTS SORTANTS / SANS ÉTAT CIVIL × G F T + ligne **TOTAL** calculée) + **J** **SITUATION DES HANDICAPÉS** (8 catégories × G F T + TOTAL) + **K** **MOBILIERS 16 lignes** (Bon / A réparer / Total auto / Déficit) |
 | **5** | **L** **RECENSEMENT DES MANUELS 10 lignes** (*Désignation / Quantité / Provenances / Besoins / Observations*) + **M** **RECENSEMENT DU MATÉRIEL 14 lignes** (*Désignation / Quantité / Provenance / Besoins / Observations*) — tableaux sans colonne N° + pied de page |
 
 Décisions de conformité (modèle 2026/2027) : **page 4 = I + J + K** et
 **page 5 = L + M** (libellés verbatim du `.docx` : « Provenances » au
-pluriel pour L, « Provenance » au singulier pour M), **CODEC facultatif non
-imprimé** sur le PDF (il sert uniquement au groupement de l'Analyse),
-colonne **« N°Maître » non reprise**.
+pluriel pour L, « Provenance » au singulier pour M), **champ CODEC retiré
+du formulaire** (il n'était déjà pas imprimé sur le PDF ; les anciens
+rapports restent lisibles, aucune migration), colonne **« N°Maître » non
+reprise**.
+
+**Navigation clavier** : toutes les sections sont ouvertes au chargement ;
+les flèches **↑ ↓ ← →** déplacent d'un champ à l'autre, **←/→** agissant en
+début ou en fin de texte. Les listes déroulantes et les zones de texte
+gardent leurs flèches natives.
 
 **Garantie « 5 pages »** : lignes fixes + auto-ajustement (compression de
 −0,25 pt par palier, 3 paliers maximum, puis `overflow: hidden` +
@@ -118,9 +124,9 @@ exactement 5 pages (`pages.length !== 5`).
 `general-prescolaire.html`). `form.js`, `champs.js`, `rapport.js` et
 `lib.js` restent **intacts** : le gabarit dédié n'est chargé qu'à la
 demande (registre `RR_MODELES[type]`), comme pour le succinct.
-**Périmètre** : PDF + Espace Inspection uniquement — l'**Analyse** et
-l'**Export XLSX** de ce type sont déclarés *« en préparation »*
-(`analyse: false`, `xlsx: false` dans `config.js`).
+**Périmètre** : PDF, Espace Inspection et **Export XLSX** (9 feuilles
+officielles) ; l'**Analyse** reste *« en préparation »*
+(`analyse: false`).
 
 ### Le rapport général moyen & secondaire — 14 pages strictes
 
@@ -229,8 +235,9 @@ sont strictement préservés : les autres types rendent à l'identique.
 
 ### Listes fermées : écoles, CODEC, communes, préscolaire et moyen
 
-Les champs **Nom de l'école**, **CODEC** et **Commune** (section A) sont des
-listes déroulantes **filtrables** : on tape quelques lettres, la liste réduit,
+Les champs **Nom de l'école** et **Commune** — et **CODEC** dans les
+formulaires qui le proposent — sont des listes déroulantes **filtrables** :
+on tape quelques lettres, la liste réduit,
 on choisit. Le filtrage est **insensible aux accents et à la casse**
 (`ndrame` → `NDRAMÉ DIMB`, `fode` → `KEUR FODÉ`).
 
@@ -244,8 +251,8 @@ on choisit. Le filtrage est **insensible aux accents et à la casse**
   (voir `supabase/listes.sql` et les migrations).
 * **Blocage** : une valeur absente de la liste est **refusée à la
   soumission** — message d'erreur, aucun envoi réseau, aucun PDF.
-* **CODEC et Commune facultatifs** : le champ peut rester vide, mais s'il
-  est saisi il doit figer dans la liste.
+* **Commune facultative** (et CODEC là où le champ existe) : le champ peut
+  rester vide, mais s'il est saisi il doit figurer dans la liste.
 * **Gestion depuis l'espace Inspection** : la carte *« Listes des écoles
   et des CODEC »* donne les **cinq colonnes** (écoles, CODEC, communes,
   écoles préscolaires, établissements moyens) pour ajouter ou supprimer une
@@ -309,8 +316,7 @@ assets/js/champs-evaluations.js  ★ Définition des évaluations (A/B, classes
 assets/js/champs-general-prescolaire.js  ★ Définition du général préscolaire
                         (sections A → M, personnel 10/2/5, effectifs I et
                         handicapés J à lignes fixes, mobiliers K 16,
-                        recensements L 10 / M 14 lignes,
-                        CODEC facultatif non imprimé)
+                        recensements L 10 / M 14 lignes)
 assets/js/champs-general-moyen.js  ★ Définition du général moyen & secondaire
                         (11 feuilles, 52 administratifs / 69 enseignants /
                         20 agents de service, élèves vulnérables, effectifs
@@ -341,6 +347,10 @@ assets/js/xlsx-export.js Export Excel : classeur 8 feuilles depuis l'Espace Insp
 assets/js/xlsx-modele.js En-têtes / fusions / largeurs des 6 feuilles du modèle officiel
 assets/js/xlsx-succinct.js ★ Classeur du modèle officiel 3 feuilles (succinct préscolaire),
                          en-têtes copiés du modèle, chargé à la demande au clic
+assets/js/xlsx-general-prescolaire.js ★ Classeur du général préscolaire :
+                         9 feuilles officielles, chargé à la demande au clic
+assets/js/xlsx-modele-general-prescolaire.js ★ En-têtes / fusions / largeurs
+                         des 9 feuilles du modèle général préscolaire
 assets/vendor/          supabase-js, html2canvas, jsPDF, SheetJS (embarqués, hors-ligne ;
                         jsPDF + html2canvas et SheetJS sont chargés à la demande, au clic)
 assets/logo_men.png     ★ Logo officiel du MEN (en-tête haut droit du rapport)
@@ -523,14 +533,15 @@ admin.html?type=evaluations             analyse.html?type=evaluations
   `general-elementaire` (7 pages), `succinct-prescolaire` (2 pages),
   `general-prescolaire` (5 pages), `general-moyen` (14 pages mixtes)
   **et `evaluations`** (2 pages portrait) ;
-  **⬇ Export XLSX** et la page **📊 Analyse** sont actifs pour
-  `general-elementaire` **et**
-  `succinct-prescolaire` (modules dédiés chargés à la demande).
-  `general-prescolaire`, `general-moyen` et `evaluations` ont
-  `xlsx: false` et `analyse: false` : leur Espace Inspection affiche le bon
-  nombre de pages et ouvre le gabarit, mais l'Export XLSX est **désactivé**
-  et la page Analyse affiche **« Analyse en préparation pour ce type »**
-  avec un lien de retour (aucune donnée lue).
+  **⬇ Export XLSX** est actif pour `general-elementaire` (8 feuilles),
+  `succinct-prescolaire` (modèle 3 feuilles) et `general-prescolaire`
+  (9 feuilles officielles), modules chargés à la demande.
+  La page **📊 Analyse** est active pour `general-elementaire` et
+  `succinct-prescolaire`. `general-prescolaire`, `general-moyen` et
+  `evaluations` ont `analyse: false` : leur page Analyse affiche
+  **« Analyse en préparation pour ce type »** avec un lien de retour
+  (aucune donnée lue). `general-moyen` et `evaluations` ont en plus
+  `xlsx: false`.
   Pour un type sans capacité, l'Espace affiche
   « à venir ».
 
@@ -547,7 +558,21 @@ le classeur du type, chargé à la demande :
   somables et dates en jj/mm/aaaa. La feuille *Effectifs et cours* suit
   le modèle officiel : en-têtes fusionnés (N°, Etablissement, CI → CM2
   avec Nombre / EFFECTIFS / REDOUBLANTS / HANDICAPÉS / SANS ÉTAT CIVIL)
-  puis **TOTAL ÉTABLISSEMENT** ;
+  puis **TOTAL ÉTABLISSEMENT**. La feuille *Type de classe* reprend les
+  compteurs et effectifs H/I : **15 combinaisons multigrades**, **6 niveaux
+  double-flux**, effectifs **GP1/GP2 en G/F/T** et leurs totaux ;
+  « Nombre de classes » = classes simples + CMG + CDF. Les colonnes
+  propres aux classes simples restent vides (non collectées séparément) ;
+  les anciens rapports sans H/I exportent 0 dans ces colonnes ;
+- **`general-prescolaire`** → `Rapport_General_Prescolaire_2026-2027.xlsx`,
+  le **modèle officiel 9 feuilles** : `COURS ET EFFECTIFS`,
+  `SITUATION HANDICAPE`, `SITUATION ELEVE SANS ETAT CIVIL`,
+  `LISTE DES PERSONNELS ENSEIGNANT`, `MALADES`, `SUPPLEANTS`,
+  `SERVICE`, `OUVRAGES ET ACTIVITES ANNEXES`, `MOBILIERS ET EQUIPEMENTS`.
+  Les effectifs détaillés, handicaps, sans état civil et listes nominatives
+  sont donc exportés dans les feuilles officielles. La feuille SUPPLEANTS
+  reste vide (pas de tableau suppléants dans le formulaire) ; les manuels,
+  le matériel et les champs hors modèle ne sont pas repris ;
 - **`succinct-prescolaire`** → `Rapport_Succinct_Prescolaire_2026-2027.xlsx`,
   le **modèle officiel 3 feuilles** (`assets/js/xlsx-succinct.js`) :
   *COURS ET EFFECTIFS* (78 colonnes), *OUVRAGES ET ACTIVITES ANNEXES*

@@ -390,6 +390,7 @@
     return { nom: nom, feuilles: 3 };
   }
 
+  global.RR_MODELE_PRESCOLAIRE = MODELE;
   global.RR = global.RR || {};
   global.RR.xlsxPrescolaire = { creer: creer };
 

@@ -24,6 +24,7 @@
   var conteneur = null;   /* élément qui reçoit le HTML du formulaire */
   var donnees = {};       /* objet en cours de saisie (sections A → M) */
   var minuteur = null;
+  var navFocusCible = null; /* champ ciblé par les flèches (combo : ne pas ouvrir) */
 
   /* -----------------------------------------------------------------------
      MODÈLE DU RAPPORT (contexte + pages + aperçu) — registre RR_MODELES.
@@ -141,8 +142,7 @@
     corps += "</div>";
     var note = sec.note
       ? '<div class="petit mb">' + esc(sec.note) + "</div>" : "";
-    return '<details class="section-form" data-sec="' + sec.lettre + '"' +
-             (sec.lettre === "A" ? " open" : "") + ">" +
+    return '<details class="section-form" data-sec="' + sec.lettre + '" open>' +
              "<summary>" + sec.lettre + ". " + esc(sec.titre) +
              '<span class="badge" data-badge="' + sec.lettre + '">0</span></summary>' +
              '<div class="corps">' + note + corps + "</div></details>";
@@ -245,6 +245,7 @@
      ----------------------------------------------------------------------- */
   function tableauFixeHTML(def, cleTable) {
     var groupes = def.groupes || def.categories;
+    var avecNb = !!def.nb_classes;
     var html = '<details class="section-form" open>' +
       '<summary>' + esc(def.lettre) + '. ' + esc(def.titre) +
       '<span class="badge" data-badge="' + esc(def.lettre) + '">0</span>' +
@@ -255,7 +256,8 @@
       '<div class="table-defilement"><table class="table-saisie" ' +
       'data-table="' + cleTable + '"><thead>' +
       '<tr>' +
-        '<th rowspan="2" style="width:10%;">SECTIONS</th>';
+        '<th rowspan="2" style="width:10%;">SECTIONS</th>' +
+        (avecNb ? '<th rowspan="2" style="width:8%;">Nbr Classe</th>' : "");
 
     groupes.forEach(function (g) {
       html += '<th colspan="3" class="grp">' + esc(g[1]) + "</th>";
@@ -272,6 +274,11 @@
           '<input type="hidden" data-type="text" data-n="section"' +
           ' data-path="' + cleTable + "[" + i + '].section" value="' +
           esc(label) + '"></td>';
+      if (avecNb) {
+        html += '<td><input type="number" min="0" data-type="num"' +
+          ' data-n="nb_classes" data-path="' + cleTable + "[" + i +
+          '].nb_classes" value="0"></td>';
+      }
       def.colonnes.forEach(function (c) {
         html += '<td><input type="number" min="0" data-type="num"' +
           ' data-n="' + c.n + '" data-path="' + cleTable + "[" + i + "]." +
@@ -285,6 +292,11 @@
     /* Ligne TOTAL : calculée (somme des trois sections), non modifiable. */
     html += '<tr data-ligne="total" class="totale">' +
       '<td class="libelle-ligne"><b>TOTAL</b></td>';
+    if (avecNb) {
+      html += '<td><input type="number" readonly class="fixe" data-type="num"' +
+        ' data-n="nb_classes" data-path="' + cleTable +
+        '_total.nb_classes" data-auto="1" value="0"></td>';
+    }
     def.colonnes.forEach(function (c) {
       html += '<td><input type="number" readonly class="fixe" data-type="num"' +
         ' data-n="' + c.n + '" data-path="' + cleTable + "_total." + c.n +
@@ -382,6 +394,7 @@
     conteneur.addEventListener("focusin", onComboFocusIn);
     conteneur.addEventListener("focusout", onComboFocusOut);
     conteneur.addEventListener("keydown", onComboKeyDown);
+    conteneur.addEventListener("keydown", onArrowNavigation);
     /* Empêche le champ de perdre le focus avant le clic sur une option. */
     conteneur.addEventListener("mousedown", function (ev) {
       if (ev.target.closest && ev.target.closest(".combo-option")) {
@@ -467,6 +480,9 @@
   function onComboFocusIn(ev) {
     var input = ev.target;
     if (input.tagName === "INPUT" && input.closest(".combo")) {
+      /* Focus atteint par les flèches : on garde la liste fermée pour
+         pouvoir continuer à se déplacer ; elle s'ouvrira à la frappe. */
+      if (navFocusCible === input) { navFocusCible = null; return; }
       afficherCombo(input, input.value === "");
     }
   }
@@ -485,7 +501,10 @@
     var ul = ulDe(input);
 
     if (!ul || ul.hidden) {
-      if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+      /* Liste fermée : ↓/↑ ouvre la liste seulement si le champ est vide.
+         Avec une valeur déjà saisie, les flèches servent à changer de champ. */
+      if ((ev.key === "ArrowDown" || ev.key === "ArrowUp") &&
+          !input.value.trim()) {
         ev.preventDefault();
         afficherCombo(input);
       }
@@ -527,6 +546,255 @@
     if (opts[i] && opts[i].scrollIntoView) {
       opts[i].scrollIntoView({ block: "nearest" });
     }
+  }
+
+  /* -----------------------------------------------------------------------
+     NAVIGATION CLAVIER TYPE EXCEL (flèches)
+     ----------------------------------------------------------------------- */
+  var NAV_KEYS = { ArrowLeft: 1, ArrowRight: 1, ArrowUp: 1, ArrowDown: 1 };
+
+  function estChampSaisie(el) {
+    return !!(el && el.tagName &&
+      (el.tagName === "INPUT" || el.tagName === "SELECT" ||
+       el.tagName === "TEXTAREA"));
+  }
+
+  /** Cible possible des flèches : on saute seulement les totaux readonly.
+      Les zones de texte restent accessibles, mais gardent ensuite leurs
+      flèches natives pour déplacer le curseur. */
+  function estCibleNavigation(el) {
+    if (!el || !el.tagName || el.disabled) { return false; }
+    if (el.tagName === "TEXTAREA") { return !el.readOnly; }
+    if (el.tagName === "SELECT") { return true; }
+    if (el.tagName !== "INPUT") { return false; }
+    if (el.type === "hidden" || el.readOnly) { return false; }
+    return ["text", "number", "tel", "date", "search", "email", "url"]
+      .indexOf(el.type) !== -1;
+  }
+
+  function estVisible(el) {
+    if (!(el.offsetWidth || el.offsetHeight ||
+          (el.getClientRects && el.getClientRects().length))) {
+      return false;
+    }
+    /* Chrome laisse une géométrie aux champs d'un <details> fermé :
+       on vérifie donc explicitement les sections repliées. */
+    var node = el;
+    while (node && node !== conteneur) {
+      if (node.tagName === "DETAILS" && !node.open) { return false; }
+      node = node.parentElement;
+    }
+    return true;
+  }
+
+  function centreDe(rect) {
+    return { x: (rect.left + rect.right) / 2,
+             y: (rect.top + rect.bottom) / 2 };
+  }
+
+  /** Champ le plus proche dans la direction demandée, d'abord dans la
+      section courante (même ligne pour ←/→, même rangée pour ↑/↓). */
+  function champSuivant(el, direction) {
+    var source = el.getBoundingClientRect();
+    var cs = centreDe(source);
+    var vertical = direction === "ArrowUp" || direction === "ArrowDown";
+    var section = el.closest ? el.closest("details.section-form") : null;
+    var candidats = [];
+
+    Array.prototype.forEach.call(
+      conteneur.querySelectorAll("input, select, textarea"), function (cand) {
+        if (cand === el || !estCibleNavigation(cand) || !estVisible(cand)) {
+          return;
+        }
+        if (section && cand.closest("details.section-form") !== section) {
+          return;
+        }
+        var r = cand.getBoundingClientRect();
+        if (!r.width && !r.height) { return; }
+        var cc = centreDe(r);
+        var dx = cc.x - cs.x;
+        var dy = cc.y - cs.y;
+        if (direction === "ArrowLeft" && dx >= -1) { return; }
+        if (direction === "ArrowRight" && dx <= 1) { return; }
+        if (direction === "ArrowUp" && dy >= -1) { return; }
+        if (direction === "ArrowDown" && dy <= 1) { return; }
+        candidats.push({ el: cand, r: r, dx: dx, dy: dy });
+      });
+
+    if (vertical) {
+      var proche = meilleurVertical(candidats, source);
+      if (proche) { return proche; }
+      /* Dernière rangée de la section : on passe à la section voisine,
+         en l'ouvrant si elle est repliée. */
+      return champSectionVoisine(section, direction);
+    }
+
+    var meilleur = null;
+    var meilleurScore = Infinity;
+    candidats.forEach(function (c) {
+      var recouvre = Math.min(source.bottom, c.r.bottom) -
+                     Math.max(source.top, c.r.top);
+      if (recouvre <= 0) { return; }
+      var score = Math.abs(c.dx) + Math.abs(c.dy) * 2;
+      if (score < meilleurScore) {
+        meilleurScore = score;
+        meilleur = c.el;
+      }
+    });
+    if (meilleur) { return meilleur; }
+
+    /* Fin de ligne : on continue dans l'ordre du DOM, dans la même section
+       (une ligne de tableau repart ainsi au début de la ligne suivante). */
+    return champDom(el, direction, true);
+  }
+
+  /** Parmi les champs de la rangée la plus proche, privilégie celui qui est
+      aligné horizontalement avec le champ courant. */
+  function meilleurVertical(candidats, source) {
+    if (!candidats.length) { return null; }
+    var distanceMin = Infinity;
+    candidats.forEach(function (c) {
+      var d = Math.abs(c.dy);
+      if (d < distanceMin) { distanceMin = d; }
+    });
+    var proches = candidats.filter(function (c) {
+      return Math.abs(c.dy) <= distanceMin + 26;
+    });
+    var meilleur = null;
+    var meilleurScore = Infinity;
+    proches.forEach(function (c) {
+      var recouvre = Math.min(source.right, c.r.right) -
+                     Math.max(source.left, c.r.left);
+      var score = (recouvre > 0 ? 0 : 1000) + Math.abs(c.dx) +
+                  Math.abs(c.dy) * 0.1;
+      if (score < meilleurScore) {
+        meilleurScore = score;
+        meilleur = c.el;
+      }
+    });
+    return meilleur;
+  }
+
+  /** Section précédente / suivante : l'ouvre si besoin et renvoie son
+      premier (↓) ou dernier (↑) champ navigable. */
+  function champSectionVoisine(section, direction) {
+    if (!section) { return null; }
+    var sections = conteneur.querySelectorAll("details.section-form");
+    var i = Array.prototype.indexOf.call(sections, section);
+    if (i === -1) { return null; }
+    var pas = direction === "ArrowDown" ? 1 : -1;
+    var voisine = sections[i + pas];
+    if (!voisine) { return null; }
+    if (!voisine.open) { voisine.open = true; }
+    var champs = [];
+    Array.prototype.forEach.call(
+      voisine.querySelectorAll("input, select, textarea"), function (cand) {
+        if (estCibleNavigation(cand)) { champs.push(cand); }
+      });
+    if (!champs.length) { return null; }
+    return direction === "ArrowDown"
+      ? champs[0] : champs[champs.length - 1];
+  }
+
+  function champDom(el, direction, memeSection) {
+    var tous = [];
+    Array.prototype.forEach.call(
+      conteneur.querySelectorAll("input, select, textarea"), function (cand) {
+        if (cand.type === "hidden" || cand.disabled) { return; }
+        tous.push(cand);
+      });
+    var i = tous.indexOf(el);
+    if (i === -1) { return null; }
+    var pas = direction === "ArrowRight" ? 1 : -1;
+    var section = memeSection && el.closest
+      ? el.closest("details.section-form") : null;
+
+    for (var j = i + pas; j >= 0 && j < tous.length; j += pas) {
+      var cand = tous[j];
+      if (!estCibleNavigation(cand)) { continue; }
+      if (memeSection) {
+        if (section && cand.closest("details.section-form") !== section) {
+          continue;
+        }
+        if (!estVisible(cand)) { continue; }
+      }
+      return cand;
+    }
+    return null;
+  }
+
+  /** En texte, ←/→ ne changent de champ qu'au début / à la fin. */
+  function bordDuCurseur(el, direction) {
+    if (el.tagName !== "INPUT") { return true; }
+    if (["text", "search", "tel", "email", "url", "password"]
+        .indexOf(el.type) === -1) {
+      return true;                  /* nombres : pas de curseur texte utile */
+    }
+    var debut, fin;
+    try { debut = el.selectionStart; fin = el.selectionEnd; }
+    catch (e) { return true; }
+    if (debut === null || fin === null) { return true; }
+    if (debut !== fin) { return false; }   /* sélection : laisser les flèches */
+    return direction === "ArrowLeft" ? debut === 0 : debut === el.value.length;
+  }
+
+  function ouvrirSections(el) {
+    var det = el.closest ? el.closest("details") : null;
+    while (det) {
+      if (!det.open) { det.open = true; }
+      det = det.parentElement ? det.parentElement.closest("details") : null;
+    }
+  }
+
+  function allerVers(el) {
+    if (!el) { return false; }
+    ouvrirSections(el);
+    navFocusCible = el;
+    try { el.focus({ preventScroll: true }); }
+    catch (e) { el.focus(); }
+    navFocusCible = null;
+    if (el.tagName === "INPUT" && el.type === "number") {
+      try { el.select(); } catch (e2) {}
+    } else if (el.tagName === "INPUT" && el.type !== "date") {
+      var fin = el.value.length;
+      try { el.setSelectionRange(fin, fin); } catch (e3) {}
+    } else if (el.tagName === "TEXTAREA") {
+      var finZone = el.value.length;
+      try { el.setSelectionRange(finZone, finZone); } catch (e4) {}
+    }
+    if (el.scrollIntoView) {
+      el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    return true;
+  }
+
+  function onArrowNavigation(ev) {
+    if (!NAV_KEYS[ev.key] || ev.defaultPrevented) { return; }
+    if (ev.altKey || ev.ctrlKey || ev.metaKey || ev.shiftKey) { return; }
+
+    var el = ev.target;
+    if (!estChampSaisie(el)) { return; }
+
+    /* Listes natives, dates et zones de texte : flèches natives. */
+    if (el.tagName === "SELECT" || el.tagName === "TEXTAREA") { return; }
+    if (el.tagName === "INPUT" && el.type === "date") { return; }
+
+    /* Combo ouvert : les flèches pilotent la liste. */
+    if (el.closest && el.closest(".combo")) {
+      var ul = ulDe(el);
+      if (ul && !ul.hidden) { return; }
+    }
+
+    /* ←/→ dans un texte : on laisse d'abord le curseur se déplacer. */
+    if ((ev.key === "ArrowLeft" || ev.key === "ArrowRight") &&
+        !bordDuCurseur(el, ev.key)) {
+      return;
+    }
+
+    var cible = champSuivant(el, ev.key);
+    if (!cible) { return; }
+    ev.preventDefault();
+    allerVers(cible);
   }
 
   /* -----------------------------------------------------------------------
@@ -578,11 +846,16 @@
       if (nomTable === "handicapes") { sommerTable("handicapes", D.HANDICAPES); }
     }
 
-    /* Liste déroulante filtrable : on filtre à chaque frappe, mais seulement
-       si la liste est déjà ouverte (après un choix, elle reste fermée). */
+    /* Liste déroulante filtrable : on filtre à chaque frappe. Si la liste a
+       été fermée (choix ou navigation clavier), une frappe réelle la rouvre ;
+       le dispatch programmatique de choisirCombo() ne la rouvre pas. */
     if (el.closest && el.closest(".combo")) {
       var ulSaisie = ulDe(el);
-      if (ulSaisie && !ulSaisie.hidden) { afficherCombo(el); }
+      if (ulSaisie &&
+          (!ulSaisie.hidden ||
+           (ev.isTrusted && document.activeElement === el))) {
+        afficherCombo(el);
+      }
     }
 
     mettreAJourBadges();
@@ -648,6 +921,7 @@
     var table = conteneur.querySelector('table[data-table="' + cleTable + '"]');
     if (!table) { return; }
     var cols = def.colonnes.map(function (c) { return c.n; });
+    if (def.nb_classes) { cols = ["nb_classes"].concat(cols); }
     var lignes = [];
     for (var i = 0; i < def.lignes_fixes.length; i++) {
       var tr = table.querySelector('tr[data-ligne="' + i + '"]');
@@ -793,6 +1067,12 @@
 
   function remplir(obj) {
     donnees = obj || {};
+    /* Le champ CODEC a été retiré du formulaire préscolaire : on ignore
+       aussi une éventuelle valeur héritée d'un ancien brouillon. */
+    if (donnees.identification &&
+        Object.prototype.hasOwnProperty.call(donnees.identification, "codec")) {
+      delete donnees.identification.codec;
+    }
     normaliserTableFixe(donnees, "effectifs", D.EFFECTIFS.lignes_fixes);
     normaliserTableFixe(donnees, "handicapes", D.HANDICAPES.lignes_fixes);
     Array.prototype.forEach.call(conteneur.querySelectorAll("[data-path]"), function (el) {
@@ -910,7 +1190,7 @@
       }
     });
 
-    /* 2. Champs à liste fermée (école préscolaire, commune, CODEC) —
+    /* 2. Champs à liste fermée (école préscolaire, commune) —
        la valeur saisie doit appartenir à la liste. */
     D.SECTIONS.forEach(function (s) {
       s.champs.forEach(function (c) {
@@ -923,8 +1203,7 @@
         });
         if (connu) { return; }
         erreurs.push("« " + v + " » ne figure pas dans la liste des " +
-          (c.n === "codec" ? "CODEC" :
-           c.n === "commune" ? "communes" : "écoles préscolaires") +
+          (c.n === "commune" ? "communes" : "écoles préscolaires") +
           " : choisissez une valeur dans la liste déroulante.");
         marquerInvalid(path);
         var el = conteneur.querySelector('[data-path="' + path + '"]');

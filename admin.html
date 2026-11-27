@@ -573,9 +573,12 @@
         msg("msg-admin", "warn", "Aucun rapport à exporter.");
         return;
       }
+      await modelePret();
       progres("Chargement du module XLSX…", 10);
       var scripts = ["assets/vendor/xlsx.full.min.js"];
-      if (typeInfo.xlsx_js) {
+      if (Array.isArray(typeInfo.xlsx_js)) {
+        scripts = scripts.concat(typeInfo.xlsx_js);
+      } else if (typeInfo.xlsx_js) {
         scripts.push(typeInfo.xlsx_js);
       } else {
         scripts.push("assets/js/xlsx-modele.js", "assets/js/xlsx-export.js");
@@ -588,8 +591,10 @@
         return;
       }
       progres("Création du classeur XLSX…", 70);
+      var moduleXlsx = window.RR.xlsxGeneralPrescolaire ||
+                       window.RR.xlsxPrescolaire;
       var res = typeInfo.xlsx_js
-        ? window.RR.xlsxPrescolaire.creer(complets)
+        ? moduleXlsx.creer(complets)
         : window.RR.xlsx.creer(complets);
       var nom = typeof res === "string" ? res : res.nom;
       var nbFeuilles = typeof res === "string" ? 8 : (res.feuilles || 3);

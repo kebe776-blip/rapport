@@ -5,7 +5,7 @@
 
      1. Identification              — une ligne par école (section A + D + méta)
      2. Effectifs et cours          — une ligne par école et par niveau (I)
-     3. Type de classe              — modèle TYPE DE CLASSE
+     3. Type de classe              — modèle TYPE DE CLASSE (B + H/I)
      4. Personnel enseignant        — modèle PERSONNELS ENSEIGNANT
      5. Liste du personnel          — modèle LISTE PERSONNELS (1 ligne / personne)
      6. Ouvrages annexes            — modèle OUVRAGES ET ACTIVITES ANNEXES
@@ -16,9 +16,11 @@
    les largeurs du fichier officiel (voir assets/js/xlsx-modele.js). On ne
    remplit que les colonnes du modèle qui ont un équivalent dans nos
    données : les colonnes non collectées (sexe, surplus/déficit, effectifs
-   distinguant classe simple / multigrade…) restent vides, et les données
-   sans colonne dans le modèle (Cahier PAAME, RELIT, planche
-   d'alphabétisation, mobilier « Autres »…) sont ignorées.
+   propres aux classes simples…) restent vides. Les compteurs et effectifs
+   des classes multigrades (I) et double-flux (H) sont désormais repris de
+   la page 3 du rapport élémentaire ; les données sans colonne dans le
+   modèle (Cahier PAAME, RELIT, planche d'alphabétisation, mobilier
+   « Autres »…) restent ignorées.
 
    Les formules du modèle (=F8+G8, =SUM(…)) sont recalculées en JavaScript :
    les valeurs sont écrites comme des nombres, somables dans Excel.
@@ -293,36 +295,31 @@
      3. Type de classe — colonnes du modèle (indices 0-based) :
         0 N° | 1 Etablissement | 2 Nombre de classes | 3 CL simples |
         4 CMG | 5 CDF | 6-11 CLASSES SIMPLES par niveau (non collecté) |
-        12-26 15 combinaisons MULTIGRADES | 27-32 DOUBLE FLUX par niveau |
-        33-167 effectifs par type de classe (non collectés) |
-        168-170 TOTAL GENERAL ECOLE (G / F / T)
+        12-26 15 combinaisons MULTIGRADES (nombre de classes) |
+        27-32 DOUBLE FLUX par niveau (nombre de classes) |
+        33-50 effectifs des classes simples (non collectés) |
+        51-53 total effectifs classes simples (non collecté) |
+        54-143 effectifs CMG : GP1/GP2 en G/F/T |
+        144-146 total effectifs CMG | 147-164 effectifs CDF G/F/T |
+        165-167 total effectifs CDF | 168-170 TOTAL GENERAL ECOLE
      -------------------------------------------------------------------- */
   var TC_MULTIGRADE = 12;            /* 12 → 26 : 15 combinaisons */
   var TC_DOUBLEFLUX = 27;            /* 27 → 32 : CI CP CE1 CE2 CM1 CM2 */
+  var TC_EFF_CMG = 54;               /* 54 → 143 : 15 × (GP1 + GP2) G/F/T */
+  var TC_TOT_CMG = 144;              /* 144 → 146 : total CMG G/F/T */
+  var TC_EFF_CDF = 147;              /* 147 → 164 : 6 niveaux G/F/T */
+  var TC_TOT_CDF = 165;              /* 165 → 167 : total CDF G/F/T */
   var TC_TOT_G = 168, TC_TOT_F = 169, TC_TOT_T = 170;
 
-  var NIVEAUX = ["CI", "CP", "CE1", "CE2", "CM1", "CM2"];
-  var RE_NIVEAU = /\b(CI|CP|CE1|CE2|CM1|CM2)\b/g;
-
-  /** Texte libre « CI/CP et CE1/CE2 » → groupes de niveaux. */
-  function groupesNiveaux(texte) {
-    if (!texte) { return []; }
-    var t = String(texte).toUpperCase().trim();
-    if (!t || /^N[ÉE]ANT$/.test(t) || t === "—") { return []; }
-    return t.split(/\s*[,;\n\r|]|\s+ET\s+/)
-      .map(function (s) { return s.match(RE_NIVEAU) || []; })
-      .filter(function (niv) { return niv.length > 0; });
-  }
-
-  /** Paires de niveaux d'un groupe : « CI/CP » → ["CI","CP"]. */
-  function pairesDuGroupe(niv) {
-    var out = [];
-    for (var i = 0; i + 1 < niv.length; i++) {
-      var a = niv[i], b = niv[i + 1];
-      var ia = NIVEAUX.indexOf(a), ib = NIVEAUX.indexOf(b);
-      out.push(ia <= ib ? a + "/" + b : b + "/" + a);
-    }
-    return out;
+  /** Indexe une liste de lignes par libellé (comparaison sans casse). */
+  function indexerPar(liste, cle) {
+    var map = {};
+    (liste || []).forEach(function (item) {
+      if (item && item[cle] !== undefined && item[cle] !== null) {
+        map[String(item[cle]).toUpperCase()] = item;
+      }
+    });
+    return map;
   }
 
   function ligneTypeClasse(x, n) {
@@ -330,28 +327,58 @@
     var l = rangee(md.nb_colonnes);
     l[0] = n;
     l[1] = x.meta.ecole;
-    l[2] = x.b.nb_cours;
+
+    /* Nombre de classes = classes simples + CMG + CDF (page 1 B). */
+    l[2] = x.b.nb_classes_simples + x.b.nb_cmg + x.b.nb_cdf;
     l[3] = x.b.nb_classes_simples;
     l[4] = x.b.nb_cmg;
     l[5] = x.b.nb_cdf;
 
-    /* Cours jumelés CMG → 1 dans la colonne de la combinaison (coche). */
-    var combos = md.entetes[1].slice(TC_MULTIGRADE,
-                                     TC_MULTIGRADE + 15);
-    groupesNiveaux(x.b.cours_jumeles_cmg).forEach(function (niv) {
-      pairesDuGroupe(niv).forEach(function (p) {
-        var i = combos.indexOf(p);
-        if (i >= 0) { l[TC_MULTIGRADE + i] = 1; }
-      });
+    var mgParCombo = indexerPar(x.multigrades, "combinaison");
+    var dfParNiveau = indexerPar(x.double_flux, "niveau");
+
+    /* CLASSES MULTIGRADES (12-26) + effectifs CMG GP1/GP2 (54-143). */
+    var combos = md.entetes[1].slice(TC_MULTIGRADE, TC_MULTIGRADE + 15);
+    combos.forEach(function (label, i) {
+      var m = mgParCombo[String(label).toUpperCase()];
+      if (!m) { return; }
+      l[TC_MULTIGRADE + i] = m.nb_classes;
+      var base = TC_EFF_CMG + i * 6;
+      l[base]     = m.gp1_g;
+      l[base + 1] = m.gp1_f;
+      l[base + 2] = m.gp1_t;
+      l[base + 3] = m.gp2_g;
+      l[base + 4] = m.gp2_f;
+      l[base + 5] = m.gp2_t;
     });
 
-    /* Cours jumelés CDF → 1 dans chaque niveau concerné (coche). */
-    groupesNiveaux(x.b.cours_jumeles_cdf).forEach(function (niv) {
-      niv.forEach(function (lv) {
-        var i = NIVEAUX.indexOf(lv);
-        if (i >= 0) { l[TC_DOUBLEFLUX + i] = 1; }
-      });
+    /* CLASSES DOUBLE FLUX (27-32) + effectifs CDF (147-164). */
+    var niveaux = md.entetes[1].slice(TC_DOUBLEFLUX, TC_DOUBLEFLUX + 6);
+    niveaux.forEach(function (label, i) {
+      var d = dfParNiveau[String(label).toUpperCase()];
+      if (!d) { return; }
+      l[TC_DOUBLEFLUX + i] = d.nb_classes;
+      var base = TC_EFF_CDF + i * 3;
+      l[base]     = d.g;
+      l[base + 1] = d.f;
+      l[base + 2] = d.t;
     });
+
+    /* Totaux CMG et CDF. */
+    var tm = x.multigrades_total || {};
+    l[TC_TOT_CMG]     = tm.gp12_g || 0;
+    l[TC_TOT_CMG + 1] = tm.gp12_f || 0;
+    l[TC_TOT_CMG + 2] = tm.gp12_t || 0;
+
+    var cdfG = 0, cdfF = 0, cdfT = 0;
+    (x.double_flux || []).forEach(function (d) {
+      cdfG += d.g || 0;
+      cdfF += d.f || 0;
+      cdfT += d.t || 0;
+    });
+    l[TC_TOT_CDF]     = cdfG;
+    l[TC_TOT_CDF + 1] = cdfF;
+    l[TC_TOT_CDF + 2] = cdfT;
 
     /* TOTAL GENERAL ECOLE = effectifs de l'école (section K). */
     l[TC_TOT_G] = x.effectifs_total.eff_g;
